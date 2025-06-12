@@ -1,17 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
 @import "tailwindcss";
 
-@font-face {
-  font-family: "MinhaFonte"; /* Dê um nome à sua família de fontes */
-  src: url("/fonts/Questrial-Regular.ttf") format(".ttf"); /* O caminho é absoluto a partir da pasta 'public' */
-  font-weight: 400; /* 400 para regular */
-  font-style: normal;
-  font-display: swap; /* Melhora a performance de carregamento */
+@theme {
+  --font-primary: "Questrial", sans-serif;
+  --font-secondary: "Quicksand", sans-serif;
 }
 
-@font-face {
-  font-family: "MinhaFonte";
-  src: url("/fonts/Quicksand-VariableFont.ttf") format(".ttf");
-  font-weight: 700; /* 700 para bold */
-  font-style: normal;
-  font-display: swap;
+body {
+  font-family: var(--font-primary);
+  background-color: #f0f0f0;
+  color: #333;
 }

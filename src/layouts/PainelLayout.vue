@@ -11,7 +11,9 @@
         <div class="flex-1 overflow-y-auto p-4">
           <router-view />
         </div>
-        <footer class="bg-gray-300 p-4 text-center">Rodapé do Painel</footer>
+        <footer class="bg-gray-300 p-4 text-center font-primary">
+          Rodapé do Painel
+        </footer>
       </div>
     </div>
   </div>
@@ -19,5 +21,5 @@
 
 <script lang="ts" setup>
 // @ts-ignore
-import Header from "@/components/Header.vue";
+import HeaderComponent from "@/components/HeaderComponent.vue";
 </script>
