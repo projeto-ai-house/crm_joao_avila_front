@@ -9,17 +9,17 @@ import { router } from "./routes";
 const MyPreset = definePreset(Aura, {
   semantic: {
     primary: {
-      50: "{green.50}",
-      100: "{green.100}",
-      200: "{green.200}",
-      300: "{green.300}",
-      400: "{green.400}",
-      500: "{green.500}", // cor principal
-      600: "{green.600}",
-      700: "{green.700}",
-      800: "{green.800}",
-      900: "{green.900}",
-      950: "{green.950}",
+      50: "{blue.50}",
+      100: "{blue.100}",
+      200: "{blue.200}",
+      300: "{blue.300}",
+      400: "{blue.400}",
+      500: "{blue.500}", // cor principal
+      600: "{blue.600}",
+      700: "{blue.700}",
+      800: "{blue.800}",
+      900: "{blue.900}",
+      950: "{blue.950}",
     },
   },
 });

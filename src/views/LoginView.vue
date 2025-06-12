@@ -4,42 +4,53 @@
       <img
         src="@/assets/images/logo.png"
         alt="Mednova Logo"
-        class="w-24 h-24 mb-1 mx-auto"
+        class="w-24 h-24 mb-1 mx-auto drop-shadow-2xl drop-shadow-gray-800/20"
       />
       <h1 class="text-4xl font-normal mb-2">Mednova</h1>
       <p class="text-xl">Automação Inteligente para Clínicas Modernas</p>
-      <p class="text-md">
-        Faça login para acessar sua conta e gerenciar sua clínica de forma
-        simples e segura.
-      </p>
     </header>
-    <div class="max-w-2xl p-4">
+    <div class="max-w-xl p-4">
       <Card
         class="!shadow-xl !backdrop-blur-xl !bg-white/0 !bg-gradient-to-b !from-white/20 !to-white/80 border border-white/10 !rounded-2xl !px-2 !py-4 w-screen max-w-full"
       >
-        <template #title class="flex flex-col items-center">
+        <!-- <template #title class="flex flex-col items-center">
           <div
             class="flex items-center justify-center mb-2 rounded-xl w-fit gap-2 text-sm"
           >
             <LogIn class="stroke-[2.4px] w-4 h-4" />
             <h2 class="font-semibold text-center">Entrar</h2>
           </div>
-        </template>
+        </template> -->
         <template #content>
           <Form
             v-slot="$form"
             :resolver="resolver"
             :initialValues="form"
             @submit="onFormSubmit"
-            class="flex justify-center flex-col gap-4"
+            class="flex justify-center flex-col gap-4 px-2"
           >
-            <div class="flex flex-col gap-1 w-full">
+            <div class="flex justify-start items-center mb-4 gap-4">
+              <span
+                class="w-12 h-12 flex items-center justify-center self-center rounded-full bg-white/20 text-gray-700 shadow-lg shadow-gray-800/20"
+              >
+                <LogIn class="stroke-[2.4px] w-5 h-5 text-gray-700" />
+              </span>
+              <!-- <h2 class="text-2xl font-medium text-center">Entrar</h2> -->
+              <p class="text-md max-w-4/5 text-start">
+                Faça login para acessar sua conta e gerenciar sua clínica de
+                forma simples e segura.
+              </p>
+            </div>
+            <InputGroup>
+              <InputGroupAddon class="!bg-white/40">
+                <UserIcon class="w-4 h-4" />
+              </InputGroupAddon>
               <InputText
-                name="username"
+                id="username"
                 type="text"
-                placeholder="Username"
-                size="small"
-                class="w-full"
+                placeholder="Usuário"
+                v-model="form.username"
+                class="!bg-white/40"
               />
               <Message
                 v-if="$form.username?.invalid"
@@ -48,28 +59,53 @@
                 variant="simple"
                 >{{ $form.username.error?.message }}</Message
               >
+            </InputGroup>
+            <div class="flex flex-col gap-1">
+              <InputGroup>
+                <InputGroupAddon class="!bg-white/40">
+                  <Key class="w-4 h-4" />
+                </InputGroupAddon>
+                <Password
+                  name="password"
+                  placeholder="Password"
+                  v-model="form.password"
+                  toggleMask
+                  class="*:!bg-white/40"
+                  promptLabel="Digite sua senha"
+                  weakLabel="Senha fraca"
+                  mediumLabel="Senha média"
+                  strongLabel="Senha forte"
+                />
+              </InputGroup>
             </div>
-            <div class="flex flex-col gap-1 w-full">
-              <Password
-                name="password"
-                placeholder="Password"
-                :feedback="false"
-                size="small"
-                class="w-full"
-                fluid
-              />
-              <template v-if="$form.password?.invalid">
-                <Message
-                  v-for="(error, index) of $form.password.errors"
-                  :key="index"
-                  severity="error"
-                  size="small"
-                  variant="simple"
-                  >{{ error.message }}</Message
+
+            <div class="flex justify-end items-center">
+              <!-- <div class="flex items center gap-2">
+                <input
+                  id="remember"
+                  type="checkbox"
+                  v-model="form.remember"
+                  class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label
+                  for="remember"
+                  class="text-sm text-gray-700 dark:text-gray-300"
+                  >Lembrar-me</label
                 >
-              </template>
+              </div> -->
+              <a
+                href="#"
+                class="text-sm text-blue-600 hover:underline dark:text-blue-500"
+                >Esqueci minha senha</a
+              >
             </div>
-            <Button type="submit" severity="secondary" label="Submit" />
+
+            <Button
+              type="submit"
+              severity="contrast"
+              label="Entrar"
+              class="hover:!bg-[#CEF261] hover:!text-black"
+            />
           </Form>
         </template>
       </Card>
@@ -79,11 +115,12 @@
 
 <script lang="ts" setup>
 import VideoComponent from "@/components/VideoComponent.vue";
-import { LogIn } from "lucide-vue-next";
+import { Key, LogIn, UserIcon } from "lucide-vue-next";
 import Card from "primevue/card";
 import Password from "primevue/password";
-import { InputText } from "primevue";
+import { Button, InputGroup, InputGroupAddon, InputText } from "primevue";
 import { reactive, ref } from "vue";
+// @ts-ignore
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { useToast } from "primevue/usetoast";
 import { z } from "zod";
