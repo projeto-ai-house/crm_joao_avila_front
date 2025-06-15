@@ -45,7 +45,7 @@
     <Button
       type="submit"
       severity="contrast"
-      label="Entrar"
+      label="Enviar Link de Recuperação"
       class="hover:!bg-[#CEF261] hover:!text-black"
     />
     <Button

@@ -24,7 +24,7 @@ const MyPreset = definePreset(Aura, {
   },
 });
 
-const app = createApp(App);
+export const app = createApp(App);
 app.use(PrimeVue, {
   locale: {
     accept: "Sim",
@@ -32,16 +32,17 @@ app.use(PrimeVue, {
   },
   ripple: true,
   //  zIndex: {
-  //   modal: 1100,
-  //   overlay: 1000
-  // },
-  theme: {
-    preset: MyPreset,
-    options: {
-      darkModeSelector: ".app-dark",
+    //   modal: 1100,
+    //   overlay: 1000
+    // },
+    theme: {
+      preset: MyPreset,
+      options: {
+        darkModeSelector: ".app-dark",
+      },
     },
-  },
 });
 app.use(router);
 app.use(ToastService);
+
 app.mount("#app");

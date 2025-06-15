@@ -1,4 +1,5 @@
 <template>
+  <Toast />
   <Form
     v-slot="$form"
     :resolver="resolver"
@@ -22,18 +23,18 @@
         <UserIcon class="w-4 h-4" />
       </InputGroupAddon>
       <InputText
-        id="username"
+        id="email"
         type="text"
         placeholder="Usuário"
-        v-model="form.username"
+        v-model="form.email"
         class="!bg-white/40"
       />
       <Message
-        v-if="$form.username?.invalid"
+        v-if="$form.email?.invalid"
         severity="error"
         size="small"
         variant="simple"
-        >{{ $form.username.error?.message }}</Message
+        >{{ $form.email.error?.message }}</Message
       >
     </InputGroup>
     <div class="flex flex-col gap-1">
@@ -42,17 +43,23 @@
           <Key class="w-4 h-4" />
         </InputGroupAddon>
         <Password
-          name="password"
-          placeholder="Password"
-          v-model="form.password"
-          toggleMask
+          name="senha"
+          placeholder="Senha"
+          v-model="form.senha"
           class="*:!bg-white/40"
-          promptLabel="Digite sua senha"
-          weakLabel="Senha fraca"
-          mediumLabel="Senha média"
-          strongLabel="Senha forte"
+          fluid
+          :feedback="false"
         />
       </InputGroup>
+      <Message
+        v-if="$form.senha?.invalid"
+        severity="error"
+        size="small"
+        variant="simple"
+        class="!text-sm"
+      >
+        {{ $form.senha.error?.message }}
+      </Message>
     </div>
 
     <div class="flex justify-end items-center">
@@ -91,52 +98,57 @@
 import { Key, LogIn, UserIcon } from "lucide-vue-next";
 import Password from "primevue/password";
 import { Button, InputGroup, InputGroupAddon, InputText } from "primevue";
-import { reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 // @ts-ignore
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { useToast } from "primevue/usetoast";
 import { z } from "zod";
 import { Form } from "@primevue/forms";
+import { Authentication } from "../../services/auth/Authentication";
 
-const emit = defineEmits(["click:recovery"]);
+interface FormValues {
+  email: string;
+  senha: string;
+}
 
 const toast = useToast();
+const emit = defineEmits(["click:recovery"]);
+
+const form = reactive<FormValues>({
+  email: "",
+  senha: "",
+});
 
 const resolver = ref(
   zodResolver(
     z.object({
-      username: z.string().min(1, { message: "Username is required." }),
-      password: z
+      email: z.string().min(1, { message: "Usuário é obrigatório." }),
+      senha: z
         .string()
-        .min(8, { message: "Minimo de 8 caracteres" })
-        .max(48, { message: "Máximo de 48 caracteres." })
-        .refine((value) => /[a-z]/.test(value), {
-          message: "Deve conter uma letra minúscula.",
-        })
-        .refine((value) => /[A-Z]/.test(value), {
-          message: "Deve conter uma letra maiúscula.",
-        })
-        .refine((value) => /d/.test(value), {
-          message: "Deve conter um número.",
-        }),
+        .min(6, { message: "Minimo de 8 caracteres" })
+        .max(48, { message: "Máximo de 48 caracteres." }),
+      // .refine((value) => /[a-z]/.test(value), {
+      //   message: "Deve conter uma letra minúscula.",
+      // })
+      // .refine((value) => /[A-Z]/.test(value), {
+      //   message: "Deve conter uma letra maiúscula.",
+      // })
+      // .refine((value) => /d/.test(value), {
+      //   message: "Deve conter um número.",
+      // }),
     })
   )
 );
 
-const onFormSubmit = ({ valid }) => {
+async function onFormSubmit({ valid }) {
   if (valid) {
-    console.log("Form submitted successfully:", form);
-
-    toast.add({
-      severity: "success",
-      summary: "Form is submitted.",
-      life: 3000,
-    });
+    try {
+      const { email, senha } = form;
+      const response = await Authentication.login(email, senha);
+      console.log("Login response:", response);
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   }
-};
-
-const form = reactive({
-  username: "",
-  password: "",
-});
+}
 </script>

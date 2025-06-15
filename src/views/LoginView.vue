@@ -1,6 +1,6 @@
 <template>
   <VideoComponent>
-    <header class="text-center mb-4 text-black max-w-2xl">
+    <header class="text-center mb-4 text-black max-w-2xl !font-secondary">
       <img
         src="@/assets/images/logo.png"
         alt="Mednova Logo"
@@ -10,13 +10,14 @@
       <p class="text-md px-4 md:text-xl">
         Automação Inteligente para Clínicas Modernas
       </p>
+      <!-- <LoaderPinwheel class="animate-spin text-gray-600" /> -->
     </header>
     <div class="max-w-xl p-4">
       <Card
         class="overflow-hidden !shadow-xl !backdrop-blur-xl !bg-white/0 !bg-gradient-to-b !from-white/20 !to-white/80 border border-white/10 !rounded-2xl !px-1 !py-2 md:!px-2 md:!py-4 w-screen max-w-[94vw] sm:max-w-full"
       >
         <template #content>
-          <div class="form-slider-container">
+          <div class="form-slider-container !font-secondary">
             <transition :name="transitionName" mode="out-in">
               <div v-if="inLogin" key="login" class="form-login w-full">
                 <LoginFormComponent @click:recovery="showRecovery" />
@@ -38,6 +39,7 @@ import Card from "primevue/card";
 import LoginFormComponent from "../components/LoginForm/LoginFormComponent.vue";
 import { ref } from "vue";
 import RecoveryFormComponentCopy from "../components/LoginForm/RecoveryFormComponent copy.vue";
+import { LoaderPinwheel } from "lucide-vue-next";
 
 const inLogin = ref(true);
 const transitionName = ref("slide-left");
