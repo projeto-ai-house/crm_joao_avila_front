@@ -5,6 +5,7 @@ import {
 } from "vue-router";
 import LoginView from "../views/LoginView.vue";
 import PainelLayout from "../layouts/PainelLayout.vue";
+import HomeView from "../views/Painel/HomeView.vue";
 
 const isAuthenticated = () => {
   // Exemplo: return !!localStorage.getItem('user-token');
@@ -25,7 +26,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: "dashboard", // O caminho final será /painel/dashboard
         name: "Dashboard",
-        component: LoginView,
+        component: HomeView,
       },
     ],
   },

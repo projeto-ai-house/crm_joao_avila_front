@@ -28,6 +28,7 @@
         placeholder="Usuário"
         v-model="form.email"
         class="!bg-white/40"
+        :disabled="loginLoading"
       />
       <Message
         v-if="$form.email?.invalid"
@@ -49,6 +50,7 @@
           class="*:!bg-white/40"
           fluid
           :feedback="false"
+          :disabled="loginLoading"
         />
       </InputGroup>
       <Message
@@ -90,6 +92,7 @@
       severity="contrast"
       label="Entrar"
       class="hover:!bg-[#CEF261] hover:!text-black"
+      :loading="loginLoading"
     />
   </Form>
 </template>
@@ -105,14 +108,19 @@ import { useToast } from "primevue/usetoast";
 import { z } from "zod";
 import { Form } from "@primevue/forms";
 import { Authentication } from "../../services/auth/Authentication";
+import { useRouter } from "vue-router";
+import { useUserStore } from "../../stores/user";
 
 interface FormValues {
   email: string;
   senha: string;
 }
 
+const user = useUserStore();
+const router = useRouter();
 const toast = useToast();
 const emit = defineEmits(["click:recovery"]);
+const loginLoading = ref(false);
 
 const form = reactive<FormValues>({
   email: "",
@@ -143,11 +151,18 @@ const resolver = ref(
 async function onFormSubmit({ valid }) {
   if (valid) {
     try {
+      loginLoading.value = true;
       const { email, senha } = form;
       const response = await Authentication.login(email, senha);
-      console.log("Login response:", response);
+      if (response.status === 200) {
+        const { data } = response;
+        user.login(data.data);
+        router.push("/painel/dashboard");
+      }
     } catch (error) {
       console.error("Login error:", error);
+    } finally {
+      loginLoading.value = false;
     }
   }
 }

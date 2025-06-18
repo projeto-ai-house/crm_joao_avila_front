@@ -37,10 +37,14 @@
 import VideoComponent from "@/components/VideoComponent.vue";
 import Card from "primevue/card";
 import LoginFormComponent from "../components/LoginForm/LoginFormComponent.vue";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import RecoveryFormComponentCopy from "../components/LoginForm/RecoveryFormComponent copy.vue";
 import { LoaderPinwheel } from "lucide-vue-next";
+import { AuthenticationUtils } from "../utils/AuthenticationUtils";
+import { RolesServices } from "../services/roles/RolesServices";
+import { useUserStore } from "../stores/user";
 
+const userStore = useUserStore();
 const inLogin = ref(true);
 const transitionName = ref("slide-left");
 
@@ -53,6 +57,28 @@ function showLogin() {
   transitionName.value = "slide-right";
   inLogin.value = true;
 }
+
+async function checkAuth() {
+  try {
+    const isAuthenticated = new AuthenticationUtils().isAuthenticated();
+    if (isAuthenticated) {
+      window.location.href = "/painel/dashboard";
+    } else {
+      const response = await RolesServices.getRoles({
+        id: userStore.user.token,
+      });
+      if (response.status === 200) {
+        window.location.href = "/painel/dashboard";
+      } else {
+        userStore.logout();
+      }
+    }
+  } catch (error) {}
+}
+
+onMounted(() => {
+  checkAuth();
+});
 </script>
 
 <style scoped>

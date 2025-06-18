@@ -1,5 +1,6 @@
 import type { AxiosResponse } from "axios";
 import callApi from "../Api";
+import { AuthenticationUtils } from "../../utils/AuthenticationUtils";
 
 const ROUTE: string = "/auth";
 export class Authentication {
@@ -8,10 +9,15 @@ export class Authentication {
     password: string
   ): Promise<AxiosResponse> {
     // Simula uma chamada de API para autenticação
-    return callApi(ROUTE + "/login", "post", null, {
+    const response = await callApi(ROUTE + "/login", "post", null, {
       Email: email,
       Senha: password,
     });
+    if (response.status === 200) {
+      const data = await response.data;
+      new AuthenticationUtils().storegeToken(data?.data?.Token);
+    }
+    return response;
   }
   // public static async logout(): Promise<void> {
   //   // Simula uma chamada de API para logout

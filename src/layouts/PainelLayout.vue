@@ -7,7 +7,7 @@
       class="col-span-12 lg:col-span-9 xl:col-span-10 row-span-12 bg-gray-100 h-full"
     >
       <div class="flex flex-col h-full">
-        <Header />
+        <HeaderComponent />
         <div class="flex-1 overflow-y-auto p-4">
           <router-view />
         </div>

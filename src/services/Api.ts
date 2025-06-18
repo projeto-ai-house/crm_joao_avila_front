@@ -13,7 +13,8 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Se você tiver token salvo, pode injetar aqui
-    const token = localStorage.getItem("token");
+    const AUTH_TOKEN = import.meta.env.VITE_TOKEN_KEY;
+    const token = localStorage.getItem(AUTH_TOKEN);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

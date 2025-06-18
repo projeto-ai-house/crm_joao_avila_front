@@ -5,6 +5,7 @@ import Aura from "@primeuix/themes/aura";
 import ToastService from "primevue/toastservice";
 import App from "./App.vue";
 import { router } from "./routes";
+import { createPinia } from 'pinia'
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -24,6 +25,7 @@ const MyPreset = definePreset(Aura, {
   },
 });
 
+const pinia = createPinia()
 export const app = createApp(App);
 app.use(PrimeVue, {
   locale: {
@@ -43,6 +45,7 @@ app.use(PrimeVue, {
     },
 });
 app.use(router);
+app.use(pinia);
 app.use(ToastService);
 
 app.mount("#app");
