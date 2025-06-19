@@ -6,27 +6,41 @@ import {
 import LoginView from "../views/LoginView.vue";
 import PainelLayout from "../layouts/PainelLayout.vue";
 import HomeView from "../views/Painel/HomeView.vue";
+import { AuthenticationUtils } from "../utils/AuthenticationUtils";
+import NotFoundView from "../views/Painel/NotFoundView.vue";
+import ListaClinicasView from "../views/Painel/clinica/ListaClinicasView.vue";
 
 const isAuthenticated = () => {
-  // Exemplo: return !!localStorage.getItem('user-token');
-  return true; // Mude para 'true' para simular um usuário logado
+  const is = new AuthenticationUtils().isAuthenticated();
+  return is;
 };
 
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
-    name: "Login", // É uma boa prática nomear as rotas
+    name: "Login",
     component: LoginView,
   },
   {
     path: "/painel",
-    component: PainelLayout, // Este componente terá um <router-view> para os filhos
-    meta: { requiresAuth: true }, // Metadado para indicar que a rota precisa de autenticação
+    component: PainelLayout,
+    meta: { requiresAuth: true },
     children: [
       {
-        path: "dashboard", // O caminho final será /painel/dashboard
+        path: "dashboard",
         name: "Dashboard",
         component: HomeView,
+      },
+      {
+        path: "clinicas",
+        name: "Clinicas",
+        component: ListaClinicasView,
+      },
+
+      {
+        path: ":pathMatch(.*)*",
+        name: "PainelNotFound",
+        component: NotFoundView,
       },
     ],
   },

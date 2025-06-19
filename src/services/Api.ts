@@ -1,3 +1,9 @@
+declare module "axios" {
+  export interface AxiosRequestConfig {
+    ignoreNotification?: boolean;
+  }
+}
+
 import axios from "axios";
 import { NotificationService } from "../utils/NotificationUtils";
 // Cria a instância do Axios com configurações padrão
@@ -28,22 +34,31 @@ api.interceptors.request.use(
 // Exemplo de interceptor de resposta
 api.interceptors.response.use(
   (response) => {
-    NotificationService.tell(
-      response.status,
-      undefined,
-      response.data?.message
-    );
+    if (!response.config.ignoreNotification) {
+      NotificationService.tell(
+        response.status,
+        undefined,
+        response.data?.message
+      );
+    }
     return response;
   },
   (error) => {
-    if (error.response) {
-      NotificationService.tell(
-        error.response.status,
-        undefined,
-        error.response.data?.message
-      );
-    } else {
-      NotificationService.tell(0, "Erro de rede", "Sem resposta do servidor.");
+    const config = error.config || {};
+    if (!config.ignoreNotification) {
+      if (error.response) {
+        NotificationService.tell(
+          error.response.status,
+          undefined,
+          error.response.data?.message
+        );
+      } else {
+        NotificationService.tell(
+          0,
+          "Erro de rede",
+          "Sem resposta do servidor."
+        );
+      }
     }
     return Promise.reject(error);
   }
@@ -54,7 +69,8 @@ export function callApi(
   method: "get" | "post" | "put" | "delete",
   params?: any,
   data?: any,
-  responseType: "json" | "blob" | "text" = "json"
+  responseType: "json" | "blob" | "text" = "json",
+  ignoreNotification: boolean = false
 ) {
   // Verifica se o data é FormData
   const isFormData = data instanceof FormData;
@@ -72,7 +88,8 @@ export function callApi(
     params, // Parâmetros a serem enviados na URL (pode ser nulo se não houver parâmetros)
     data: data, // Dados a serem enviados no corpo da solicitação (apenas para POST)
     headers: headers,
-    responseType: responseType || "json", // 👈 aqui permite receber Blob como resposta
+    responseType: responseType || "json", // aqui permite receber Blob como resposta
+    ignoreNotification: ignoreNotification, // para ignorar notificações
   });
 }
 

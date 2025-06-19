@@ -12,9 +12,14 @@ export const useUserStore = defineStore("user", () => {
     user.value = {};
   }
 
+  function getData() {
+    return user.value;
+  }
+
   return {
     user,
     login,
     logout,
+    getData,
   };
 });

@@ -6,6 +6,7 @@ import ToastService from "primevue/toastservice";
 import App from "./App.vue";
 import { router } from "./routes";
 import { createPinia } from 'pinia'
+import 'primeicons/primeicons.css'
 
 const MyPreset = definePreset(Aura, {
   semantic: {

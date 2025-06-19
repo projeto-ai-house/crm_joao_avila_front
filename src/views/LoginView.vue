@@ -71,6 +71,8 @@ async function checkAuth() {
         window.location.href = "/painel/dashboard";
       } else {
         userStore.logout();
+        new AuthenticationUtils().removeToken();
+        window.location.href = "/login";
       }
     }
   } catch (error) {}
