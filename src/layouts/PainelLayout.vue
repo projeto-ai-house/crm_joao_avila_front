@@ -9,13 +9,13 @@
       <SideMenuLayout />
     </div>
     <div
-      class="col-span-12 lg:col-span-9 xl:col-span-10 row-span-12 h-full p-4"
+      class="col-span-12 lg:col-span-9 xl:col-span-10 row-span-12 h-full md:p-4"
     >
       <div
-        class="flex flex-col h-full backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl overflow-hidden bg-white"
+        class="flex flex-col h-full backdrop-blur-xl border border-white/10 md:rounded-2xl shadow-xl overflow-hidden bg-white"
       >
         <HeaderLayout />
-        <div class="flex-1 o p-4 w-full">
+        <div class="flex-1 p-4 w-full overflow-y-auto">
           <Transition name="fade" mode="out-in">
             <router-view />
           </Transition>

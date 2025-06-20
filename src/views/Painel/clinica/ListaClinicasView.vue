@@ -7,99 +7,173 @@
       icon="pi pi-plus"
       severity="primary"
       size="small"
-      @click="$router.push({ name: 'clinica.create' })"
+      @click="drawerState = true"
     ></Button>
   </div>
   <!-- END: TopBar -->
 
   <!-- BEGIN: Table -->
-  <div class="border border-b-0 border-gray-200/70 rounded-lg overflow-hidden">
+  <div class="border border-gray-200/70 rounded-lg overflow-hidden">
     <DataTable
-      :value="products"
+      :value="clinics"
+      v-model:expandedRows="expandedRows"
       stripedRows
       tableStyle="min-width: 50rem"
-      paginator
-      :rows="5"
-      :rowsPerPageOptions="[5, 10, 20, 50]"
-      v-model:selection="selectedProducts"
+      :rows="rows"
+      v-model:selection="selectedClinics"
+      dataKey="id"
+      size="small"
+      :loading="loading"
+      
     >
-      <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-      <Column field="Nome" sortable header="Nome"></Column>
-      <Column field="CNPJ" sortable header="CNPJ"></Column>
-      <Column field="category" sortable header="Category"></Column>
-      <Column field="quantity" sortable header="Quantity"></Column>
+      <template #empty> Nenhuma clínica encontrada. </template>
+      <template #loading> Carregando clínicas... </template>
+      <Column expander style="width: 5rem" />
+      <Column field="NomeClinica" sortable header="Nome"> </Column>
+      <Column field="dono" sortable header="Responsável"></Column>
+      <Column field="Cnpj" sortable header="CNPJ"> </Column>
+      <Column field="Endereco" sortable header="Endereço"></Column>
+
+      <template #expansion="slotProps" v-ripple="true">
+        <div class="p-2">
+          <DataTable :value="slotProps.data.Donos" stripedRows>
+            <Column field="nome_completo" header="Nome" sortable></Column>
+            <Column field="email" header="E-mail" sortable></Column>
+            <Column field="convenio" header="Convênio" sortable></Column>
+            <!-- <Column field="amount" header="Amount" sortable>
+              <template #body="slotProps">
+                {{ formatCurrency(slotProps.data.amount) }}
+              </template>
+            </Column>
+            <Column field="status" header="Status" sortable>
+              <template #body="slotProps">
+                <Tag
+                  :value="slotProps.data.status.toLowerCase()"
+                  :severity="getOrderSeverity(slotProps.data)"
+                />
+              </template>
+            </Column> -->
+            <!-- <Column headerStyle="width:4rem">
+              <template #body>
+                <Button icon="pi pi-search" />
+              </template>
+            </Column> -->
+          </DataTable>
+        </div>
+      </template>
     </DataTable>
+    <Paginator
+      :rows="rows"
+      :totalRecords="totalRecords"
+      :first="(currentPage - 1) * rows"
+      @page="changePage"
+    />
   </div>
   <!-- END: Table -->
+
+  <Drawer
+    v-model:visible="drawerState"
+    header="Adicionar Clínica"
+    position="right"
+    class="!w-full md:!w-80 lg:!w-[30rem]"
+  >
+    <template #header>
+      <div class="flex items-center gap-2">
+        <span class="font-bold">Adicionar Clínica</span>
+      </div>
+    </template>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+      commodo consequat.
+    </p>
+    <template #footer>
+      <div class="flex items-center gap-2">
+        <Button
+          label="Salvar"
+          icon="pi pi-save"
+          severity="success"
+          class="flex-auto"
+          size="small"
+        ></Button>
+        <Button
+          label="Cancelar"
+          icon="pi pi-times"
+          class="flex-auto"
+          severity="contrast"
+          size="small"
+          text
+          @click="drawerState = false"
+        ></Button>
+      </div>
+    </template>
+  </Drawer>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import { Button } from "primevue";
+import { Button, Drawer, Paginator } from "primevue";
+import { ClinicsServices } from "../../../services/clinics/ClinicsServices";
 
-const selectedProducts = ref([]);
-const products = ref([
-  {
-    Nome: "Clinica A",
-    CNPJ: "12.345.678/0001-90",
-    category: "Category A",
-    quantity: 10,
-  },
-  {
-    Nome: "Clinica B",
-    CNPJ: "98.765.432/0001-01",
-    category: "Category B",
-    quantity: 20,
-  },
-  {
-    Nome: "Clinica C",
-    CNPJ: "11.222.333/0001-44",
-    category: "Category C",
-    quantity: 30,
-  },
-  {
-    Nome: "Clinica D",
-    CNPJ: "55.666.777/0001-88",
-    category: "Category D",
-    quantity: 40,
-  },
-  {
-    Nome: "Clinica E",
-    CNPJ: "22.333.444/0001-55",
-    category: "Category E",
-    quantity: 50,
-  },
-  {
-    Nome: "Clinica F",
-    CNPJ: "44.555.666/0001-22",
-    category: "Category F",
-    quantity: 60,
-  },
-  {
-    Nome: "Clinica G",
-    CNPJ: "77.888.999/0001-33",
-    category: "Category G",
-    quantity: 70,
-  },
-  {
-    Nome: "Clinica H",
-    CNPJ: "00.111.222/0001-66",
-    category: "Category H",
-    quantity: 80,
-  },
-  {
-    Nome: "Clinica I",
-    CNPJ: "33.444.555/0001-99",
-    category: "Category I",
-    quantity: 90,
-  },
-  {
-    Nome: "Clinica J",
-    CNPJ: "66.777.888/0001-00",
-    category: "Category J",
-    quantity: 100,
-  },
-]);
+const loading = ref(false);
+const drawerState = ref(false);
+const selectedClinics = ref([]);
+const expandedRows = ref({});
+const clinics = ref([]);
+
+const rows = 20; // número fixo de itens por página
+const totalRecords = ref(0);
+const currentPage = ref(1);
+
+function changePage(event: any) {
+  currentPage.value = event.page + 1;
+  fetchClinics();
+}
+
+const expandAll = () => {
+  expandedRows.value = clinics.value.reduce(
+    (acc, p) => (acc[p.id] = true) && acc,
+    {}
+  );
+};
+const collapseAll = () => {
+  expandedRows.value = null;
+};
+
+async function fetchClinics() {
+  try {
+    loading.value = true;
+    const response = await ClinicsServices.getClinics({
+      page: currentPage.value,
+    });
+    if (response.status === 200) {
+      clinics.value =
+        response.data?.data?.Clinicas?.map((it: any) => ({
+          ...it,
+          dono: it.Donos.length > 0 ? it.Donos[0].nome_completo : "",
+        })) || [];
+      totalRecords.value = response.data?.data?.Itens || 0;
+    }
+  } catch (error) {
+    console.error("Error fetching clinics:", error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  fetchClinics();
+});
 </script>
+
+<style>
+.p-overlay-mask {
+  background-color: #437efd11 !important;
+  backdrop-filter: blur(5px);
+  color: #4c71c0;
+  font-weight: 600;
+}
+</style>
