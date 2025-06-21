@@ -1,3 +1,5 @@
+import { useUserStore } from "../stores/user";
+
 export class AuthenticationUtils {
   private AUTH_TOKEN: string;
 
@@ -19,7 +21,18 @@ export class AuthenticationUtils {
 
   public isAuthenticated(): boolean {
     const token = this.getToken();
-    return !!token;
+    if (!token) {
+      return false;
+    }
+
+    // aqui quando a rota estiver pronta adicionar a recuperação dos dados do usuário
+    const user = useUserStore();
+    if (!user.user?.ID) {
+      // const response = await user...
+      // user.login({...})
+    }
+
+    return true;
   }
 }
 

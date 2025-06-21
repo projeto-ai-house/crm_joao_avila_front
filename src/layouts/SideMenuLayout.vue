@@ -46,7 +46,8 @@
             "
             class=""
             :class="{
-              '!border !border-gray-100': PAGENAME?.toUpperCase() === item.pageName,
+              '!border !border-gray-100':
+                PAGENAME?.toUpperCase() === item.pageName,
             }"
             :badge="item.badge"
             badge-class="!ml-auto !rounded-sm"
@@ -59,13 +60,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onBeforeMount, onMounted, ref, watch } from "vue";
 import PanelMenu from "primevue/panelmenu";
 import { Button, useToast } from "primevue";
 import { MenuItemCommandEvent } from "primevue/menuitem";
 import { useUserStore } from "../stores/user";
 import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 import { useRouter } from "vue-router";
+import { RolesServices } from "../services/roles/RolesServices";
+import { PermissionsUtils } from "../utils/PermissionsUtils";
+import { MenuUtils } from "../utils/MenuUtils";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -83,72 +87,7 @@ interface MenuItem {
   placeholder?: string;
 }
 
-const items = ref<MenuItem[]>([
-  {
-    placeholder: "Administração",
-  },
-  {
-    label: "Dashboard",
-    pageName: "DASHBOARD",
-    icon: "pi pi-th-large",
-    to: "/painel/dashboard",
-  },
-  {
-    label: "Clinicas",
-    pageName: "CLINICAS",
-    icon: "pi pi-building",
-    to: "/painel/clinicas",
-  },
-  {
-    label: "Médicos",
-    pageName: "MEDICOS",
-    icon: "pi pi-user",
-    to: "/painel/medicos",
-  },
-  {
-    label: "Convênios",
-    pageName: "CONVENIOS",
-    icon: "pi pi-credit-card",
-    to: "/painel/convenios",
-  },
-  {
-    placeholder: "Clinica",
-  },
-  {
-    label: "Agenda",
-    pageName: "AGENDA",
-    icon: "pi pi-calendar",
-    to: "/painel/clinica/agenda",
-    badge: (userData.value?.clinica?.agenda?.length || 1).toString(),
-  },
-  {
-    label: "Pacientes",
-    pageName: "PACIENTES",
-    icon: "pi pi-users",
-    to: "/painel/clinica/pacientes",
-  },
-  {
-    label: "Consultas",
-    pageName: "CONSULTAS",
-    icon: "pi pi-clipboard",
-    to: "/painel/clinica/consultas",
-  },
-  {
-    placeholder: "Financeiro",
-  },
-  {
-    label: "Faturamento",
-    pageName: "FATURAMENTO",
-    icon: "pi pi-dollar",
-    to: "/painel/financeiro/faturamento",
-  },
-  {
-    label: "Contas a Pagar",
-    pageName: "CONTAS_A_PAGAR",
-    icon: "pi pi-money-bill",
-    to: "/painel/financeiro/contas-a-pagar",
-  },
-]);
+const items = ref<MenuItem[]>([]);
 
 function handleSelectedPage() {
   let page = router.currentRoute.value?.name as string | undefined;
@@ -159,6 +98,22 @@ function handleSelectedPage() {
   if (page) PAGENAME.value = page;
   else PAGENAME.value = "Home";
 }
+
+onBeforeMount(() => {
+  const [role, permissions, error] = PermissionsUtils.handle();
+  if (error) {
+    toast.add({
+      severity: "error",
+      summary: "Erro ao carregar permissões!",
+      detail:
+        "Não foi possível carregar as permissões do usuário. Faça login novamente.",
+      life: 3000,
+    });
+    return;
+  }
+  const menuList = MenuUtils.getPermissionedMenus(role, permissions);
+  items.value = menuList;
+});
 
 onMounted(() => {
   handleSelectedPage();

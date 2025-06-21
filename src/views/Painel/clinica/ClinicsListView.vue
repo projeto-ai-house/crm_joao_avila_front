@@ -24,14 +24,13 @@
       dataKey="id"
       size="small"
       :loading="loading"
-      
     >
       <template #empty> Nenhuma clínica encontrada. </template>
       <template #loading> Carregando clínicas... </template>
       <Column expander style="width: 5rem" />
-      <Column field="NomeClinica" sortable header="Nome"> </Column>
+      <Column field="NomeClinica" sortable header="Nome"></Column>
       <Column field="dono" sortable header="Responsável"></Column>
-      <Column field="Cnpj" sortable header="CNPJ"> </Column>
+      <Column field="Cnpj" sortable header="CNPJ"></Column>
       <Column field="Endereco" sortable header="Endereço"></Column>
 
       <template #expansion="slotProps" v-ripple="true">
@@ -71,44 +70,11 @@
   </div>
   <!-- END: Table -->
 
-  <Drawer
-    v-model:visible="drawerState"
-    header="Adicionar Clínica"
-    position="right"
-    class="!w-full md:!w-80 lg:!w-[30rem]"
-  >
-    <template #header>
-      <div class="flex items-center gap-2">
-        <span class="font-bold">Adicionar Clínica</span>
-      </div>
-    </template>
-    <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-      commodo consequat.
-    </p>
-    <template #footer>
-      <div class="flex items-center gap-2">
-        <Button
-          label="Salvar"
-          icon="pi pi-save"
-          severity="success"
-          class="flex-auto"
-          size="small"
-        ></Button>
-        <Button
-          label="Cancelar"
-          icon="pi pi-times"
-          class="flex-auto"
-          severity="contrast"
-          size="small"
-          text
-          @click="drawerState = false"
-        ></Button>
-      </div>
-    </template>
-  </Drawer>
+  <ClinicsDrawerComponent
+    :drawerState="drawerState"
+    @update:drawerState="drawerState = $event"
+    @saveClinic="fetchClinics"
+  />
 </template>
 
 <script setup lang="ts">
@@ -117,6 +83,7 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import { Button, Drawer, Paginator } from "primevue";
 import { ClinicsServices } from "../../../services/clinics/ClinicsServices";
+import ClinicsDrawerComponent from "./ClinicsDrawerComponent.vue";
 
 const loading = ref(false);
 const drawerState = ref(false);

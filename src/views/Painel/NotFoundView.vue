@@ -4,7 +4,7 @@ import { SearchX } from "lucide-vue-next";
 
 <template>
   <div
-    class="flex items-center justify-center h-full bg-gradient-to-br from-blue-50 via-white to-blue-100"
+    class="flex items-center justify-center h-full bg-gradient-to-br from-blue-50 via-white to-blue-100 rounded-lg"
   >
     <div
       class="bg-white/80 rounded-3xl shadow-2xl px-10 py-12 flex flex-col items-center max-w-md w-full border border-blue-100"
@@ -18,7 +18,8 @@ import { SearchX } from "lucide-vue-next";
         Desculpe, a página que você está procurando não existe ou foi movida.
       </p>
       <router-link
-        to="/"
+        
+        to="/painel"
         class="inline-block px-6 py-2 rounded-full bg-blue-500 text-white font-semibold shadow hover:bg-blue-600 transition-colors"
       >
         Voltar para a página inicial

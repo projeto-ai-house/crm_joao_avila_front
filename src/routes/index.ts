@@ -6,14 +6,9 @@ import {
 import LoginView from "../views/LoginView.vue";
 import PainelLayout from "../layouts/PainelLayout.vue";
 import HomeView from "../views/Painel/HomeView.vue";
-import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 import NotFoundView from "../views/Painel/NotFoundView.vue";
-import ListaClinicasView from "../views/Painel/clinica/ListaClinicasView.vue";
-
-const isAuthenticated = () => {
-  const is = new AuthenticationUtils().isAuthenticated();
-  return is;
-};
+import { RouteAuth } from "./routeAuth";
+import ClinicsListView from "../views/Painel/clinica/ClinicsListView.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -27,6 +22,10 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
     children: [
       {
+        path: "",
+        redirect: { name: "Dashboard" },
+      },
+      {
         path: "dashboard",
         name: "Dashboard",
         component: HomeView,
@@ -34,7 +33,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: "clinicas",
         name: "Clinicas",
-        component: ListaClinicasView,
+        component: ClinicsListView,
       },
 
       {
@@ -52,7 +51,7 @@ export const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !isAuthenticated()) {
+  if (to.meta.requiresAuth && RouteAuth.isAuthenticated(to) === false) {
     next({ name: "Login" });
   } else {
     next();

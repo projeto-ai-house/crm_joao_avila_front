@@ -4,7 +4,7 @@
     class="grid grid-cols-12 grid-rows-12 w-screen h-screen !bg-gradient-to-br !from-gray-50 !to-gray-100"
   >
     <div
-      class="col-span-12 lg:col-span-3 xl:col-span-2 row-span-12 h-full hidden xl:block p-4 pr-0"
+      class="col-span-12 lg:col-span-3 xl:col-span-2 row-span-12 h-full hidden lg:block p-4 pr-0"
     >
       <SideMenuLayout />
     </div>

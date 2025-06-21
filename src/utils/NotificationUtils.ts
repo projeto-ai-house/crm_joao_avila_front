@@ -12,7 +12,7 @@ export class NotificationService {
       severity: severity as any,
       summary: summary || defaultSummary,
       detail: detail || defaultDetail,
-      life: 5000,
+      life: 2000,
     });
   }
 

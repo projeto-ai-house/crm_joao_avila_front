@@ -156,7 +156,7 @@ async function onFormSubmit({ valid }) {
       const response = await Authentication.login(email, senha);
       if (response.status === 200) {
         const { data } = response;
-        user.login(data.data);
+        await user.login(data.data);
         router.push("/painel/dashboard");
       }
     } catch (error) {

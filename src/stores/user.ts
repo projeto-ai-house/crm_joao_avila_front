@@ -4,11 +4,11 @@ import { ref } from "vue";
 export const useUserStore = defineStore("user", () => {
   const user = ref<any>({});
 
-  function login(userData: any) {
-    user.value = userData;
+  async function login(userData: any) {
+    user.value = await userData;
   }
 
-  function logout() {
+  async function logout() {
     user.value = {};
   }
 
