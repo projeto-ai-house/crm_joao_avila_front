@@ -24,6 +24,8 @@
       dataKey="id"
       size="small"
       :loading="loading"
+      @rowExpand="onExpand"
+      @rowCollapse="onCollapse"
     >
       <template #empty> Nenhuma clínica encontrada. </template>
       <template #loading> Carregando clínicas... </template>
@@ -33,9 +35,14 @@
       <Column field="Cnpj" sortable header="CNPJ"></Column>
       <Column field="Endereco" sortable header="Endereço"></Column>
 
-      <template #expansion="slotProps" v-ripple="true">
-        <div class="p-2">
-          <DataTable :value="slotProps.data.Donos" stripedRows>
+      <template #expansion="slotProps">
+        <div class="p-2" v-if="slotProps.data?.Donos?.length > 0">
+          <DataTable
+            :value="slotProps.data.Donos"
+            stripedRows
+            dataKey="id"
+            size="small"
+          >
             <Column field="nome_completo" header="Nome" sortable></Column>
             <Column field="email" header="E-mail" sortable></Column>
             <Column field="convenio" header="Convênio" sortable></Column>
@@ -110,6 +117,18 @@ const collapseAll = () => {
   expandedRows.value = null;
 };
 
+function onExpand(event) {
+  const id = event.data.id;
+  expandedRows.value = expandedRows.value[id] ? {} : { [id]: true };
+}
+
+function onCollapse(event) {
+  const id = event.data.id;
+  if (expandedRows.value[id]) {
+    delete expandedRows.value[id];
+  }
+}
+
 async function fetchClinics() {
   try {
     loading.value = true;
@@ -120,7 +139,11 @@ async function fetchClinics() {
       clinics.value =
         response.data?.data?.Clinicas?.map((it: any) => ({
           ...it,
-          dono: it.Donos.length > 0 ? it.Donos[0].nome_completo : "",
+          Donos: Array.isArray(it.Donos) ? it.Donos : [],
+          dono:
+            Array.isArray(it.Donos) && it.Donos.length > 0
+              ? it.Donos[0].nome_completo
+              : "",
         })) || [];
       totalRecords.value = response.data?.data?.Itens || 0;
     }

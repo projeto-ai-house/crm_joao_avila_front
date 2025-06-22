@@ -51,7 +51,8 @@ export const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && RouteAuth.isAuthenticated(to) === false) {
+  const isAuthenticated = RouteAuth.isAuthenticated(to);
+  if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: "Login" });
   } else {
     next();

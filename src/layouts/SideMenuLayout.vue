@@ -101,6 +101,7 @@ function handleSelectedPage() {
 
 onBeforeMount(() => {
   const [role, permissions, error] = PermissionsUtils.handle();
+
   if (error) {
     toast.add({
       severity: "error",

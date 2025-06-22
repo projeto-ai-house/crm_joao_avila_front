@@ -15,7 +15,7 @@ export class Authentication {
     });
     if (response.status === 200) {
       const data = await response.data;
-      new AuthenticationUtils().storegeToken(data?.data?.Token);
+      new AuthenticationUtils().storageToken(data?.data?.Token);
     }
     return response;
   }
@@ -27,19 +27,36 @@ export class Authentication {
   //     }, 1000);
   //   });
   // }
-  public static async register(
-    email: string,
-    password: string
-  ): Promise<string> {
-    // Simula uma chamada de API para registro
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (email && password) {
-          resolve("fake-jwt-token");
-        } else {
-          reject(new Error("Dados inválidos para registro"));
-        }
-      }, 1000);
-    });
+
+  // public static async register(
+  //   email: string,
+  //   password: string
+  // ): Promise<string> {
+  //   // Simula uma chamada de API para registro
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(() => {
+  //       if (email && password) {
+  //         resolve("fake-jwt-token");
+  //       } else {
+  //         reject(new Error("Dados inválidos para registro"));
+  //       }
+  //     }, 1000);
+  //   });
+  // }
+
+  public static async recoverUserData(): Promise<{
+    error: string | null;
+    [key: string]: any;
+  }> {
+    // Simula uma chamada de API para recuperar os dados do usuário
+    const response = await callApi(ROUTE + "/eu", "get", undefined, undefined, undefined, true);
+    if (response.status === 200) {
+      const data = await response.data;
+      return { ...data?.data, error: null };
+    } else {
+      const errorMessage =
+        response.data?.data?.message || "Erro ao recuperar dados do usuário";
+      return { error: errorMessage };
+    }
   }
 }

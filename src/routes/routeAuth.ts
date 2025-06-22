@@ -12,7 +12,10 @@ export class RouteAuth {
   private static checkRoutes(to: string): boolean {
     const { user } = useUserStore();
     // Verifica se o usuário é um administrador
-    if (!user?.Permissoes) {
+    // console.log(`Verificando permissões para a rota: ${to}`);
+    // console.log(`Usuário atual:`, user);
+
+    if (!user?.Permissoes?.length) {
       if (
         user.Permissoes &&
         user.Permissoes.includes(
@@ -21,16 +24,10 @@ export class RouteAuth {
       ) {
         return true;
       } else {
-        localStorage.clear();
+        // localStorage.clear();
         return false;
       }
     }
-
-    // Verifica se o usuário está autenticado e se o ID do usuário existe
-    // if (!user || !user.ID) {
-    //   console.error("Usuário não autenticado ou ID não encontrado.");
-    //   return false;
-    // }
 
     // Verifica se a rota solicitada está na lista de menus
     const menuList = MenuUtils.getAllMenus();

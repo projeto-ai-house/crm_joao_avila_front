@@ -1,5 +1,3 @@
-import { useUserStore } from "../stores/user";
-
 export class AuthenticationUtils {
   private AUTH_TOKEN: string;
 
@@ -7,7 +5,7 @@ export class AuthenticationUtils {
     this.AUTH_TOKEN = import.meta.env.VITE_TOKEN_KEY || "auth_token";
   }
 
-  public storegeToken(token: string): void {
+  public storageToken(token: string): void {
     localStorage.setItem(this.AUTH_TOKEN, token);
   }
 
@@ -20,16 +18,12 @@ export class AuthenticationUtils {
   }
 
   public isAuthenticated(): boolean {
+    // const userStore = useUserStore();
     const token = this.getToken();
     if (!token) {
+      // this.removeToken();
+      // userStore.logout();
       return false;
-    }
-
-    // aqui quando a rota estiver pronta adicionar a recuperação dos dados do usuário
-    const user = useUserStore();
-    if (!user.user?.ID) {
-      // const response = await user...
-      // user.login({...})
     }
 
     return true;

@@ -2,7 +2,7 @@ import type { AxiosResponse } from "axios";
 import callApi from "../Api";
 
 interface IClinic {
-  NomeClinica: string;
+  nome_clinica: string;
   Cnpj: string;
   Endereco: string;
 }

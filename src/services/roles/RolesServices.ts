@@ -1,11 +1,11 @@
 import type { AxiosResponse } from "axios";
 import callApi from "../Api";
 
-const ROUTE: string = "/auth";
+const ROUTE: string = "/roles";
 export class RolesServices {
   public static async getRoles(params: any): Promise<AxiosResponse> {
     return callApi(
-      ROUTE + `/roles/${params.id}`,
+      ROUTE + `/${params.id}`,
       "get",
       undefined,
       undefined,

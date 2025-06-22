@@ -37,14 +37,15 @@
 import VideoComponent from "@/components/VideoComponent.vue";
 import Card from "primevue/card";
 import LoginFormComponent from "../components/LoginForm/LoginFormComponent.vue";
-import { onMounted, ref } from "vue";
+import { onBeforeMount, onMounted, ref } from "vue";
 import RecoveryFormComponentCopy from "../components/LoginForm/RecoveryFormComponent copy.vue";
-import { LoaderPinwheel } from "lucide-vue-next";
 import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 import { RolesServices } from "../services/roles/RolesServices";
 import { useUserStore } from "../stores/user";
+import { useRouter } from "vue-router";
 
 const userStore = useUserStore();
+const router = useRouter();
 const inLogin = ref(true);
 const transitionName = ref("slide-left");
 
@@ -58,27 +59,16 @@ function showLogin() {
   inLogin.value = true;
 }
 
-async function checkAuth() {
-  try {
-    const isAuthenticated = new AuthenticationUtils().isAuthenticated();
-    if (isAuthenticated) {
-      window.location.href = "/painel/dashboard";
-    } else {
-      const response = await RolesServices.getRoles({
-        id: userStore.user.token,
-      });
-      if (response.status === 200) {
-        window.location.href = "/painel/dashboard";
-      } else {
-        userStore.logout();
-        new AuthenticationUtils().removeToken();
-        window.location.href = "/login";
-      }
-    }
-  } catch (error) {}
+function checkAuth() {
+  const isAuthenticated = new AuthenticationUtils().isAuthenticated();
+  // console.log("Is Authenticated LOGIN:", isAuthenticated);
+
+  if (isAuthenticated) {
+    router.push({ name: "Dashboard" });
+  }
 }
 
-onMounted(() => {
+onBeforeMount(() => {
   checkAuth();
 });
 </script>

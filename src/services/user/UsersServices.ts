@@ -8,12 +8,13 @@ interface IUser {
   DataNascimento: string;
   Convenio: string;
   PasswordHash: string;
+  Telefone: string;
   RoleID: string;
   ClinicaID: string;
 }
 
 const ROUTE: string = "/usuario";
-export class usersServices {
+export class UsersServices {
   public static async getUsers(params: {
     page: number;
   }): Promise<AxiosResponse> {

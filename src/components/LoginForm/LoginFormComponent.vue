@@ -116,7 +116,7 @@ interface FormValues {
   senha: string;
 }
 
-const user = useUserStore();
+const userStore = useUserStore();
 const router = useRouter();
 const toast = useToast();
 const emit = defineEmits(["click:recovery"]);
@@ -156,7 +156,7 @@ async function onFormSubmit({ valid }) {
       const response = await Authentication.login(email, senha);
       if (response.status === 200) {
         const { data } = response;
-        await user.login(data.data);
+        await userStore.login(data.data);
         router.push("/painel/dashboard");
       }
     } catch (error) {
