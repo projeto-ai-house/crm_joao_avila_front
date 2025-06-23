@@ -9,6 +9,7 @@ import HomeView from "../views/Painel/HomeView.vue";
 import NotFoundView from "../views/Painel/NotFoundView.vue";
 import { RouteAuth } from "./routeAuth";
 import ClinicsListView from "../views/Painel/clinica/ClinicsListView.vue";
+import { useUserStore } from "../stores/user";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -50,7 +51,15 @@ export const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  const store = useUserStore();
+
+  try {
+    await store.initUser();
+  } catch {
+    return { name: "Login" };
+  }
+
   const isAuthenticated = RouteAuth.isAuthenticated(to);
   if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: "Login" });

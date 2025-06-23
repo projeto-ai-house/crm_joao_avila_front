@@ -1,8 +1,14 @@
 import type { AxiosResponse } from "axios";
 import callApi from "../Api";
 import { AuthenticationUtils } from "../../utils/AuthenticationUtils";
+import type { UserType } from "../../stores/user";
 
 const ROUTE: string = "/auth";
+
+interface IUserWithError extends UserType {
+  error: string | null;
+  status?: number;
+}
 export class Authentication {
   public static async login(
     email: string,
@@ -44,19 +50,32 @@ export class Authentication {
   //   });
   // }
 
-  public static async recoverUserData(): Promise<{
-    error: string | null;
-    [key: string]: any;
-  }> {
+  public static async recoverUserData(): Promise<IUserWithError> {
     // Simula uma chamada de API para recuperar os dados do usuário
-    const response = await callApi(ROUTE + "/eu", "get", undefined, undefined, undefined, true);
-    if (response.status === 200) {
-      const data = await response.data;
-      return { ...data?.data, error: null };
-    } else {
+    try {
+      const response = await callApi(
+        ROUTE + "/eu",
+        "get",
+        undefined,
+        undefined,
+        undefined,
+        true
+      );
+      if (response.status === 200) {
+        const data = await response.data;
+        return { ...data?.data, error: null };
+      } else {
+        const errorMessage =
+          response.data?.data?.message || "Erro ao recuperar dados do usuário";
+        const status = response.status || 500;
+        return { error: errorMessage, status, ...({} as UserType) };
+      }
+    } catch (error: any) {
+      // console.error("Erro ao recuperar dados do usuário:", error);
       const errorMessage =
-        response.data?.data?.message || "Erro ao recuperar dados do usuário";
-      return { error: errorMessage };
+          error.response.data?.message || "Erro ao recuperar dados do usuário";
+        const status = error.status || 500;
+        return { error: errorMessage, status, ...({} as UserType) };
     }
   }
 }

@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { Authentication } from "../services/auth/Authentication";
+import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 
 export interface UserType {
   ID: string;
@@ -30,10 +32,24 @@ export const useUserStore = defineStore("user", () => {
     return user.value;
   }
 
+  async function initUser() {
+    if (!user.value?.ID) {
+      const recover = await Authentication.recoverUserData();
+      if (!!recover.error) {
+        // console.log("Error recovering user data:", recover);
+        new AuthenticationUtils().removeToken();
+        return;
+      } else {
+        user.value = recover;
+      }
+    }
+  }
+
   return {
     user,
     login,
     logout,
     getData,
+    initUser,
   };
 });

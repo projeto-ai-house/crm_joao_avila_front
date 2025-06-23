@@ -103,10 +103,10 @@ export class MenuUtils {
       if (item.permissions && item.permissions.length > 0) {
         return item.permissions.some(
           (p: string) =>
-            permissions.includes(p) ||
-            permissions.includes(
-              import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1]
-            )
+            permissions.includes(p) 
+            // || permissions.includes(
+            //   import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1]
+            // )
         );
       }
       return true; // Include items without specific permissions

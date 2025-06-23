@@ -15,55 +15,53 @@ const router = useRouter();
 const userStore = useUserStore();
 const toast = useToast();
 
-onBeforeMount(async () => {
-  // Simulate a global loading state
-  globalLoading.value = true;
-  // console.log("Current Route Name:", router.currentRoute.value.name);
+// onBeforeMount(async () => {
+//   globalLoading.value = true;
 
-  const isAuthenticated = new AuthenticationUtils().isAuthenticated();
-  // console.log("Is Authenticated PAINEL:", isAuthenticated);
+//   const isAuthenticated = new AuthenticationUtils().isAuthenticated();
+//   if (!isAuthenticated) {
+//     globalLoading.value = false;
+//     toast.add({
+//       severity: "info",
+//       summary: "Você não está logado!",
+//       detail: "Faça login para continuar.",
+//       life: 3000,
+//     });
+//     router.push({ name: "Login" });
+//     return;
+//   }
 
-  if (!isAuthenticated) {
-    globalLoading.value = false;
-    toast.add({
-      severity: "info",
-      summary: "Você não está logado!",
-      detail: "Faça login para continuar.",
-      life: 3000,
-    });
-    router.push({ name: "Login" });
-    return;
-  }
-
-  if (!userStore.user?.ID) {
-    const recover = await Authentication.recoverUserData();
-    if (!!recover.error) {
-      // new AuthenticationUtils().removeToken();
-      console.log("Error recovering user data:", recover.error);
-
-      router.push({ name: "Login" });
-      globalLoading.value = false;
-      toast.add({
-        severity: "info",
-        summary: "Você não está logado!",
-        detail: "Faça login para continuar.",
-        life: 3000,
-      });
-    } else {
-      await userStore.login(recover);
-      // console.log("User Data:", recover);
-
-      toast.add({
-        severity: "contrast",
-        summary: "Bem-vindo de volta!",
-        detail: `Olá, ${recover?.Nome}!`,
-        life: 3000,
-      });
-      globalLoading.value = false;
-      router.push({ name: "Dashboard" });
-    }
-  }
-});
+//   if (!userStore.user?.ID) {
+//     const recover = await Authentication.recoverUserData();
+//     if (!!recover.error) {
+//       // new AuthenticationUtils().removeToken();
+//       console.log("Error recovering user data:", recover);
+//       new AuthenticationUtils().removeToken();
+//       globalLoading.value = false;
+//       toast.add({
+//         severity: "info",
+//         summary: "Você não está logado!",
+//         detail: "Faça login para continuar.",
+//         life: 3000,
+//       });
+//       router.push({ name: "Login" });
+//       return;
+//     } else {
+//       await userStore.login(recover);
+//       // console.log("User Data:", recover);
+//       console.log("Rota atual:", router.currentRoute.value.name);
+      
+//       toast.add({
+//         severity: "contrast",
+//         summary: "Bem-vindo de volta!",
+//         detail: `Olá, ${recover?.Nome}!`,
+//         life: 3000,
+//       });
+//       globalLoading.value = false;
+//       // router.push({ name: "Dashboard" });
+//     }
+//   }
+// });
 </script>
 
 <template>

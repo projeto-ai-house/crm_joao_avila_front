@@ -3,7 +3,7 @@
 import { useUserStore } from "../stores/user";
 
 export class PermissionsUtils {
-  public static handle(): [string, string[], boolean] {
+  public static handleUser(): [string, string[], boolean] {
     // recupera dados do usuario logado
     const { user } = useUserStore();
 

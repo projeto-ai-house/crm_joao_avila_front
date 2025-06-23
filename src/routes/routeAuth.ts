@@ -11,14 +11,18 @@ export class RouteAuth {
 
   private static checkRoutes(to: string): boolean {
     const { user } = useUserStore();
+    // if (!user) {
+    //   console.error("Usuário não encontrado no store.");
+    //   return false;
+    // }
     // Verifica se o usuário é um administrador
     // console.log(`Verificando permissões para a rota: ${to}`);
     // console.log(`Usuário atual:`, user);
 
     if (!user?.Permissoes?.length) {
       if (
-        user.Permissoes &&
-        user.Permissoes.includes(
+        user!.Permissoes &&
+        user!.Permissoes.includes(
           import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || ""
         )
       ) {
@@ -34,7 +38,7 @@ export class RouteAuth {
     const route = menuList.find((item) => item.to === to);
     if (!route) {
       console.error(`Rota não encontrada: ${to}`);
-      return false;
+      return true;
     }
 
     // Verifica se o usuário tem permissão para acessar a rota
