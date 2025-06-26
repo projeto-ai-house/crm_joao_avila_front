@@ -1,13 +1,22 @@
 <template>
   <!-- BEGIN: TopBar -->
   <div class="flex justify-between items-center pl-1 py-4 bg-white">
-    <h2 class="font-semibold text-gray-500">Lista de Clínicas</h2>
+    <div>
+      <h2 class="font-semibold text-gray-500">Lista de Clínicas</h2>
+      <p class="text-sm text-gray-400">
+        Gerencie as clínicas do sistema, incluindo suas informações e
+        responsáveis.
+      </p>
+    </div>
     <Button
       label="Adicionar"
       icon="pi pi-plus"
       severity="primary"
       size="small"
-      @click="drawerState = true"
+      @click="
+        inEdition = null;
+        drawerState = true;
+      "
     ></Button>
   </div>
   <!-- END: TopBar -->
@@ -21,22 +30,39 @@
       tableStyle="min-width: 50rem"
       :rows="rows"
       v-model:selection="selectedClinics"
-      dataKey="id"
+      dataKey="ID"
       size="small"
       :loading="loading"
-      @rowExpand="onExpand"
-      @rowCollapse="onCollapse"
     >
       <template #empty> Nenhuma clínica encontrada. </template>
       <template #loading> Carregando clínicas... </template>
       <Column expander style="width: 5rem" />
       <Column field="NomeClinica" sortable header="Nome"></Column>
       <Column field="dono" sortable header="Responsável"></Column>
-      <Column field="Cnpj" sortable header="CNPJ"></Column>
+      <Column field="Cnpj" sortable header="CNPJ">
+        <template #body="slotProps">
+          {{ maskCnpj(slotProps.data.Cnpj) }}
+        </template></Column
+      >
       <Column field="Endereco" sortable header="Endereço"></Column>
+      <Column headerStyle="width:4rem">
+        <template #body="slotProps">
+          <Button
+            icon="pi pi-pen-to-square"
+            label="Editar"
+            severity="secondary"
+            size="small"
+            variant="text"
+            @click="
+              inEdition = slotProps.data;
+              drawerState = true;
+            "
+            disabled
+        /></template>
+      </Column>
 
       <template #expansion="slotProps">
-        <div class="p-2" v-if="slotProps.data?.Donos?.length > 0">
+        <div class="p-2 rounded-lg" v-if="slotProps.data?.Donos?.length > 0">
           <DataTable
             :value="slotProps.data.Donos"
             stripedRows
@@ -46,25 +72,27 @@
             <Column field="nome_completo" header="Nome" sortable></Column>
             <Column field="email" header="E-mail" sortable></Column>
             <Column field="convenio" header="Convênio" sortable></Column>
-            <!-- <Column field="amount" header="Amount" sortable>
-              <template #body="slotProps">
-                {{ formatCurrency(slotProps.data.amount) }}
-              </template>
-            </Column>
-            <Column field="status" header="Status" sortable>
-              <template #body="slotProps">
-                <Tag
-                  :value="slotProps.data.status.toLowerCase()"
-                  :severity="getOrderSeverity(slotProps.data)"
+
+            <Column headerStyle="width:4rem">
+              <template #body>
+                <Button
+                  icon="pi pi-user-edit"
+                  label="Editar"
+                  severity="secondary"
+                  size="small"
+                  variant="text"
+                  @click="
+                    inEdition = slotProps.data;
+                    drawerState = true;
+                  "
+                  disabled
                 />
               </template>
-            </Column> -->
-            <!-- <Column headerStyle="width:4rem">
-              <template #body>
-                <Button icon="pi pi-search" />
-              </template>
-            </Column> -->
+            </Column>
           </DataTable>
+        </div>
+        <div v-else class="p-4 text-gray-500 bg-blue-50 rounded-lg">
+          Nenhum responsável encontrado para esta clínica.
         </div>
       </template>
     </DataTable>
@@ -79,6 +107,7 @@
 
   <ClinicsDrawerComponent
     :drawerState="drawerState"
+    :inEdition="inEdition"
     @update:drawerState="drawerState = $event"
     @saveClinic="fetchClinics"
   />
@@ -89,11 +118,14 @@ import { onMounted, ref } from "vue";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import { Button, Drawer, Paginator } from "primevue";
-import { ClinicsServices } from "../../../services/clinics/ClinicsServices";
+import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
 import ClinicsDrawerComponent from "./ClinicsDrawerComponent.vue";
+import { usePermissionsStore } from "../../../../stores/permissions";
+const permissionsStore = usePermissionsStore();
 
 const loading = ref(false);
 const drawerState = ref(false);
+const inEdition = ref(null);
 const selectedClinics = ref([]);
 const expandedRows = ref({});
 const clinics = ref([]);
@@ -102,31 +134,17 @@ const rows = 20; // número fixo de itens por página
 const totalRecords = ref(0);
 const currentPage = ref(1);
 
+function maskCnpj(cnpj: string) {
+  if (!cnpj) return "";
+  return cnpj.replace(
+    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+    "$1.$2.$3/$4-$5"
+  );
+}
+
 function changePage(event: any) {
   currentPage.value = event.page + 1;
   fetchClinics();
-}
-
-const expandAll = () => {
-  expandedRows.value = clinics.value.reduce(
-    (acc, p) => (acc[p.id] = true) && acc,
-    {}
-  );
-};
-const collapseAll = () => {
-  expandedRows.value = null;
-};
-
-function onExpand(event) {
-  const id = event.data.id;
-  expandedRows.value = expandedRows.value[id] ? {} : { [id]: true };
-}
-
-function onCollapse(event) {
-  const id = event.data.id;
-  if (expandedRows.value[id]) {
-    delete expandedRows.value[id];
-  }
 }
 
 async function fetchClinics() {
@@ -156,6 +174,7 @@ async function fetchClinics() {
 
 onMounted(() => {
   fetchClinics();
+  console.log("Permissions:", permissionsStore.permissions);
 });
 </script>
 

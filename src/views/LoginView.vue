@@ -61,10 +61,10 @@ function showLogin() {
 
 function checkAuth() {
   const isAuthenticated = new AuthenticationUtils().isAuthenticated();
-  // console.log("Is Authenticated LOGIN:", isAuthenticated);
+  console.log("Is Authenticated LOGIN:", isAuthenticated);
 
   if (isAuthenticated) {
-    router.push({ name: "Dashboard" });
+    router.push({ name: "Inicio" });
   }
 }
 

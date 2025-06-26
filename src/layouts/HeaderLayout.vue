@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import Toolbar from "primevue/toolbar";
 import Button from "primevue/button";
 import Avatar from "primevue/avatar";
@@ -128,10 +128,23 @@ function handleLogout(): void {
   });
 }
 
-onMounted(() => {
+function updatePageName(): void {
   let page = router.currentRoute.value?.name as string | undefined;
   if (page === "PainelNotFound") page = "Página Não Encontrada!";
   if (page) PAGENAME.value = page;
   else PAGENAME.value = "Home";
+}
+
+onMounted(() => {
+  updatePageName();
 });
+
+// Watch for route changes and update page name
+watch(
+  () => router.currentRoute.value,
+  () => {
+    updatePageName();
+  },
+  { immediate: true }
+);
 </script>

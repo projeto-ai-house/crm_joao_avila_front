@@ -8,8 +8,10 @@ import PainelLayout from "../layouts/PainelLayout.vue";
 import HomeView from "../views/Painel/HomeView.vue";
 import NotFoundView from "../views/Painel/NotFoundView.vue";
 import { RouteAuth } from "./routeAuth";
-import ClinicsListView from "../views/Painel/clinica/ClinicsListView.vue";
+import ClinicsListView from "../views/Painel/administracao/clinica/ClinicsListView.vue";
 import { useUserStore } from "../stores/user";
+import UsersListView from "../views/Painel/clinicas/usuarios/UsersListView.vue";
+import RoleListView from "../views/Painel/gerenciamento/cargos/RoleListView.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -24,11 +26,11 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: "",
-        redirect: { name: "Dashboard" },
+        redirect: { name: "Inicio" },
       },
       {
         path: "dashboard",
-        name: "Dashboard",
+        name: "Inicio",
         component: HomeView,
       },
       {
@@ -36,7 +38,16 @@ const routes: RouteRecordRaw[] = [
         name: "Clinicas",
         component: ClinicsListView,
       },
-
+      {
+        path: "usuarios",
+        name: "Usuarios",
+        component: UsersListView,
+      },
+      {
+        path: "cargos",
+        name: "Cargos",
+        component: RoleListView,
+      },
       {
         path: ":pathMatch(.*)*",
         name: "PainelNotFound",
@@ -57,11 +68,12 @@ router.beforeEach(async (to, from, next) => {
   try {
     await store.initUser();
   } catch {
-    return { name: "Login" };
+    next({ name: "Login" });
+    return;
   }
 
-  const isAuthenticated = RouteAuth.isAuthenticated(to);
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  const routeAuth = RouteAuth.isAuthenticated(to);
+  if (to.meta.requiresAuth && !routeAuth) {
     next({ name: "Login" });
   } else {
     next();

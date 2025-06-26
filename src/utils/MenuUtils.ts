@@ -20,52 +20,76 @@ export class MenuUtils {
   private static readonly items = [
     {
       placeholder: "Administração",
-      permissions: import.meta.env.VITE_ADMIN_ROLENAMES?.split(",") || [],
+      permissions: [
+        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+      ],
     },
     {
       label: "Dashboard",
       pageName: "DASHBOARD",
       icon: "pi pi-th-large",
       to: "/painel/dashboard",
-      permissions: import.meta.env.VITE_ADMIN_ROLENAMES?.split(",") || [],
+      permissions: [
+        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+      ],
     },
     {
       label: "Clinicas",
       pageName: "CLINICAS",
       icon: "pi pi-building",
       to: "/painel/clinicas",
-      permissions: import.meta.env.VITE_ADMIN_ROLENAMES?.split(",") || [],
+      permissions: [
+        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+      ],
     },
     {
       label: "Médicos",
       pageName: "MEDICOS",
       icon: "pi pi-user",
       to: "/painel/medicos",
-      permissions: import.meta.env.VITE_ADMIN_ROLENAMES?.split(",") || [],
+      permissions: [
+        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+      ],
     },
     {
       label: "Convênios",
       pageName: "CONVENIOS",
       icon: "pi pi-credit-card",
       to: "/painel/convenios",
-      permissions: import.meta.env.VITE_ADMIN_ROLENAMES?.split(",") || [],
+      permissions: [
+        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+      ],
     },
     {
       placeholder: "Clinica",
       permissions: ["agendamento", "paciente", "usuario", "relatorio"],
     },
     {
+      label: "Usuários",
+      pageName: "USUARIOS",
+      icon: "pi pi-users",
+      to: "/painel/usuarios",
+      permissions: ["usuario"],
+    },
+    {
+      label: "Relatórios",
+      pageName: "RELATORIOS",
+      icon: "pi pi-chart-bar",
+      to: "/painel/relatorios",
+      permissions: ["relatorio"],
+    },
+    {
       label: "Agenda",
       pageName: "AGENDA",
       icon: "pi pi-calendar",
-      to: "/painel/clinica/agenda",
+      to: "/painel/agenda",
       permissions: ["agendamento"],
     },
     {
       label: "Pacientes",
       pageName: "PACIENTES",
       icon: "pi pi-users",
-      to: "/painel/clinica/pacientes",
+      to: "/painel/pacientes",
       permissions: ["paciente"],
     },
     // {
@@ -89,25 +113,35 @@ export class MenuUtils {
     //   icon: "pi pi-money-bill",
     //   to: "/painel/financeiro/contas-a-pagar",
     // },
+    {
+      placeholder: "Gerenciamento",
+      permissions: ["free"],
+    },
+    {
+      label: "Cargos",
+      pageName: "CARGOS",
+      icon: "pi pi-briefcase",
+      to: "/painel/cargos",
+      permissions: [import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin", "free"], // LEMBRAR DE MUDAR PERMISSÃO DEPOIS
+    },
   ];
 
   public static getAllMenus(): any[] {
     return this.items;
   }
-
   public static getPermissionedMenus(
     role: string,
-    permissions: string[]
+    userPermissions: string[]
   ): any[] {
     return this.items.filter((item) => {
       if (item.permissions && item.permissions.length > 0) {
-        return item.permissions.some(
-          (p: string) =>
-            permissions.includes(p) 
-            // || permissions.includes(
-            //   import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1]
-            // )
-        );
+        return item.permissions.some((pagePermission: string) => {
+          // Allow items with "free" permission for everyone
+          if (pagePermission === "free") {
+            return true;
+          }
+          return userPermissions.includes(pagePermission.split("_")[0]);
+        });
       }
       return true; // Include items without specific permissions
     });

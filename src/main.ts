@@ -5,8 +5,10 @@ import Aura from "@primeuix/themes/aura";
 import ToastService from "primevue/toastservice";
 import App from "./App.vue";
 import { router } from "./routes";
-import { createPinia } from 'pinia'
-import 'primeicons/primeicons.css'
+import { createPinia } from "pinia";
+import ConfirmationService from "primevue/confirmationservice";
+import Tooltip from "primevue/tooltip";
+import "primeicons/primeicons.css";
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -26,8 +28,10 @@ const MyPreset = definePreset(Aura, {
   },
 });
 
-const pinia = createPinia()
+const pinia = createPinia();
 export const app = createApp(App);
+
+app.directive("tooltip", Tooltip);
 app.use(PrimeVue, {
   locale: {
     accept: "Sim",
@@ -39,26 +43,10 @@ app.use(PrimeVue, {
       "quarta-feira",
       "quinta-feira",
       "sexta-feira",
-      "sábado"
+      "sábado",
     ],
-    dayNamesShort: [
-      "dom",
-      "seg",
-      "ter",
-      "qua",
-      "qui",
-      "sex",
-      "sáb"
-    ],
-    dayNamesMin: [
-      "Do",
-      "Se",
-      "Te",
-      "Qa",
-      "Qi",
-      "Sx",
-      "Sa"
-    ],
+    dayNamesShort: ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"],
+    dayNamesMin: ["Do", "Se", "Te", "Qa", "Qi", "Sx", "Sa"],
     monthNames: [
       "janeiro",
       "fevereiro",
@@ -71,7 +59,7 @@ app.use(PrimeVue, {
       "setembro",
       "outubro",
       "novembro",
-      "dezembro"
+      "dezembro",
     ],
     monthNamesShort: [
       "jan",
@@ -85,7 +73,7 @@ app.use(PrimeVue, {
       "set",
       "out",
       "nov",
-      "dez"
+      "dez",
     ],
     today: "Hoje",
     clear: "Limpar",
@@ -94,16 +82,17 @@ app.use(PrimeVue, {
   },
   ripple: true,
   //  zIndex: {
-    //   modal: 1100,
-    //   overlay: 1000
-    // },
-    theme: {
-      preset: MyPreset,
-      options: {
-        darkModeSelector: ".app-dark",
-      },
+  //   modal: 1100,
+  //   overlay: 1000
+  // },
+  theme: {
+    preset: MyPreset,
+    options: {
+      darkModeSelector: ".app-dark",
     },
+  },
 });
+app.use(ConfirmationService);
 app.use(router);
 app.use(pinia);
 app.use(ToastService);

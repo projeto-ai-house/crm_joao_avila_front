@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import "./style.css";
 import Toast from "primevue/toast";
+import ConfirmDialog from "primevue/confirmdialog";
 import GlobalLoading from "@/components/GlobalLoading.vue";
 import { onBeforeMount, provide, ref } from "vue";
 import { AuthenticationUtils } from "./utils/AuthenticationUtils";
@@ -66,6 +67,7 @@ const toast = useToast();
 
 <template>
   <Toast position="top-center" />
+  <ConfirmDialog />
   <GlobalLoading :model-value="globalLoading" />
   <router-view />
 </template>

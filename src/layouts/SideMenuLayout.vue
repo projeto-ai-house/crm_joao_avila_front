@@ -11,7 +11,17 @@
         alt="Mednova Logo"
         class="w-10 h-10 drop-shadow-2xl drop-shadow-gray-800/20 z-10"
       />
-      <h1 class="text-xl !font-secondary z-10">Mednova</h1>
+      <div
+        class="flex flex-col items-start justify-center z-10 -space-y-1 min-w-0 flex-1"
+      >
+        <h1 class="text-xl !font-secondary z-10 leading-tight">Mednova</h1>
+        <span
+          class="text-sm font-normal text-gray-600 z-10 w-full truncate"
+          v-if="CLINICNAME"
+        >
+          {{ CLINICNAME }}
+        </span>
+      </div>
     </div>
     <div class="flex flex-col justify-center w-full p-4">
       <div class="w-full" v-for="(item, index) in items">
@@ -77,6 +87,7 @@ const toast = useToast();
 
 const userData = ref(userStore.getData());
 const PAGENAME = ref<string | undefined>("");
+const CLINICNAME = ref<string | undefined>(userData.value?.Clinica[0]?.Nome);
 
 interface MenuItem {
   label?: string;
@@ -101,7 +112,7 @@ function handleSelectedPage() {
 
 onBeforeMount(() => {
   const [role, permissions, error] = PermissionsUtils.handleUser();
-console.log(permissions);
+  // console.log(permissions);
 
   if (error) {
     toast.add({
@@ -113,12 +124,16 @@ console.log(permissions);
     });
     return;
   }
-  const menuList = MenuUtils.getPermissionedMenus(role, permissions);
+  const menuList = MenuUtils.getPermissionedMenus(
+    role,
+    permissions.map((p) => p.split("_")[0])
+  );
   items.value = menuList;
 });
 
 onMounted(() => {
   handleSelectedPage();
+  CLINICNAME.value = userData.value?.Clinica[0]?.Nome;
 });
 
 watch(
