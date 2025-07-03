@@ -5,19 +5,34 @@
       class="!rounded-none !border-t-0 !border-l-0 !border-r-0 border-gray-200"
     >
       <template #start>
-        <div class="flex items-center gap-2 md:hidden">
+        <div class="flex items-center gap-2 lg:hidden">
+          <Button
+            icon="pi pi-bars"
+            class="p-button-rounded p-button-text block lg:hidden"
+            size="small"
+            @click="emit('toggle:sidebar')"
+            aria-label="Menu"
+          />
           <img
             src="@/assets/images/logo.png"
             alt="Mednova Logo"
-            class="w-10 h-10 mb-1 mx-auto drop-shadow-2xl drop-shadow-gray-800/20"
+            class="w-10 h-10 mb-1 mx-auto drop-shadow-2xl drop-shadow-gray-800/20 hidden lg:block"
           />
-          <h1 class="text-xl !font-secondary">Mednova</h1>
+          <h1 class="text-xl !font-secondary hidden lg:block">Mednova</h1>
         </div>
         <div
-          class="hidden md:flex items-center gap-2 text-lg font-semibold text-gray-600"
+          class="hidden lg:flex items-center gap-2 text-lg font-semibold text-gray-600"
         >
           {{ PAGENAME }}
         </div>
+      </template>
+
+      <template #center>
+        <img
+          src="@/assets/images/logo.png"
+          alt="Mednova Logo"
+          class="w-10 h-10 mb-1 mx-auto drop-shadow-2xl drop-shadow-gray-800/20 block md:hidden"
+        />
       </template>
 
       <template #end>
@@ -62,6 +77,7 @@ const router = useRouter();
 const userStore = useUserStore();
 const toast = useToast();
 const menuRef = ref(null);
+const emit = defineEmits(["toggle:sidebar"]);
 const items = ref<MenuItem[]>([
   // {
   //   label: "Documents",

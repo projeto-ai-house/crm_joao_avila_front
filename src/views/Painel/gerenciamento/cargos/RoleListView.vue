@@ -48,8 +48,8 @@
       <Column field="Seleções" header="Seleções" :style="{ width: '8rem' }">
         <template #body="slotProps">
           <Badge
-            :value="slotProps.data.Permissoes.length"
-            :severity="stockSeverity(slotProps.data.Permissoes.length)"
+            :value="slotProps.data.Permissoes?.length"
+            :severity="stockSeverity(slotProps.data.Permissoes?.length)"
         /></template>
       </Column>
 
@@ -69,6 +69,7 @@
             :disabled="!permissionsUserPage.editar && false"
             @click="
               inEdition = slotProps.data;
+              isEditionPermissionsList = slotProps.data.Permissoes || [];
               dialogState = true;
             "
           />
@@ -78,11 +79,12 @@
   </div>
   <!-- END: Table -->
   <RoleDialogComponent
-      :dialogState="dialogState"
-      :inEdition="inEdition"
-      @update:dialogState="dialogState = $event"
-      @saveUser="fetchRoles"
-    />
+    :dialogState="dialogState"
+    :inEdition="inEdition"
+    :permissionsList="isEditionPermissionsList"
+    @update:dialogState="dialogState = $event"
+    @saveUser="fetchRoles"
+  />
 </template>
 
 <script setup lang="ts">
@@ -95,10 +97,12 @@ import { useRouter } from "vue-router";
 import { RolesServices } from "../../../../services/roles/RolesServices";
 import { useUserStore } from "../../../../stores/user";
 import RoleDialogComponent from "./RoleDialogComponent.vue";
+import { any } from "zod";
 
 const loading = ref(false);
 const dialogState = ref(false);
 const inEdition = ref(null);
+const isEditionPermissionsList = ref([]);
 const selectedUsers = ref([]);
 const expandedRows = ref({});
 const users = ref([]);
@@ -111,7 +115,7 @@ const permissionsUserPage = ref(
 const rows = 20;
 
 function stockSeverity(quantity: number): string {
-  console.log("quantity", quantity);
+  // console.log("quantity", quantity);
 
   if (quantity === 0) return "danger";
   else if (quantity > 6 && quantity < 12) return "warn";
@@ -119,15 +123,18 @@ function stockSeverity(quantity: number): string {
 }
 
 async function fetchRoles() {
+  const userRole = userStore.user?.Role;
+  console.log("userRole", userRole);
+
   try {
     loading.value = true;
     const response = await RolesServices.getRoles({ id: userStore.user?.ID });
     if (response.status === 200) {
-      users.value = response.data?.data.sort(
-        (a: { Hierarquia: number }, b: { Hierarquia: number }) => {
+      users.value = response.data?.data
+        ?.filter((role) => role.Nome !== userRole)
+        .sort((a: { Hierarquia: number }, b: { Hierarquia: number }) => {
           return b.Hierarquia - a.Hierarquia;
-        }
-      );
+        });
     }
   } catch (error) {
     console.error("Error fetching clinics:", error);

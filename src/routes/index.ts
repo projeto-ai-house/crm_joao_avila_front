@@ -12,6 +12,7 @@ import ClinicsListView from "../views/Painel/administracao/clinica/ClinicsListVi
 import { useUserStore } from "../stores/user";
 import UsersListView from "../views/Painel/clinicas/usuarios/UsersListView.vue";
 import RoleListView from "../views/Painel/gerenciamento/cargos/RoleListView.vue";
+import AgendaView from "../views/Painel/clinicas/agenda/AgendaView.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -42,6 +43,11 @@ const routes: RouteRecordRaw[] = [
         path: "usuarios",
         name: "Usuarios",
         component: UsersListView,
+      },
+      {
+        path: "agenda",
+        name: "Agenda",
+        component: AgendaView,
       },
       {
         path: "cargos",

@@ -50,6 +50,7 @@
             @click="
               () => {
                 if (item.to) {
+                  emit('change:page');
                   router.push(item.to);
                 }
               }
@@ -84,6 +85,7 @@ import { MenuUtils } from "../utils/MenuUtils";
 const router = useRouter();
 const userStore = useUserStore();
 const toast = useToast();
+const emit = defineEmits(["change:page"]);
 
 const userData = ref(userStore.getData());
 const PAGENAME = ref<string | undefined>("");

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@daypilot/daypilot-lite-vue": "^4.1.0",
     "@primeuix/themes": "^1.1.1",
     "@primevue/forms": "^4.3.5",
     "@tailwindcss/vite": "^4.1.8",

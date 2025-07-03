@@ -13,4 +13,11 @@ export class RolesServices {
       true
     );
   }
+  public static async putStateRole(body: {
+    role_id: string;
+    Permissao: string;
+    ativo: boolean;
+  }): Promise<AxiosResponse> {
+    return callApi(ROUTE + `/permissoes`, "put", undefined, body);
+  }
 }

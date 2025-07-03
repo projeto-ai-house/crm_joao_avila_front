@@ -14,7 +14,7 @@
       <div
         class="flex flex-col h-full backdrop-blur-xl border border-white/10 md:rounded-2xl shadow-xl overflow-hidden bg-white"
       >
-        <HeaderLayout />
+        <HeaderLayout @toggle:sidebar="sideMenuState = true" />
         <div class="flex-1 p-4 w-full overflow-y-auto">
           <Transition name="fade" mode="out-in">
             <router-view />
@@ -25,12 +25,37 @@
     </div>
   </div>
   <!-- </ImageComponent> -->
+  <Drawer
+    v-model:visible="sideMenuState"
+    position="left"
+    class="!w-full md:!w-80 lg:!w-[30rem]"
+    @update:visible="sideMenuState = $event"
+  >
+    <template #header>
+      <div class="flex items-center gap-2">
+        <img
+          src="@/assets/images/logo.png"
+          alt="Mednova Logo"
+          class="w-10 h-10 drop-shadow-2xl drop-shadow-gray-800/20 z-10"
+        />
+        <div
+          class="flex flex-col items-start justify-center z-10 -space-y-1 min-w-0 flex-1"
+        >
+          <h1 class="text-xl !font-secondary z-10 leading-tight">Mednova</h1>
+        </div>
+      </div>
+    </template>
+    <SideMenuLayout @change:page="sideMenuState = false" />
+  </Drawer>
 </template>
 
 <script lang="ts" setup>
 // @ts-ignore
 import HeaderLayout from "@/layouts/HeaderLayout.vue";
 import SideMenuLayout from "@/layouts/SideMenuLayout.vue";
+import { Drawer } from "primevue";
+import { ref } from "vue";
+const sideMenuState = ref(false);
 </script>
 
 <style scoped>
