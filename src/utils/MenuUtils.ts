@@ -115,14 +115,17 @@ export class MenuUtils {
     // },
     {
       placeholder: "Gerenciamento",
-      permissions: ["free"],
+      permissions: ["cargo"],
     },
     {
       label: "Cargos",
       pageName: "CARGOS",
       icon: "pi pi-briefcase",
       to: "/painel/cargos",
-      permissions: [import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin", "free"], // LEMBRAR DE MUDAR PERMISSÃO DEPOIS
+      permissions: [
+        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+        "cargo",
+      ], // LEMBRAR DE MUDAR PERMISSÃO DEPOIS
     },
   ];
 

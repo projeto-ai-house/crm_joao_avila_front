@@ -29,6 +29,7 @@
         v-model="form.email"
         class="!bg-white/40"
         :disabled="loginLoading"
+        :autofocus="true"
       />
       <Message
         v-if="$form.email?.invalid"
