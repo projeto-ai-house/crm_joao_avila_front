@@ -22,9 +22,9 @@ export const useUserStore = defineStore("user", () => {
   const user = ref<UserType | null>(null);
   async function login(userData: UserType) {
     const permissionsStore = usePermissionsStore();
-    
+
     user.value = await userData;
-    
+
     // Configura as permissões do usuário após o login
     if (user.value?.Permissoes) {
       await permissionsStore.setPermissions(user.value.Permissoes);
@@ -33,9 +33,9 @@ export const useUserStore = defineStore("user", () => {
 
   async function logout() {
     const permissionsStore = usePermissionsStore();
-    
+
     user.value = null;
-    
+
     // Limpa as permissões ao fazer logout
     await permissionsStore.setPermissions([]);
   }
@@ -45,26 +45,30 @@ export const useUserStore = defineStore("user", () => {
   }
   async function initUser() {
     const permissionsStore = usePermissionsStore();
-    
-    if (!user.value?.ID) {
-      const recover = await Authentication.recoverUserData();
-      if (!!recover.error) {
-        console.log("Error recovering user data:", recover);
-        new AuthenticationUtils().removeToken();
-        return;
+
+    try {
+      if (!user.value?.ID) {
+        const recover = await Authentication.recoverUserData();
+        if (!!recover.error) {
+          console.log("Error recovering user data:", recover);
+          new AuthenticationUtils().removeToken();
+          return;
+        } else {
+          user.value = recover;
+
+          // Configura as permissões do usuário após recuperar os dados
+          if (user.value?.Permissoes) {
+            await permissionsStore.setPermissions(user.value.Permissoes);
+          }
+        }
       } else {
-        user.value = recover;
-        
-        // Configura as permissões do usuário após recuperar os dados
+        // Se o usuário já existe, certifica-se de que as permissões estão configuradas
         if (user.value?.Permissoes) {
           await permissionsStore.setPermissions(user.value.Permissoes);
         }
       }
-    } else {
-      // Se o usuário já existe, certifica-se de que as permissões estão configuradas
-      if (user.value?.Permissoes) {
-        await permissionsStore.setPermissions(user.value.Permissoes);
-      }
+    } catch (error) {
+      console.error("Error initializing user:", error);
     }
   }
 

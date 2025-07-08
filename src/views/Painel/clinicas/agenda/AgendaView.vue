@@ -1,6 +1,29 @@
 <template>
   <div class="h-full w-full flex flex-col">
-    <div class="mb-4 flex justify-end">
+    <div class="mb-4 flex justify-between items-center">
+      <!-- Navigator compacto como dropdown -->
+      <div class="relative">
+        <button
+          @click="toggleNavigator"
+          class="navigator-button px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          📅 {{ formatDisplayDate(calendarConfig.startDate) }}
+        </button>
+
+        <div
+          v-if="showNavigator"
+          class="navigator-dropdown absolute top-full left-0 mt-1 z-50 bg-white shadow-lg border rounded-lg"
+        >
+          <DayPilotNavigator
+            id="nav-compact"
+            :config="navigatorCompactConfig"
+            ref="navigatorCompact"
+            class="border-0"
+          />
+        </div>
+      </div>
+
+      <!-- Controles de visualização -->
       <div class="flex items-center gap-2">
         <label for="view-selector" class="text-sm font-medium text-gray-700">
           Visualização:
@@ -18,24 +41,15 @@
       </div>
     </div>
 
-    <div class="flex gap-2 flex-row h-full w-full flex-1">
-      <div class="flex-shrink-0">
-        <DayPilotNavigator
-          id="nav"
-          :config="navigatorConfig"
-          ref="navigator"
-          class=""
-        />
-      </div>
-      <div class="agenda-view ">
-        <DayPilotCalendar ref="calendar" :config="calendarConfig" class="" />
-      </div>
+    <!-- Calendário principal -->
+    <div class="flex-1 w-full">
+    <DayPilotCalendar ref="calendar" :config="calendarConfig" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted, reactive, onUnmounted } from "vue";
 import {
   DayPilot,
   DayPilotCalendar,
@@ -49,6 +63,9 @@ const calendar = ref<DayPilotCalendar | null>(null);
 const confirm = useConfirm();
 const globalLoading = ref(false);
 
+// Variável para controlar o dropdown do navigator
+const showNavigator = ref(false);
+
 const viewOptions = [
   { label: "Dia", value: "Day" },
   { label: "Semana", value: "Week" },
@@ -56,20 +73,56 @@ const viewOptions = [
 
 const selectedView = ref("Week");
 
+// Função para formatar a data para exibição
+const formatDisplayDate = (date: any) => {
+  if (!date) return "";
+
+  const dpDate = new DayPilot.Date(date);
+
+  if (selectedView.value === "Day") {
+    return dpDate.toString("dd/MM/yyyy");
+  } else {
+    // Para semana, mostrar range
+    const startOfWeek = dpDate.firstDayOfWeek();
+    const endOfWeek = startOfWeek.addDays(6);
+    return `${startOfWeek.toString("dd/MM")} - ${endOfWeek.toString(
+      "dd/MM/yyyy"
+    )}`;
+  }
+};
+
 const onViewChange = () => {
   calendarConfig.viewType = selectedView.value;
 
   if (selectedView.value === "Day") {
-    calendarConfig.cellWidth = 924; // 840 + 10% = 924
-    calendarConfig.cellHeight = 33; // 30 + 10% = 33
-    navigatorConfig.selectMode = "Day";
+    // calendarConfig.cellWidth = 924; // 840 + 10% = 924
+    // calendarConfig.cellHeight = 33; // 30 + 10% = 33
+    navigatorCompactConfig.selectMode = "Day";
   } else if (selectedView.value === "Week") {
     calendarConfig.cellWidth = 132; // 120 + 10% = 132
     calendarConfig.cellHeight = 33; // 30 + 10% = 33
-    navigatorConfig.selectMode = "Week";
+    navigatorCompactConfig.selectMode = "Week";
   }
 
-  fetchAppointments();
+  // Sincronizar o navigator com a data atual do calendário
+  syncNavigatorWithCalendar();
+  
+  // fetchAppointments será chamado automaticamente pelo onTimeRangeSelected do navigator
+};
+
+// Função para sincronizar o navigator com a data atual do calendário
+const syncNavigatorWithCalendar = () => {
+  navigatorCompactConfig.startDate = calendarConfig.startDate;
+  navigatorCompactConfig.selectionDay = calendarConfig.startDate;
+};
+
+// Função para abrir/fechar o navigator e sincronizar
+const toggleNavigator = () => {
+  if (!showNavigator.value) {
+    // Antes de abrir, sincronizar com a data atual do calendário
+    syncNavigatorWithCalendar();
+  }
+  showNavigator.value = !showNavigator.value;
 };
 
 const events = ref([]);
@@ -80,7 +133,9 @@ const handleDeleteAppointment = async (eventId: string) => {
     globalLoading.value = true;
 
     // Chama a API para excluir o agendamento
-    const response = await AppointmentsServices.deleteAppointment({ id: eventId });
+    const response = await AppointmentsServices.deleteAppointment({
+      id: eventId,
+    });
 
     if (response.status === 200) {
       // Remove do array de eventos local apenas se a API retornou sucesso
@@ -101,7 +156,10 @@ const handleDeleteAppointment = async (eventId: string) => {
         console.error("Event not found in local list");
       }
     } else {
-      console.error("Failed to delete event from API, status:", response.status);
+      console.error(
+        "Failed to delete event from API, status:",
+        response.status
+      );
     }
   } catch (error) {
     console.error("Error deleting appointment:", error);
@@ -208,20 +266,23 @@ const calendarConfig = reactive({
   events: events.value,
 });
 
-const navigatorConfig = reactive({
-  showMonths: 3,
-  skipMonths: 3,
+const navigatorCompactConfig = reactive({
+  showMonths: 1,
+  skipMonths: 1,
   selectMode: selectedView.value === "Week" ? "Week" : "Day",
   startDate: DayPilot.Date.today(),
   selectionDay: DayPilot.Date.today(),
   onTimeRangeSelected: (args: any) => {
     if (selectedView.value === "Week") {
-      // Para seleção de semana, args.start já é o primeiro dia da semana
       calendarConfig.startDate = args.start;
+      navigatorCompactConfig.startDate = args.start;
+      navigatorCompactConfig.selectionDay = args.start;
     } else {
-      // Para seleção de dia
       calendarConfig.startDate = args.day;
+      navigatorCompactConfig.startDate = args.day;
+      navigatorCompactConfig.selectionDay = args.day;
     }
+    showNavigator.value = false; // Fechar o dropdown
     fetchAppointments();
   },
 });
@@ -329,7 +390,33 @@ async function fetchAppointments() {
 
 onMounted(async () => {
   await fetchAppointments();
+  
+  // Sincronizar o navigator com a data inicial do calendário
+  syncNavigatorWithCalendar();
+
+  // Adicionar evento de clique para fechar o dropdown do navigator
+  document.addEventListener("click", handleClickOutside);
 });
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
+
+// Função para fechar o dropdown quando clicar fora
+const handleClickOutside = (event: Event) => {
+  const target = event.target as Element;
+  const dropdown = document.querySelector(".navigator-dropdown");
+  const button = document.querySelector(".navigator-button");
+
+  if (
+    dropdown &&
+    button &&
+    !dropdown.contains(target) &&
+    !button.contains(target)
+  ) {
+    showNavigator.value = false;
+  }
+};
 </script>
 
 <style>
@@ -592,5 +679,55 @@ div[id*="daypilot_calendar_event"] > div {
 .delete-button:active {
   transform: scale(0.95) !important;
   transition: all 0.1s ease !important;
+}
+
+/* Estilos para o Navigator compacto */
+.navigator-dropdown {
+  max-width: 300px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.navigator-dropdown .navigator_default_main {
+  border: none !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+/* Botão do navigator compacto */
+.navigator-button {
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.navigator-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.navigator-button:active {
+  transform: translateY(0);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .navigator-dropdown {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+  }
+
+  .navigator-button {
+    min-width: auto;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
 }
 </style>
