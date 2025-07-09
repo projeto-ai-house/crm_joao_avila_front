@@ -14,7 +14,7 @@ import { SearchX } from "lucide-vue-next";
       <h2 class="text-2xl font-semibold text-gray-800 mb-2">
         Página Não Encontrada
       </h2>
-      <p class="text-gray-600 mb-6">
+      <p class="text-gray-600 mb-6 text-center">
         Desculpe, a página que você está procurando não existe ou foi movida.
       </p>
       <router-link

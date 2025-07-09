@@ -48,6 +48,21 @@
       <Column field="Email" header="E-mail" sortable></Column>
       <Column field="Convenio" header="Convênio" sortable></Column>
       <Column field="Cargo" header="Cargo" sortable></Column>
+      <Column field="Vinculos" header="Vínculos" sortable>
+        <template #body="slotProps">
+          <MultiSelect
+            :placeholder="linksLoading ? 'Carregando...' : 'Selecione'"
+            :loading="linksLoading"
+            :options="users.filter((user) => user.ID !== slotProps.data.ID).map((user) => ({
+              name: user.NomeCompleto,
+              value: user.ID,
+            }))"
+            optionLabel="name"
+            class="w-full md:w-48"
+            size="small"
+          />
+        </template>
+      </Column>
 
       <Column headerStyle="width:4rem">
         <template #body="slotProps">
@@ -99,14 +114,23 @@
 import { onBeforeMount, onMounted, ref } from "vue";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import { Button, Drawer, Paginator, useConfirm } from "primevue";
+import {
+  Button,
+  Drawer,
+  MultiSelect,
+  Paginator,
+  Select,
+  useConfirm,
+} from "primevue";
 import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
 import UsersDrawerComponent from "./UsersDrawerComponent.vue";
 import { UsersServices } from "../../../../services/user/UsersServices";
 import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 import { useRouter } from "vue-router";
+import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 
 const loading = ref(false);
+const linksLoading = ref(false);
 const drawerState = ref(false);
 const inEdition = ref(null);
 const selectedUsers = ref([]);
@@ -185,6 +209,21 @@ async function fetchUsers() {
     console.error("Error fetching clinics:", error);
   } finally {
     loading.value = false;
+  }
+}
+
+async function fetchUserLinks() {
+  try {
+    linksLoading.value = true;
+    const response = await UserLinksServices.getUsers();
+    if (response.status === 200) {
+      // Process user links if needed
+      console.log("User links fetched successfully:", response.data);
+    }
+  } catch (error) {
+    console.error("Error fetching user links:", error);
+  } finally {
+    linksLoading.value = false;
   }
 }
 

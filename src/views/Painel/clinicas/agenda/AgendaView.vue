@@ -1,33 +1,36 @@
 <template>
   <div class="h-full w-full flex flex-col">
-    <div class="mb-4 flex justify-between items-center">
-      <!-- Navigator compacto como dropdown -->
-      <div class="relative">
-        <button
-          @click="toggleNavigator"
-          class="navigator-button px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          📅 {{ formatDisplayDate(calendarConfig.startDate) }}
-        </button>
-
-        <div
-          v-if="showNavigator"
-          class="navigator-dropdown absolute top-full left-0 mt-1 z-50 bg-white shadow-lg border rounded-lg"
-        >
-          <DayPilotNavigator
-            id="nav-compact"
-            :config="navigatorCompactConfig"
-            ref="navigatorCompact"
-            class="border-0"
-          />
-        </div>
+    <div class="flex justify-between items-center mb-4">
+      <div>
+        <Button
+          label="Novo Agendamento"
+          icon="pi pi-plus"
+          class="p-button-success h-[40px]"
+          @click="$emit('createAppointment')"
+        />
       </div>
-
       <!-- Controles de visualização -->
       <div class="flex items-center gap-2">
-        <label for="view-selector" class="text-sm font-medium text-gray-700">
-          Visualização:
-        </label>
+        <div class="relative">
+          <button
+            @click="toggleNavigator"
+            class="navigator-button cursor-pointer px-3 py-2 h-[40px] bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            📅 {{ formatDisplayDate(calendarConfig.startDate) }}
+          </button>
+
+          <div
+            v-if="showNavigator"
+            class="navigator-dropdown absolute top-full left-0 mt-1 z-50 bg-white shadow-lg border rounded-lg"
+          >
+            <DayPilotNavigator
+              id="nav-compact"
+              :config="navigatorCompactConfig"
+              ref="navigatorCompact"
+              class="border-0"
+            />
+          </div>
+        </div>
         <Select
           id="view-selector"
           v-model="selectedView"
@@ -43,7 +46,7 @@
 
     <!-- Calendário principal -->
     <div class="flex-1 w-full">
-    <DayPilotCalendar ref="calendar" :config="calendarConfig" />
+      <DayPilotCalendar ref="calendar" :config="calendarConfig" />
     </div>
   </div>
 </template>
@@ -58,6 +61,7 @@ import {
 import Select from "primevue/select";
 import { useConfirm } from "primevue/useconfirm";
 import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
+import { Button } from "primevue";
 
 const calendar = ref<DayPilotCalendar | null>(null);
 const confirm = useConfirm();
@@ -106,7 +110,7 @@ const onViewChange = () => {
 
   // Sincronizar o navigator com a data atual do calendário
   syncNavigatorWithCalendar();
-  
+
   // fetchAppointments será chamado automaticamente pelo onTimeRangeSelected do navigator
 };
 
@@ -172,14 +176,18 @@ const handleDeleteAppointment = async (eventId: string) => {
 const calendarConfig = reactive({
   viewType: selectedView.value,
   startDate: DayPilot.Date.today(),
-  timeRangeSelectedHandling: "Enabled",
+  timeRangeSelectedHandling: "Disabled", // Desabilita a seleção de intervalo de tempo
   height: 200,
   cellHeight: 33, // 30 + 10% = 33
   hourWidth: 55, // 50 + 10% = 55
   cellWidth: 132, // 120 + 10% = 132
-  businessBeginsHour: 7,
-  businessEndsHour: 19,
-  showNonBusiness: true,
+  dayBeginsHour: 8,        // Define o horário de início exibido no calendário
+  dayEndsHour: 17,         // Define o horário de fim exibido no calendário
+  businessBeginsHour: 8,   // Define o início do horário comercial (para styling)
+  businessEndsHour: 17,    // Define o fim do horário comercial (para styling)
+  showNonBusiness: false,  // Oculta horários não comerciais (opcional)
+  locale: "pt-br",         // Define o idioma e formatação para português brasileiro
+  headerDateFormat: "dd/MM/yyyy", // Formato brasileiro para o header das colunas
   timeHeaders: [{ groupBy: "Hour" }, { groupBy: "Cell", format: "mm" }],
   eventBorderRadius: "8px",
   eventCorners: "Round",
@@ -390,7 +398,7 @@ async function fetchAppointments() {
 
 onMounted(async () => {
   await fetchAppointments();
-  
+
   // Sincronizar o navigator com a data inicial do calendário
   syncNavigatorWithCalendar();
 
