@@ -8,13 +8,13 @@ interface IUserLinks {
 
 const ROUTE: string = "/usuario/secretaria";
 export class UserLinksServices {
-  public static async getUsers(): Promise<AxiosResponse> {
-    return callApi(ROUTE, "get");
+  public static async getLinks(): Promise<AxiosResponse> {
+    return callApi(ROUTE, "get", undefined, undefined, undefined, true);
   }
-  public static async postUser(body: IUserLinks): Promise<AxiosResponse> {
-    return callApi(ROUTE, "post", undefined, body);
+  public static async postLink(body: IUserLinks): Promise<AxiosResponse> {
+    return callApi(ROUTE, "post", undefined, body, undefined, true);
   }
-  public static async deleteUser(body: IUserLinks): Promise<AxiosResponse> {
-    return callApi(ROUTE, "delete", undefined, body);
+  public static async deleteLink(body: IUserLinks): Promise<AxiosResponse> {
+    return callApi(ROUTE, "delete", undefined, body, undefined, true);
   }
 }

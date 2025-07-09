@@ -53,14 +53,62 @@
           <MultiSelect
             :placeholder="linksLoading ? 'Carregando...' : 'Selecione'"
             :loading="linksLoading"
-            :options="users.filter((user) => user.ID !== slotProps.data.ID).map((user) => ({
-              name: user.NomeCompleto,
-              value: user.ID,
-            }))"
+            v-model="slotProps.data.Vinculos"
             optionLabel="name"
             class="w-full md:w-48"
             size="small"
-          />
+            :filter="false"
+            :showToggleAll="false"
+            fluid
+            v-if="slotProps.data?.Role?.nome === 'SECRETARIA'"
+            :options="
+              users
+                .filter(
+                  (user) =>
+                    user.ID !== slotProps.data.ID &&
+                    user?.Role?.id !==
+                      users.find((u) => u.ID === slotProps.data.ID)?.Role?.id
+                )
+                .map((user) => ({
+                  name: user.NomeCompleto,
+                  value: user.ID,
+                }))
+            "
+          >
+            <template #header>
+              <div class="font-medium px-3 py-2">Vincular com:</div>
+            </template>
+            <template #footer>
+              <div class="p-3 flex gap-2">
+                <Button
+                  label="Salvar"
+                  severity="info"
+                  fluid
+                  size="small"
+                  icon="pi pi-plus"
+                  :disabled="!permissionsUserPage.editar"
+                  @click="
+                    saveUserLinks(
+                      slotProps.data.ID,
+                      slotProps.data.Vinculos,
+                      users
+                        .filter(
+                          (user) =>
+                            user.ID !== slotProps.data.ID &&
+                            user?.Role?.id !==
+                              users.find((u) => u.ID === slotProps.data.ID)
+                                ?.Role?.id
+                        )
+                        .map((user) => ({
+                          name: user.NomeCompleto,
+                          value: user.ID,
+                        }))
+                    )
+                  "
+                />
+              </div>
+            </template>
+          </MultiSelect>
         </template>
       </Column>
 
@@ -77,6 +125,7 @@
                 inEdition = slotProps.data;
                 drawerState = true;
               "
+              :disabled="!permissionsUserPage.editar"
             />
             <Button
               icon="pi pi-trash"
@@ -89,6 +138,7 @@
                 userInDeletion = slotProps.data.ID;
                 confirmDeleteUser();
               "
+              :disabled="!permissionsUserPage.excluir"
             />
           </div>
         </template>
@@ -121,6 +171,7 @@ import {
   Paginator,
   Select,
   useConfirm,
+  useToast,
 } from "primevue";
 import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
 import UsersDrawerComponent from "./UsersDrawerComponent.vue";
@@ -129,6 +180,7 @@ import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 import { useRouter } from "vue-router";
 import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 
+const toast = useToast();
 const loading = ref(false);
 const linksLoading = ref(false);
 const drawerState = ref(false);
@@ -150,6 +202,69 @@ const currentPage = ref(1);
 function changePage(event: any) {
   currentPage.value = event.page + 1;
   fetchUsers();
+}
+
+async function saveUserLinks(userId: string, links: any[], users: any[]) {
+  if (!links || links.length < 1) {
+    toast.add({
+      severity: "warn",
+      summary: "Aviso",
+      detail: "Selecione pelo menos um usuário para vincular.",
+      life: 3000,
+    });
+    linksLoading.value = false;
+    return;
+  }
+  linksLoading.value = true;
+  console.log(users);
+  console.log("links", links);
+
+  let added = 0;
+  let removed = 0;
+
+  for await (const user of users) {
+    try {
+      let response: any;
+      const link = links.find((l) => l.value === user.value);
+      if (!link) {
+        response = await UserLinksServices.deleteLink({
+          SecretariaID: userId,
+          MedicoID: user.value,
+        });
+        if (response.status === 200) {
+          removed++;
+        }
+        continue;
+      }
+      response = await UserLinksServices.postLink({
+        SecretariaID: userId,
+        MedicoID: link?.value,
+      });
+      if (response.status === 200) {
+        added++;
+      }
+      continue;
+    } catch (error) {
+      continue;
+    }
+  }
+  if (added > 0 || removed > 0) {
+    toast.add({
+      severity: "success",
+      summary: "Sucesso",
+      detail: `Vínculos atualizados com sucesso! Adicionados: ${added}, Removidos: ${removed}`,
+      life: 3000,
+    });
+  } else {
+    toast.add({
+      severity: "warn",
+      summary: "Aviso",
+      detail: "Nenhum vínculo foi adicionado ou removido.",
+      life: 3000,
+    });
+  }
+  await fetchUserLinks();
+  linksLoading.value = false;
 }
 
 const confirmDeleteUser = () => {
@@ -215,11 +330,23 @@ async function fetchUsers() {
 async function fetchUserLinks() {
   try {
     linksLoading.value = true;
-    const response = await UserLinksServices.getUsers();
-    if (response.status === 200) {
-      // Process user links if needed
-      console.log("User links fetched successfully:", response.data);
+    const response = await UserLinksServices.getLinks();
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch user links");
     }
+    const vinculos = response.data?.data?.Vinculos || [];
+    users.value = users.value.map((user) => {
+      const currentUserLinks = vinculos.filter(
+        (link: any) => link.Secretaria.ID === user.ID
+      );
+      return {
+        ...user,
+        Vinculos: currentUserLinks.map((link: any) => ({
+          name: link.Medico.NomeCompleto,
+          value: link.Medico.ID,
+        })),
+      };
+    });
   } catch (error) {
     console.error("Error fetching user links:", error);
   } finally {
@@ -227,8 +354,9 @@ async function fetchUserLinks() {
   }
 }
 
-onMounted(() => {
-  fetchUsers();
+onMounted(async () => {
+  await fetchUsers();
+  if (users.value.length) await fetchUserLinks();
 });
 </script>
 
