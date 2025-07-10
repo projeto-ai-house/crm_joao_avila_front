@@ -21,7 +21,7 @@ ENV VITE_TOKEN_KEY=token
 # Build the application with relaxed TypeScript checking
 ENV CI=false
 ENV NODE_ENV=production
-RUN npm run build -- --config vite.config.prod.ts
+RUN npm run build
 
 # Production stage
 FROM nginx:alpine as production-stage
