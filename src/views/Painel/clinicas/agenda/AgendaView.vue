@@ -5,7 +5,9 @@
         <Button
           label="Novo Agendamento"
           icon="pi pi-plus"
-          class="p-button-success h-[40px]"
+          class="h-[40px]"
+          type="button"
+          severity="success"
           :disabled="!permissionsUserPage.criar"
           @click="
             inEdition = null;
@@ -15,6 +17,15 @@
       </div>
       <!-- Controles de visualização -->
       <div class="flex items-center gap-2">
+        <Button
+          type="button"
+          icon="pi pi-filter"
+          variant=""
+          severity="secondary"
+          v-tooltip.top="'Filtrar'"
+          @click="togglePopover"
+        />
+
         <div class="relative">
           <button
             @click="toggleNavigator"
@@ -61,6 +72,71 @@
       @saveAgendamento="fetchAppointments"
     />
   </div>
+
+  <Popover ref="popoverRef">
+    <div class="flex flex-col gap-4 w-[25rem]">
+      <div class="w-full font-semibold text-sm text-gray-500 pb-2">
+        Filtros de Agendamento
+      </div>
+      <div class="col-span-12 flex flex-col gap-2">
+        <div class="flex flex-col">
+          <label for="MedicoID" class="text-sm font-medium"> Status </label>
+          <Select
+            name="MedicoID"
+            :options="[
+              { ID: 'ATIVO', Nome: 'Ativo' },
+              { ID: 'CANCELADO', Nome: 'Cancelado' },
+              { ID: 'CONFIRMADO', Nome: 'Confirmado' },
+            ]"
+            optionValue="ID"
+            optionLabel="Nome"
+            fluid
+            size="small"
+            v-model="filters.status"
+          />
+        </div>
+        <div class="flex flex-col">
+          <label for="MedicoID" class="text-sm font-medium"> Médico </label>
+          <Select
+            name="MedicoID"
+            :options="Array.isArray(listMedicos) ? listMedicos : []"
+            optionValue="ID"
+            optionLabel="Nome"
+            fluid
+            size="small"
+            v-model="filters.medicoId"
+          />
+        </div>
+      </div>
+      <div class="col-span-12 flex justify-end gap-2">
+        <Button
+          label="Limpar"
+          severity="secondary"
+          size="small"
+          class="ml-2"
+          variant="text"
+          @click="
+            popoverRef.hide();
+            filters.status = null;
+            filters.medicoId = null;
+            selectedView = 'Week';
+            calendarConfig.startDate = DayPilot.Date.today();
+            fetchAppointments();
+          "
+        />
+        <Button
+          label="Filtrar"
+          icon="pi pi-check"
+          severity="primary"
+          size="small"
+          @click="
+            popoverRef.hide();
+            fetchAppointments();
+          "
+        />
+      </div>
+    </div>
+  </Popover>
 </template>
 
 <script setup lang="ts">
@@ -73,10 +149,22 @@ import {
 import Select from "primevue/select";
 import { useConfirm } from "primevue/useconfirm";
 import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
-import { Button } from "primevue";
+import {
+  Button,
+  FloatLabel,
+  InputGroup,
+  InputGroupAddon,
+  InputText,
+  Message,
+  Popover,
+} from "primevue";
 import AgendaDrawerComponent from "./AgendaDrawerComponent.vue";
 import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 import { useRouter } from "vue-router";
+import { useUserStore } from "../../../../stores/user";
+import { UsersServices } from "../../../../services/user/UsersServices";
+import { UserLinksServices } from "../../../../services/user/UserLinksServices";
+import { DateUtils } from "../../../../utils/DateUtils";
 
 const router = useRouter();
 const permissionsUserPage = ref(
@@ -85,11 +173,16 @@ const permissionsUserPage = ref(
 const calendar = ref<DayPilotCalendar | null>(null);
 const confirm = useConfirm();
 const globalLoading = ref(false);
-
 const drawerState = ref(false);
 const inEdition = ref(null);
-
 const showNavigator = ref(false);
+const popoverRef = ref();
+const userStore = useUserStore();
+const listMedicos = ref([]);
+const filters = reactive({
+  status: null,
+  medicoId: null,
+});
 
 const viewOptions = [
   { label: "Dia", value: "Day" },
@@ -113,6 +206,10 @@ const formatDisplayDate = (date: any) => {
       "dd/MM/yyyy"
     )}`;
   }
+};
+
+const togglePopover = (event) => {
+  popoverRef.value.toggle(event);
 };
 
 const onViewChange = () => {
@@ -147,11 +244,9 @@ const events = ref([]);
 const handleDeleteAppointment = async (eventId: string) => {
   try {
     globalLoading.value = true;
-
     const response = await AppointmentsServices.deleteAppointment({
       id: eventId,
     });
-
     if (response.status === 200) {
       const index = events.value.findIndex(
         (e) => String(e.id) === String(eventId)
@@ -164,7 +259,6 @@ const handleDeleteAppointment = async (eventId: string) => {
           calendar.value.control.events.list = [...events.value];
           calendar.value.control.update();
         }
-        console.log("Event deleted successfully from API and local list");
       } else {
         console.error("Event not found in local list");
       }
@@ -311,7 +405,9 @@ const navigatorCompactConfig = reactive({
 
 const convertAppointmentsToEvents = (agendamentos: any[]) => {
   return agendamentos.map((agendamento) => {
+    // const localDate = DateUtils.convertUTCToLocalTime(agendamento.data_hora);
     const startDate = new DayPilot.Date(agendamento.data_hora);
+
     const durationHours = 0.5;
     const endDate = startDate.addHours(durationHours).addSeconds(1);
 
@@ -382,16 +478,92 @@ const calculateDateRange = () => {
   return { dataInicio, dataFim };
 };
 
+async function fetchMedicos() {
+  try {
+    const currentUserRole = userStore.user?.Role;
+
+    switch (currentUserRole) {
+      case "CEO/DONO":
+        try {
+          const usersListResponse = await UsersServices.getUsers({
+            page: 1,
+            limit: 1000,
+          });
+
+          if (usersListResponse.status === 200) {
+            const users = usersListResponse.data?.data?.Usuarios || [];
+            listMedicos.value = users
+              .filter((user: any) => user.Role?.nome === "MEDICO")
+              .map((user: any) => ({
+                ID: user.ID,
+                Nome: user.NomeCompleto,
+              }));
+          } else {
+            listMedicos.value = [];
+          }
+        } catch (error) {
+          console.error("Erro ao buscar usuários:", error);
+          listMedicos.value = [];
+        }
+        break;
+
+      case "MEDICO":
+        listMedicos.value = [
+          {
+            ID: userStore.user?.ID || "",
+            Nome: userStore.user?.Nome || "Você",
+          },
+        ];
+        break;
+
+      case "SECRETARIA":
+        try {
+          const userLinksResponse = await UserLinksServices.getLinks();
+          if (userLinksResponse.status === 200) {
+            const vinculos = userLinksResponse.data?.data?.Vinculos || [];
+            listMedicos.value = vinculos
+              .map((vinculo: any) => vinculo.Medico)
+              .map((medico: any) => ({
+                ID: medico.ID,
+                Nome: medico.NomeCompleto,
+              }));
+          } else {
+            listMedicos.value = [];
+          }
+        } catch (error) {
+          console.error("Erro ao buscar vínculos:", error);
+          listMedicos.value = [];
+        }
+        break;
+
+      default:
+        listMedicos.value = [];
+    }
+
+    // console.log("Lista de médicos carregada:", listMedicos.value);
+  } catch (error) {
+    console.error("Erro ao carregar médicos:", error);
+    listMedicos.value = [];
+  }
+}
+
 async function fetchAppointments() {
   try {
     globalLoading.value = true;
     const { dataInicio, dataFim }: any = calculateDateRange();
 
-    const response = await AppointmentsServices.getAppointments({
+    const data: any = {
       page: 1,
       dataInicio,
       dataFim,
-    });
+    };
+    if (filters.status) {
+      data.status = filters.status;
+    }
+    if (filters.medicoId) {
+      data.medicoId = filters.medicoId;
+    }
+    const response = await AppointmentsServices.getAppointments(data);
 
     if (response.data?.data?.agendamentos) {
       const convertedEvents = convertAppointmentsToEvents(
@@ -410,6 +582,7 @@ async function fetchAppointments() {
 }
 
 onMounted(async () => {
+  await fetchMedicos();
   await fetchAppointments();
 
   // Sincronizar o navigator com a data inicial do calendário

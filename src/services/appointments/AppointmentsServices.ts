@@ -42,6 +42,8 @@ export class AppointmentsServices {
     limite?: number;
     dataInicio: string;
     dataFim: string;
+    medicoId?: string;
+    status?: string;
   }): Promise<AxiosResponse> {
     return callApi(ROUTE, "get", { ...params, limite: 1000 });
   }

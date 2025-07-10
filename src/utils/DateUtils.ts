@@ -51,19 +51,21 @@ export class DateUtils {
       d = date;
     }
 
-    return d.toISOString();
+    // Converte a data local para UTC considerando o timezone do cliente
+    const utcDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return utcDate.toISOString();
   }
 
   static generateDateAndHour(date: Date | string, hour: string): string {
     if (!date || !hour) return "";
-    
+
     let dateISO: string = "";
     if (date instanceof Date) {
       dateISO = date.toISOString().split("T")[0];
     } else if (typeof date === "string") {
       if (date.includes("/")) {
         const [day, month, year] = date.split("/");
-        dateISO = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        dateISO = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       } else if (date.includes("T") || date.includes("Z")) {
         dateISO = new Date(date).toISOString().split("T")[0];
       } else {
@@ -73,12 +75,43 @@ export class DateUtils {
 
     const dateAndHour = `${dateISO}T${hour}:00`;
     console.log("Date and Hour:", dateAndHour);
-    
+
     const combinedDate = new Date(dateAndHour);
     if (isNaN(combinedDate.getTime())) {
       throw new Error(`Invalid date/time combination: ${dateAndHour}`);
     }
-    
-    return combinedDate.toISOString();
+
+    return combinedDate.toString();
+  }
+
+  /**
+   * Converte uma data UTC do banco para o horário local do cliente
+   * @param utcDate Data em UTC (string ou Date)
+   * @returns String ISO no horário local do cliente
+   */
+  static convertUTCToLocalTime(utcDate: Date | string): string {
+    if (!utcDate) return "";
+
+    let d: Date;
+    if (typeof utcDate === "string") {
+      // Se a string não termina com 'Z', assume que é UTC e adiciona
+      if (
+        !utcDate.endsWith("Z") &&
+        !utcDate.includes("+") &&
+        !utcDate.includes("-")
+      ) {
+        d = new Date(utcDate + "Z");
+      } else {
+        d = new Date(utcDate);
+      }
+    } else {
+      d = utcDate;
+    }
+
+    // Converte UTC para horário local considerando o timezone do cliente
+    const localDate = new Date(
+      d.getTime() + new Date().getTimezoneOffset() * 60000
+    );
+    return localDate.toISOString();
   }
 }

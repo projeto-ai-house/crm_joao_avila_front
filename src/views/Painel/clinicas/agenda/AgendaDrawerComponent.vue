@@ -8,7 +8,9 @@
   >
     <template #header>
       <div class="flex items-center gap-2">
-        <span class="font-bold">{{ isEditing ? 'Editar Agendamento' : 'Novo Agendamento' }}</span>
+        <span class="font-bold">{{
+          isEditing ? "Editar Agendamento" : "Novo Agendamento"
+        }}</span>
       </div>
     </template>
     <Form
@@ -204,8 +206,9 @@
             severity="error"
             size="small"
             variant="simple"
-            >{{ $form.telefone_contato.error.message }}</Message
           >
+            {{ $form.telefone_contato.error.message }}
+          </Message>
         </div>
 
         <div class="col-span-12 md:col-span-6 flex flex-col gap-1">
@@ -217,8 +220,8 @@
               dateFormat="dd/mm/yy"
               size="small"
             />
-            <label for="data_nascimento"
-              >Data de Nascimento
+            <label for="data_nascimento">
+              Data de Nascimento
               <span class="text-red-500">*</span>
             </label>
           </FloatLabel>
@@ -227,8 +230,9 @@
             severity="error"
             size="small"
             variant="simple"
-            >{{ $form.data_nascimento.error.message }}</Message
           >
+            {{ $form.data_nascimento.error.message }}
+          </Message>
         </div>
 
         <!-- Convênio -->
@@ -390,7 +394,7 @@ const getValidationSchema = () => {
         message: "Telefone inválido. Deve conter 10 ou 11 dígitos.",
       }),
     // Validação de data dinâmica baseada no modo de edição
-    data: isEditing.value 
+    data: isEditing.value
       ? z.date() // Permite qualquer data quando editando
       : z.date().min(new Date(new Date().setHours(0, 0, 0, 0)), {
           message: "Data não pode ser anterior ao dia atual.",
@@ -481,21 +485,21 @@ async function saveAppointment({ valid, values, states }) {
 
     let response: any;
     console.log(isEditing.value, appointmentId.value);
-    
+
     if (isEditing.value && appointmentId.value) {
       appointment.ID = appointmentId.value;
-      
+
       // Verificar se a data é anterior ao dia atual e remover o campo se necessário
       if (appointment.data_hora) {
         const appointmentDate = new Date(appointment.data_hora);
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset para início do dia
-        
+
         if (appointmentDate < today) {
           delete appointment.data_hora;
         }
       }
-      
+
       response = await AppointmentsServices.updateAppointment(appointment);
     } else {
       appointment.ID = null; // Ensure ID is null for new appointments
@@ -516,8 +520,6 @@ async function saveAppointment({ valid, values, states }) {
 
 async function fetchMedicos() {
   try {
-    console.log("Role do usuário:", userStore.user?.Role);
-
     const currentUserRole = userStore.user?.Role;
 
     switch (currentUserRole) {
@@ -527,7 +529,6 @@ async function fetchMedicos() {
             page: 1,
             limit: 1000,
           });
-
           if (usersListResponse.status === 200) {
             const users = usersListResponse.data?.data?.Usuarios || [];
             listMedicos.value = users
@@ -607,6 +608,8 @@ watch(
               dataHora.getDate()
             )
           : null;
+          console.log("Data e hora do agendamento:", dataHora);
+          
         const hora = dataHora
           ? `${dataHora.getHours().toString().padStart(2, "0")}:${dataHora
               .getMinutes()
