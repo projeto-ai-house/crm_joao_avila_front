@@ -35,8 +35,9 @@ const ROUTE: string = "/usuario";
 export class UsersServices {
   public static async getUsers(params: {
     page: number;
+    limit?: number;
   }): Promise<AxiosResponse> {
-    return callApi(ROUTE, "get", params);
+    return callApi(ROUTE, "get", params, undefined, undefined, true);
   }
   public static async postUser(body: IAddUser): Promise<AxiosResponse> {
     return callApi(ROUTE, "post", undefined, body);

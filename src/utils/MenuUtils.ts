@@ -42,15 +42,15 @@ export class MenuUtils {
         import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
       ],
     },
-    {
-      label: "Médicos",
-      pageName: "MEDICOS",
-      icon: "pi pi-user",
-      to: "/painel/medicos",
-      permissions: [
-        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
-      ],
-    },
+    // {
+    //   label: "Médicos",
+    //   pageName: "MEDICOS",
+    //   icon: "pi pi-user",
+    //   to: "/painel/medicos",
+    //   permissions: [
+    //     import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+    //   ],
+    // },
     {
       label: "Convênios",
       pageName: "CONVENIOS",
@@ -115,7 +115,10 @@ export class MenuUtils {
     // },
     {
       placeholder: "Gerenciamento",
-      permissions: ["cargo"],
+      permissions: [
+        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+        "cargo",
+      ],
     },
     {
       label: "Cargos",

@@ -36,7 +36,12 @@
       :loading="loading"
     >
       <template #empty> Nenhum usuário encontrada. </template>
-      <template #loading> Carregando usuários... </template>
+      <template #loading>
+        <span class="!text-gray-500 flex items-center justify-center gap-2">
+          <i class="pi pi-spin pi-spinner text-gray-500"></i>
+          Carregando usuários
+        </span>
+      </template>
 
       <Column field="NomeCompleto" header="Nome" sortable>
         <template #body="slotProps">
@@ -50,17 +55,32 @@
       <Column field="Cargo" header="Cargo" sortable></Column>
       <Column field="Vinculos" header="Vínculos" sortable>
         <template #body="slotProps">
+          <div
+            v-if="
+              slotProps.data?.Role?.nome == 'MEDICO' &&
+              !userStore.user?.Role.includes('adm')
+            "
+          >
+            {{
+              slotProps.data.Vinculos?.length
+                ? slotProps.data.Vinculos.map((v) => v.name).join(", ")
+                : "Nenhum vínculo"
+            }}
+          </div>
           <MultiSelect
+            v-else-if="
+              slotProps.data?.Role?.nome === 'SECRETARIA' &&
+              !userStore.user?.Role.includes('adm')
+            "
             :placeholder="linksLoading ? 'Carregando...' : 'Selecione'"
             :loading="linksLoading"
             v-model="slotProps.data.Vinculos"
             optionLabel="name"
-            class="w-full md:w-48"
+            class="max-w-sm"
             size="small"
+            fluid
             :filter="false"
             :showToggleAll="false"
-            fluid
-            v-if="slotProps.data?.Role?.nome === 'SECRETARIA'"
             :options="
               users
                 .filter(
@@ -86,7 +106,8 @@
                   fluid
                   size="small"
                   icon="pi pi-plus"
-                  :disabled="!permissionsUserPage.editar"
+                  :loading="linksLoading"
+                  :disabled="!permissionsUserPage.editar || linksLoading"
                   @click="
                     saveUserLinks(
                       slotProps.data.ID,
@@ -179,6 +200,7 @@ import { UsersServices } from "../../../../services/user/UsersServices";
 import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 import { useRouter } from "vue-router";
 import { UserLinksServices } from "../../../../services/user/UserLinksServices";
+import { useUserStore } from "../../../../stores/user";
 
 const toast = useToast();
 const loading = ref(false);
@@ -188,6 +210,7 @@ const inEdition = ref(null);
 const selectedUsers = ref([]);
 const userInDeletion = ref(null);
 const expandedRows = ref({});
+const userStore = useUserStore();
 const confirm = useConfirm();
 const users = ref([]);
 const router = useRouter();
@@ -329,6 +352,7 @@ async function fetchUsers() {
 
 async function fetchUserLinks() {
   try {
+    loading.value = true;
     linksLoading.value = true;
     const response = await UserLinksServices.getLinks();
     if (response.status !== 200) {
@@ -347,9 +371,25 @@ async function fetchUserLinks() {
         })),
       };
     });
+    users.value = users.value.map((user) => {
+      const currentUserLinks = vinculos.filter(
+        (link: any) => link.Medico.ID === user.ID
+      );
+      return {
+        ...user,
+        Vinculos: [
+          ...(user.Vinculos || []),
+          ...currentUserLinks.map((link: any) => ({
+            name: link.Secretaria.NomeCompleto,
+            value: link.Secretaria.ID,
+          })),
+        ],
+      };
+    });
   } catch (error) {
     console.error("Error fetching user links:", error);
   } finally {
+    loading.value = false;
     linksLoading.value = false;
   }
 }

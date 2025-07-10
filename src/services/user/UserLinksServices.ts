@@ -9,7 +9,7 @@ interface IUserLinks {
 const ROUTE: string = "/usuario/secretaria";
 export class UserLinksServices {
   public static async getLinks(): Promise<AxiosResponse> {
-    return callApi(ROUTE, "get", undefined, undefined, undefined, true);
+    return callApi(ROUTE, "get", { limit: 1000 }, undefined, undefined, true);
   }
   public static async postLink(body: IUserLinks): Promise<AxiosResponse> {
     return callApi(ROUTE, "post", undefined, body, undefined, true);

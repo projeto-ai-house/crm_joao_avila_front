@@ -27,6 +27,7 @@ interface ICreateAppointment {
   data_hora: string; // ISO 8601 datetime
   data_nascimento: string; // ISO 8601 datetime
   MedicoID: string;
+  status?: string;
 }
 
 interface IDeleteAppointments {
@@ -38,15 +39,21 @@ const ROUTE: string = "/agendamentos";
 export class AppointmentsServices {
   public static async getAppointments(params: {
     page: number;
+    limite?: number;
     dataInicio: string;
     dataFim: string;
   }): Promise<AxiosResponse> {
-    return callApi(ROUTE, "get", params);
+    return callApi(ROUTE, "get", { ...params, limite: 1000 });
   }
   public static async createAppointment(
     appointmentData: ICreateAppointment
   ): Promise<AxiosResponse> {
     return callApi(ROUTE, "post", undefined, appointmentData);
+  }
+  public static async updateAppointment(
+    appointmentData: IAppointments
+  ): Promise<AxiosResponse> {
+    return callApi(ROUTE, "put", undefined, appointmentData);
   }
   public static async deleteAppointment(
     deleteData: IDeleteAppointments

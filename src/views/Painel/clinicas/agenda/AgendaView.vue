@@ -6,7 +6,11 @@
           label="Novo Agendamento"
           icon="pi pi-plus"
           class="p-button-success h-[40px]"
-          @click="$emit('createAppointment')"
+          :disabled="!permissionsUserPage.criar"
+          @click="
+            inEdition = null;
+            drawerState = true;
+          "
         />
       </div>
       <!-- Controles de visualização -->
@@ -48,6 +52,14 @@
     <div class="flex-1 w-full">
       <DayPilotCalendar ref="calendar" :config="calendarConfig" />
     </div>
+
+    <!-- Drawer Component -->
+    <AgendaDrawerComponent
+      :drawerState="drawerState"
+      :inEdition="inEdition"
+      @update:drawerState="drawerState = $event"
+      @saveAgendamento="fetchAppointments"
+    />
   </div>
 </template>
 
@@ -62,12 +74,21 @@ import Select from "primevue/select";
 import { useConfirm } from "primevue/useconfirm";
 import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
 import { Button } from "primevue";
+import AgendaDrawerComponent from "./AgendaDrawerComponent.vue";
+import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
+const permissionsUserPage = ref(
+  PermissionsUtils.checkMethodPemission(router.currentRoute.value.fullPath)
+);
 const calendar = ref<DayPilotCalendar | null>(null);
 const confirm = useConfirm();
 const globalLoading = ref(false);
 
-// Variável para controlar o dropdown do navigator
+const drawerState = ref(false);
+const inEdition = ref(null);
+
 const showNavigator = ref(false);
 
 const viewOptions = [
@@ -77,7 +98,6 @@ const viewOptions = [
 
 const selectedView = ref("Week");
 
-// Função para formatar a data para exibição
 const formatDisplayDate = (date: any) => {
   if (!date) return "";
 
@@ -99,31 +119,24 @@ const onViewChange = () => {
   calendarConfig.viewType = selectedView.value;
 
   if (selectedView.value === "Day") {
-    // calendarConfig.cellWidth = 924; // 840 + 10% = 924
-    // calendarConfig.cellHeight = 33; // 30 + 10% = 33
+    calendarConfig.cellWidth = 924; // 840 + 10% = 924
+    calendarConfig.cellHeight = 33; // 30 + 10% = 33
     navigatorCompactConfig.selectMode = "Day";
   } else if (selectedView.value === "Week") {
     calendarConfig.cellWidth = 132; // 120 + 10% = 132
     calendarConfig.cellHeight = 33; // 30 + 10% = 33
     navigatorCompactConfig.selectMode = "Week";
   }
-
-  // Sincronizar o navigator com a data atual do calendário
   syncNavigatorWithCalendar();
-
-  // fetchAppointments será chamado automaticamente pelo onTimeRangeSelected do navigator
 };
 
-// Função para sincronizar o navigator com a data atual do calendário
 const syncNavigatorWithCalendar = () => {
   navigatorCompactConfig.startDate = calendarConfig.startDate;
   navigatorCompactConfig.selectionDay = calendarConfig.startDate;
 };
 
-// Função para abrir/fechar o navigator e sincronizar
 const toggleNavigator = () => {
   if (!showNavigator.value) {
-    // Antes de abrir, sincronizar com a data atual do calendário
     syncNavigatorWithCalendar();
   }
   showNavigator.value = !showNavigator.value;
@@ -131,18 +144,15 @@ const toggleNavigator = () => {
 
 const events = ref([]);
 
-// Função para lidar com a exclusão de agendamentos
 const handleDeleteAppointment = async (eventId: string) => {
   try {
     globalLoading.value = true;
 
-    // Chama a API para excluir o agendamento
     const response = await AppointmentsServices.deleteAppointment({
       id: eventId,
     });
 
     if (response.status === 200) {
-      // Remove do array de eventos local apenas se a API retornou sucesso
       const index = events.value.findIndex(
         (e) => String(e.id) === String(eventId)
       );
@@ -150,7 +160,6 @@ const handleDeleteAppointment = async (eventId: string) => {
         events.value.splice(index, 1);
         calendarConfig.events = [...events.value];
 
-        // Força atualização do calendário
         if (calendar.value) {
           calendar.value.control.events.list = [...events.value];
           calendar.value.control.update();
@@ -167,7 +176,6 @@ const handleDeleteAppointment = async (eventId: string) => {
     }
   } catch (error) {
     console.error("Error deleting appointment:", error);
-    // Aqui você pode adicionar uma notificação de erro para o usuário
   } finally {
     globalLoading.value = false;
   }
@@ -181,12 +189,12 @@ const calendarConfig = reactive({
   cellHeight: 33, // 30 + 10% = 33
   hourWidth: 55, // 50 + 10% = 55
   cellWidth: 132, // 120 + 10% = 132
-  dayBeginsHour: 8,        // Define o horário de início exibido no calendário
-  dayEndsHour: 17,         // Define o horário de fim exibido no calendário
-  businessBeginsHour: 8,   // Define o início do horário comercial (para styling)
-  businessEndsHour: 17,    // Define o fim do horário comercial (para styling)
-  showNonBusiness: false,  // Oculta horários não comerciais (opcional)
-  locale: "pt-br",         // Define o idioma e formatação para português brasileiro
+  dayBeginsHour: 8, // Define o horário de início exibido no calendário
+  dayEndsHour: 17, // Define o horário de fim exibido no calendário
+  businessBeginsHour: 8, // Define o início do horário comercial (para styling)
+  businessEndsHour: 17, // Define o fim do horário comercial (para styling)
+  showNonBusiness: false, // Oculta horários não comerciais (opcional)
+  locale: "pt-br", // Define o idioma e formatação para português brasileiro
   headerDateFormat: "dd/MM/yyyy", // Formato brasileiro para o header das colunas
   timeHeaders: [{ groupBy: "Hour" }, { groupBy: "Cell", format: "mm" }],
   eventBorderRadius: "8px",
@@ -198,8 +206,9 @@ const calendarConfig = reactive({
   eventClickHandling: "Enabled",
   eventSelectHandling: "Update",
   onEventClick: async (args: any) => {
-    console.log("Event clicked:", args.e);
-    // Aqui você pode adicionar lógica para abrir um modal de edição do evento
+    console.log("Event clicked:", args.e.data?.fullData);
+    inEdition.value = args.e.data?.fullData || null;
+    drawerState.value = true;
   },
   onEventSelected: (args: any) => {
     console.log("Event selected:", args.e.id());
@@ -215,8 +224,13 @@ const calendarConfig = reactive({
       },
       {
         onClick: async (args: any) => {
-          console.log("Delete button clicked:", args.source);
+          if (args.originalEvent) {
+            args.originalEvent.preventDefault();
+            args.originalEvent.stopPropagation();
+            args.originalEvent.stopImmediatePropagation();
+          }
 
+          // console.log("Delete button clicked:", args.source);
           const eventText = args.source.data.text;
           const eventId = args.source.data.id;
 
@@ -252,7 +266,7 @@ const calendarConfig = reactive({
         cssClass: "delete-button",
         html: "✕",
         style:
-          "background: rgba(0, 0, 0, 0.7); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 10px; cursor: pointer; line-height: 1; backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);",
+          "background: rgba(0, 0, 0, 0.7); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 10px; cursor: pointer; line-height: 1; backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); z-index: 1000; position: relative;",
       },
     ];
   },
@@ -298,10 +312,8 @@ const navigatorCompactConfig = reactive({
 const convertAppointmentsToEvents = (agendamentos: any[]) => {
   return agendamentos.map((agendamento) => {
     const startDate = new DayPilot.Date(agendamento.data_hora);
-
-    // Duração padrão de 30 minutos (0.5 horas)
     const durationHours = 0.5;
-    const endDate = startDate.addHours(durationHours);
+    const endDate = startDate.addHours(durationHours).addSeconds(1);
 
     let backColor = "#93c47d";
     if (agendamento.status === "ATIVO") {
@@ -313,7 +325,7 @@ const convertAppointmentsToEvents = (agendamentos: any[]) => {
     }
 
     return {
-      id: String(agendamento.id), // Garante que o ID seja string
+      id: String(agendamento.id),
       text: `${agendamento.titulo} - ${agendamento.nome_cliente}`,
       start: startDate,
       end: endDate,
@@ -326,13 +338,13 @@ const convertAppointmentsToEvents = (agendamentos: any[]) => {
           agendamento.status
         }" style="color: white !important; border-radius: 8px !important; height: 100%; width: 100%; overflow: hidden;">
           <div class="event-title" style="color: white !important; font-weight: bold; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
-            agendamento.titulo
+            agendamento.medico?.nome_completo || "Médico não informado"
           }</div>
           <div class="event-client" style="color: white !important; font-size: 10px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
             agendamento.nome_cliente
           }</div>
           <div class="event-doctor" style="color: white !important; font-size: 9px; opacity: 0.8; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
-            agendamento.medico?.nome_completo || "Médico não informado"
+            agendamento.titulo
           }</div>
         </div>
       `,
@@ -340,6 +352,7 @@ const convertAppointmentsToEvents = (agendamentos: any[]) => {
       telefone: agendamento.telefone_contato,
       convenio: agendamento.convenio,
       status: agendamento.status,
+      fullData: { ...agendamento },
     };
   });
 };
@@ -676,6 +689,8 @@ div[id*="daypilot_calendar_event"] > div {
   border: none !important;
   position: absolute !important;
   padding: 2px !important;
+  z-index: 1000 !important;
+  pointer-events: auto !important;
 }
 
 .delete-button:hover {
