@@ -53,7 +53,12 @@
       <Column field="Email" header="E-mail" sortable></Column>
       <Column field="Convenio" header="Convênio" sortable></Column>
       <Column field="Cargo" header="Cargo" sortable></Column>
-      <Column field="Vinculos" header="Vínculos" sortable>
+      <Column
+        field="Vinculos"
+        header="Vínculos"
+        sortable
+        v-if="userStore.user?.Role.includes('CEO/DONO')"
+      >
         <template #body="slotProps">
           <div
             v-if="
@@ -358,7 +363,7 @@ async function fetchUserLinks() {
     if (response.status !== 200) {
       throw new Error("Failed to fetch user links");
     }
-    const vinculos = response.data?.data?.Vinculos || [];
+    const vinculos = response.data?.data || [];
     users.value = users.value.map((user) => {
       const currentUserLinks = vinculos.filter(
         (link: any) => link.Secretaria.ID === user.ID
