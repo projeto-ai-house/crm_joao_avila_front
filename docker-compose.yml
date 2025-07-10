@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_API_URL=http://91.108.126.147:3000/api/v1
+      - VITE_ADMIN_ROLENAMES=ADM,master_admin
+      - VITE_TOKEN_KEY=token
+    restart: unless-stopped
+    container_name: crm_joao_avila_frontend
+    networks:
+      - crm_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.crm-frontend.rule=Host(`crm.localhost`)"
+      - "traefik.http.services.crm-frontend.loadbalancer.server.port=80"
+
+networks:
+  crm_network:
+    driver: bridge
