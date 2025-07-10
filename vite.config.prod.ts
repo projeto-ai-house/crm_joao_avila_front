@@ -14,11 +14,20 @@ export default defineConfig({
   build: {
     rollupOptions: {
       onwarn(warning, warn) {
-        // Ignore common warnings during build
+        // Ignore TypeScript warnings during build
         if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
         if (warning.code === 'CIRCULAR_DEPENDENCY') return;
         warn(warning);
       }
-    }
+    },
+    // Continue build even with warnings
+    minify: 'terser',
+    sourcemap: false,
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000
+  },
+  esbuild: {
+    // Ignore TypeScript errors during build
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
   }
 });

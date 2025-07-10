@@ -68,7 +68,7 @@ import Button from "primevue/button";
 import Avatar from "primevue/avatar";
 import Menu from "primevue/menu";
 import { useToast } from "primevue";
-import { MenuItem, MenuItemCommandEvent } from "primevue/menuitem";
+import type { MenuItem, MenuItemCommandEvent } from "primevue/menuitem";
 import { useUserStore } from "../stores/user";
 import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 import { useRouter } from "vue-router";

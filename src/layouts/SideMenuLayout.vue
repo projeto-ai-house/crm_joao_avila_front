@@ -74,7 +74,6 @@
 import { onBeforeMount, onMounted, ref, watch } from "vue";
 import PanelMenu from "primevue/panelmenu";
 import { Button, useToast } from "primevue";
-import { MenuItemCommandEvent } from "primevue/menuitem";
 import { useUserStore } from "../stores/user";
 import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 import { useRouter } from "vue-router";

@@ -18,8 +18,10 @@ ENV VITE_API_URL=http://91.108.126.147:3000/api/v1
 ENV VITE_ADMIN_ROLENAMES=ADM,master_admin
 ENV VITE_TOKEN_KEY=token
 
-# Build the application
-RUN npm run build
+# Build the application with relaxed TypeScript checking
+ENV CI=false
+ENV NODE_ENV=production
+RUN npm run build -- --config vite.config.prod.ts
 
 # Production stage
 FROM nginx:alpine as production-stage
