@@ -200,6 +200,7 @@
               optionLabel="Nome"
               fluid
               size="small"
+              :disabled="blockRole"
             />
             <label for="RoleID"
               >Função/Cargo
@@ -271,7 +272,8 @@
           class="flex-auto"
           severity="contrast"
           size="small"
-          text          @click="emit('update:drawerState', false)"
+          text
+          @click="emit('update:drawerState', false)"
         ></Button>
       </div>
     </template>
@@ -281,26 +283,26 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 //@ts-ignore
-import { zodResolver } from "@primevue/forms/resolvers/zod";
-import Drawer from "primevue/drawer";
-import Button from "primevue/button";
-import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
-import { z } from "zod";
 import { Form } from "@primevue/forms";
+import { zodResolver } from "@primevue/forms/resolvers/zod";
+import { SquareUserRound } from "lucide-vue-next";
 import {
   DatePicker,
   FloatLabel,
   InputMask,
-  InputText,  Message,
+  InputText,
+  Message,
   Select,
   useToast,
 } from "primevue";
-import { Hospital, SquareUserRound, User } from "lucide-vue-next";
-import { RolesServices } from "../../../../services/roles/RolesServices";
-import { useUserStore } from "../../../../stores/user";
-import { UsersServices } from "../../../../services/user/UsersServices";
-import { DateUtils } from "../../../../utils/DateUtils";
+import Button from "primevue/button";
+import Drawer from "primevue/drawer";
 import { useConfirm } from "primevue/useconfirm";
+import { z } from "zod";
+import { RolesServices } from "../../../../services/roles/RolesServices";
+import { UsersServices } from "../../../../services/user/UsersServices";
+import { useUserStore } from "../../../../stores/user";
+import { DateUtils } from "../../../../utils/DateUtils";
 
 const userStore = useUserStore();
 const toast = useToast();
@@ -321,6 +323,7 @@ interface Role {
   Permissoes: any | null;
   Hierarquia: number;
 }
+const blockRole = ref(false);
 const globalLoading = ref(false);
 const isEditing = ref(false);
 const formClinic = ref(null);
@@ -370,16 +373,26 @@ const getValidationSchema = () => {
       .refine((val) => /^\d{11}$/.test(val), {
         message: "CPF inválido. Deve conter 11 dígitos.",
       }),
-    DataNascimento: isEditing.value
-      ? z.string().optional().or(z.literal(""))
-      : z
-          .date()
-          .min(new Date("1900-01-01"), {
-            message: "Data de nascimento inválida.",
-          })
-          .max(new Date(), {
-            message: "Data de nascimento não pode ser futura.",
-          }),
+    DataNascimento: z.union([z.date(), z.null()]).refine(
+      (val) => {
+        // No modo de edição, permitir null/undefined
+        if (isEditing.value && !val) return true;
+        // No modo de criação, exigir uma data válida
+        if (!isEditing.value && !val) return false;
+        // Se tem valor, validar se é uma data válida
+        if (val) {
+          const minDate = new Date("1900-01-01");
+          const maxDate = new Date();
+          return val >= minDate && val <= maxDate;
+        }
+        return true;
+      },
+      {
+        message: isEditing.value
+          ? "Data de nascimento inválida."
+          : "Data de nascimento é obrigatória e deve ser uma data válida.",
+      }
+    ),
     Telefone: z
       .string()
       .min(1, { message: "Telefone é obrigatório." })
@@ -417,7 +430,6 @@ const confirmSaveUser = () => {
       acceptProps: {
         label: "Salvar",
         severity: "success",
-        
       },
       accept: () => {
         formClinic.value?.submit();
@@ -453,6 +465,8 @@ async function saveUser({ valid, values, states }) {
 
     let responseUser: any;
     if (isEditing.value) {
+      console.log(initialValues.value);
+
       // Edição de usuário existente
       responseUser = await UsersServices.putUser({
         Usuario: {
@@ -524,20 +538,28 @@ watch(
   () => props.drawerState,
   (newValue) => {
     if (newValue) {
-      console.log("Drawer aberto, resetando valores iniciais.");
-      console.log(props.inEdition);
+      // console.log("Drawer aberto, resetando valores iniciais.");
+      // console.log(props.inEdition);
 
       isEditing.value = !!props.inEdition;
+      console.log("Is Editing:", props.inEdition);
+
       if (isEditing.value) {
         initialValues.value = {
           ...props.inEdition,
           Nome: props.inEdition.NomeCompleto,
           PasswordHash: "",
           RoleID: props.inEdition.Role?.id || "",
-          DataNascimento: DateUtils.formatDateBRtoISO(
-            props.inEdition.DataNascimento
-          ),
+          DataNascimento: props.inEdition.DataNascimento
+            ? new Date(props.inEdition.DataNascimento)
+            : null,
         };
+        blockRole.value = props.inEdition.BlockRole || false;
+        if (blockRole.value) {
+          initialValues.value.RoleID = listRoles.value.find(
+            (role) => role.Nome === "CEO/DONO"
+          )?.ID;
+        }
       }
 
       // Atualiza o resolver baseado no estado de edição

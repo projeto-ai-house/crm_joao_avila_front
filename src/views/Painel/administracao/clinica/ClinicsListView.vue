@@ -15,7 +15,7 @@
       size="small"
       @click="
         inEdition = null;
-        drawerState = true;
+        drawerClinicsState = true;
       "
     ></Button>
   </div>
@@ -32,6 +32,7 @@
       v-model:selection="selectedClinics"
       dataKey="ID"
       size="small"
+      class="text-sm"
       :loading="loading"
     >
       <template #empty> Nenhuma clínica encontrada. </template>
@@ -45,7 +46,29 @@
         </template></Column
       >
       <Column field="Endereco" sortable header="Endereço"></Column>
-      <Column headerStyle="width:4rem">
+      <Column field="Token" sortable header="Token (Integração)">
+        <template #body="slotProps">
+          <div class="flex items-center gap-2">
+            <span
+              class="text-xs font-mono text-gray-600 truncate max-w-xs"
+              :title="slotProps.data.Token"
+            >
+              {{ slotProps.data.Token }}
+            </span>
+            <Button
+              v-if="slotProps.data.Token"
+              icon="pi pi-copy"
+              severity="secondary"
+              size="small"
+              variant="text"
+              class="p-1"
+              @click="copyToken(slotProps.data.Token)"
+              v-tooltip="'Copiar token'"
+            />
+          </div>
+        </template>
+      </Column>
+      <!-- <Column headerStyle="width:4rem">
         <template #body="slotProps">
           <Button
             icon="pi pi-pen-to-square"
@@ -55,11 +78,10 @@
             variant="text"
             @click="
               inEdition = slotProps.data;
-              drawerState = true;
+              drawerClinicsState = true;
             "
-            disabled
         /></template>
-      </Column>
+      </Column> -->
 
       <template #expansion="slotProps">
         <div class="p-2 rounded-lg" v-if="slotProps.data?.Donos?.length > 0">
@@ -81,11 +103,7 @@
                   severity="secondary"
                   size="small"
                   variant="text"
-                  @click="
-                    inEdition = slotProps.data;
-                    drawerState = true;
-                  "
-                  disabled
+                  @click="editCEO(slotProps.data?.Donos[0])"
                 />
               </template>
             </Column>
@@ -106,29 +124,39 @@
   <!-- END: Table -->
 
   <ClinicsDrawerComponent
-    :drawerState="drawerState"
+    :drawerState="drawerClinicsState"
     :inEdition="inEdition"
-    @update:drawerState="drawerState = $event"
+    @update:drawerState="drawerClinicsState = $event"
     @saveClinic="fetchClinics"
+  />
+
+  <UsersDrawerComponent
+    :drawerState="drawerCEOState"
+    :inEdition="inEdition"
+    @update:drawerState="drawerCEOState = $event"
+    @saveUser="fetchClinics"
   />
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import DataTable from "primevue/datatable";
+import { Button, Paginator, useToast } from "primevue";
 import Column from "primevue/column";
-import { Button, Drawer, Paginator } from "primevue";
+import DataTable from "primevue/datatable";
+import { onMounted, ref } from "vue";
 import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
-import ClinicsDrawerComponent from "./ClinicsDrawerComponent.vue";
 import { usePermissionsStore } from "../../../../stores/permissions";
+import UsersDrawerComponent from "../../clinicas/usuarios/UsersDrawerComponent.vue";
+import ClinicsDrawerComponent from "./ClinicsDrawerComponent.vue";
 const permissionsStore = usePermissionsStore();
 
 const loading = ref(false);
-const drawerState = ref(false);
+const drawerClinicsState = ref(false);
+const drawerCEOState = ref(false);
 const inEdition = ref(null);
 const selectedClinics = ref([]);
 const expandedRows = ref({});
 const clinics = ref([]);
+const toast = useToast();
 
 const rows = 20; // número fixo de itens por página
 const totalRecords = ref(0);
@@ -145,6 +173,75 @@ function maskCnpj(cnpj: string) {
 function changePage(event: any) {
   currentPage.value = event.page + 1;
   fetchClinics();
+}
+
+function editCEO(data: any) {
+  inEdition.value = {
+    Email: data.email || "",
+    NomeCompleto: data.nome_completo || "",
+    Cpf: data.cpf || "",
+    DataNascimento: data.data_nascimento || "",
+    Telefone: data.telefone || "",
+    Convenio: data.convenio || "",
+    PasswordHash: "",
+    ID: data.id || "",
+    BlockRole: true,
+  };
+  drawerCEOState.value = true;
+}
+
+async function copyToken(token: string) {
+  try {
+    if (!navigator.clipboard) {
+      throw new Error("Clipboard API não suportada");
+    }
+
+    await navigator.clipboard.writeText(token);
+    toast.add({
+      severity: "success",
+      summary: "Sucesso",
+      detail: "Token copiado para a área de transferência.",
+      life: 1000,
+    });
+  } catch (error) {
+    console.error("Erro ao copiar token:", error);
+
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = token;
+      textArea.style.position = "fixed";
+
+      textArea.style.left = "-9999px";
+      textArea.style.top = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      const successful = document.execCommand
+        ? document.execCommand("copy")
+        : false;
+      document.body.removeChild(textArea);
+
+      if (successful) {
+        toast.add({
+          severity: "success",
+          summary: "Sucesso",
+          detail: "Token copiado para a área de transferência.",
+          life: 1000,
+        });
+      } else {
+        throw new Error("Falha ao copiar usando fallback");
+      }
+    } catch (fallbackError) {
+      console.error("Fallback também falhou:", fallbackError);
+      toast.add({
+        severity: "error",
+        summary: "Erro",
+        detail: "Não foi possível copiar o token.",
+        life: 1000,
+      });
+    }
+  }
 }
 
 async function fetchClinics() {

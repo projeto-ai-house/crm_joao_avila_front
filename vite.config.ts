@@ -1,7 +1,7 @@
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
+import vue from "@vitejs/plugin-vue";
 import path from "path";
+import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,12 +13,18 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      onwarn(warning, warn) {
-        // Ignore common warnings during build
-        if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
-        if (warning.code === 'CIRCULAR_DEPENDENCY') return;
-        warn(warning);
-      }
-    }
-  }
+      output: {
+        manualChunks: {
+          // Separar bibliotecas grandes em chunks separados
+          primevue: ["primevue"],
+          lucide: ["lucide-vue-next"],
+          pinia: ["pinia"],
+          "vue-router": ["vue-router"],
+          axios: ["axios"],
+        },
+      },
+    },
+    // Aumentar o limite para evitar warnings sobre chunks grandes
+    chunkSizeWarningLimit: 1000,
+  },
 });

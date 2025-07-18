@@ -179,12 +179,6 @@
     />
   </div>
   <!-- END: Table -->
-  <UsersDrawerComponent
-    :drawerState="drawerState"
-    :inEdition="inEdition"
-    @update:drawerState="drawerState = $event"
-    @saveUser="fetchUsers"
-  />
 </template>
 
 <script setup lang="ts">
@@ -197,7 +191,6 @@ import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
 import { useUserStore } from "../../../../stores/user";
 import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
-import UsersDrawerComponent from "./UsersDrawerComponent.vue";
 
 const toast = useToast();
 const loading = ref(false);

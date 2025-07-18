@@ -110,13 +110,7 @@
       </div>
 
       <!-- SEÇÃO: DADOS DO CEO -->
-      <div
-        class="col-span-12 grid grid-cols-12 gap-4"
-        v-show="
-          (isEditing && !!props.inEdition?.Donos[0]?.id) ||
-          (!isEditing && !props.inEdition?.Donos[0]?.id)
-        "
-      >
+      <div class="col-span-12 grid grid-cols-12 gap-4" v-show="!isEditing">
         <div
           class="col-span-12 flex items-center gap-2 text-gray-700 text-base font-semibold mt-4 mb-1 border-b border-gray-200 pb-2"
         >
@@ -343,7 +337,8 @@
           class="flex-auto"
           severity="contrast"
           size="small"
-          text          @click="emit('update:drawerState', false)"
+          text
+          @click="emit('update:drawerState', false)"
         ></Button>
       </div>
     </template>
@@ -352,26 +347,27 @@
 
 <script setup lang="ts">
 import { useConfirm } from "primevue/useconfirm";
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 //@ts-ignore
-import { zodResolver } from "@primevue/forms/resolvers/zod";
-import Drawer from "primevue/drawer";
-import Button from "primevue/button";
-import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
-import { z } from "zod";
 import { Form } from "@primevue/forms";
+import { zodResolver } from "@primevue/forms/resolvers/zod";
+import { Hospital, SquareUserRound } from "lucide-vue-next";
 import {
   DatePicker,
   FloatLabel,
   InputMask,
   InputText,
   Message,
-  Select,  useToast,
+  Select,
+  useToast,
 } from "primevue";
-import { Hospital, SquareUserRound, User } from "lucide-vue-next";
+import Button from "primevue/button";
+import Drawer from "primevue/drawer";
+import { z } from "zod";
+import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
 import { RolesServices } from "../../../../services/roles/RolesServices";
-import { useUserStore } from "../../../../stores/user";
 import { UsersServices } from "../../../../services/user/UsersServices";
+import { useUserStore } from "../../../../stores/user";
 import { DateUtils } from "../../../../utils/DateUtils";
 
 const userStore = useUserStore();
@@ -412,7 +408,7 @@ const initialValues = ref({
   ClinicaID: "",
 });
 
-const resolver = ref(
+const resolver = computed(() =>
   zodResolver(
     z.object({
       nome_clinica: z
@@ -460,10 +456,16 @@ const resolver = ref(
         }),
       Convenio: z.string(),
       // .min(1, { message: "Convênio é obrigatório." }),
-      PasswordHash: z
-        .string()
-        .min(6, { message: "Senha deve ter no mínimo 6 caracteres." })
-        .max(48, { message: "Senha deve ter no máximo 48 caracteres." }),
+      PasswordHash: isEditing.value
+        ? z
+            .string()
+            .min(6, { message: "Senha deve ter no mínimo 6 caracteres." })
+            .max(48, { message: "Senha deve ter no máximo 48 caracteres." })
+            .optional()
+        : z
+            .string()
+            .min(6, { message: "Senha deve ter no mínimo 6 caracteres." })
+            .max(48, { message: "Senha deve ter no máximo 48 caracteres." }),
     })
   )
 );
@@ -570,7 +572,6 @@ watch(
   () => props.drawerState,
   (newValue) => {
     if (newValue) {
-      console.log("Drawer aberto, resetando valores iniciais.");
       switch (props.inEdition) {
         case null:
           isEditing.value = false;
@@ -592,12 +593,16 @@ watch(
           break;
         default:
           isEditing.value = true;
+          console.log("props.inEdition:", props.inEdition);
+
           initialValues.value = {
-            NomeClinica: props.inEdition?.nome_clinica || "",
+            nome_clinica: props.inEdition?.NomeClinica || "",
             Nome: props.inEdition?.Donos[0].nome_completo || "",
             Cpf: props.inEdition?.Donos[0].cpf || "",
             DataNascimento: props.inEdition?.Donos[0].data_nascimento
-              ? new Date(props.inEdition.data_nascimento)
+              ? new Date(
+                  props.inEdition?.Donos[0].data_nascimento
+                ).toISOString()
               : null,
             Telefone: props.inEdition?.Donos[0].telefone || "",
             Email: props.inEdition?.Donos[0].email || "",

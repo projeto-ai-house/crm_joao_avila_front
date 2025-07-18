@@ -1,14 +1,14 @@
-import { createApp } from "vue";
-import PrimeVue from "primevue/config";
 import { definePreset } from "@primeuix/themes";
 import Aura from "@primeuix/themes/aura";
+import { createPinia } from "pinia";
+import "primeicons/primeicons.css";
+import PrimeVue from "primevue/config";
+import ConfirmationService from "primevue/confirmationservice";
 import ToastService from "primevue/toastservice";
+import Tooltip from "primevue/tooltip";
+import { createApp } from "vue";
 import App from "./App.vue";
 import { router } from "./routes";
-import { createPinia } from "pinia";
-import ConfirmationService from "primevue/confirmationservice";
-import Tooltip from "primevue/tooltip";
-import "primeicons/primeicons.css";
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -97,4 +97,6 @@ app.use(router);
 app.use(pinia);
 app.use(ToastService);
 
-app.mount("#app");
+document.addEventListener("DOMContentLoaded", async () => {
+  app.mount("#app");
+});

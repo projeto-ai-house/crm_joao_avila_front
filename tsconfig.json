@@ -8,6 +8,7 @@
   "compilerOptions": {
     "composite": true,
     "declaration": true,
-    "noEmit": true
+    "emitDeclarationOnly": true,
+    "skipLibCheck": true
   }
 }

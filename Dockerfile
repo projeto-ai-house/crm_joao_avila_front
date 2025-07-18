@@ -1,39 +1,35 @@
-# Use official Node.js runtime as base image
-FROM node:18-alpine as build-stage
+# --- Estágio 1: Build ---
+# Use a versão do Node que você usa no desenvolvimento
+FROM node:20-alpine AS build-stage
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copia o package.json e o lock file
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Instala as dependências
+RUN npm install
 
-# Copy project files
+# Copia o resto do código do seu projeto
 COPY . .
 
-# Set environment variables
-ENV VITE_API_URL=http://91.108.126.147:3000/api/v1
-ENV VITE_ADMIN_ROLENAMES=ADM,master_admin
-ENV VITE_TOKEN_KEY=token
-
-# Build the application with relaxed TypeScript checking
-ENV CI=false
-ENV NODE_ENV=production
+# Roda o comando de build para gerar os arquivos estáticos
 RUN npm run build
 
-# Production stage
-FROM nginx:alpine as production-stage
+# --- Estágio 2: Produção ---
+# Usa uma imagem leve do Nginx para servir os arquivos
+FROM nginx:stable-alpine
 
-# Copy built app to nginx html directory
+# Copia os arquivos estáticos gerados no estágio de build
+# O Vue geralmente gera os arquivos na pasta 'dist'
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-# Copy custom nginx configuration if needed
-COPY nginx.conf /etc/nginx/nginx.conf
+# (Opcional, mas recomendado) Copia uma configuração customizada do Nginx
+# para lidar com rotas de Single Page Application (SPA)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80
-EXPOSE 80
+# Expõe a porta 80, que é a padrão do Nginx
+EXPOSE 3100
 
-# Start nginx
+# Comando para iniciar o Nginx
 CMD ["nginx", "-g", "daemon off;"]

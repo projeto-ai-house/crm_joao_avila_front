@@ -1,7 +1,7 @@
 import type { AxiosResponse } from "axios";
-import callApi from "../Api";
-import { AuthenticationUtils } from "../../utils/AuthenticationUtils";
 import type { UserType } from "../../stores/user";
+import { AuthenticationUtils } from "../../utils/AuthenticationUtils";
+import callApi from "../Api";
 
 const ROUTE: string = "/auth";
 
@@ -62,7 +62,7 @@ export class Authentication {
         true
       );
       if (response.status === 200) {
-        const data = await response.data;
+        const data = await response?.data;
         return { ...data?.data, error: null };
       } else {
         const errorMessage =
@@ -73,9 +73,9 @@ export class Authentication {
     } catch (error: any) {
       // console.error("Erro ao recuperar dados do usuário:", error);
       const errorMessage =
-          error.response.data?.message || "Erro ao recuperar dados do usuário";
-        const status = error.status || 500;
-        return { error: errorMessage, status, ...({} as UserType) };
+        error.response?.data?.message || "Erro ao recuperar dados do usuário";
+      const status = error.status || 500;
+      return { error: errorMessage, status, ...({} as UserType) };
     }
   }
 }
