@@ -71,15 +71,12 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, onMounted, ref, watch } from "vue";
-import PanelMenu from "primevue/panelmenu";
 import { Button, useToast } from "primevue";
-import { useUserStore } from "../stores/user";
-import { AuthenticationUtils } from "../utils/AuthenticationUtils";
+import { onBeforeMount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { RolesServices } from "../services/roles/RolesServices";
-import { PermissionsUtils } from "../utils/PermissionsUtils";
+import { useUserStore } from "../stores/user";
 import { MenuUtils } from "../utils/MenuUtils";
+import { PermissionsUtils } from "../utils/PermissionsUtils";
 
 const router = useRouter();
 const userStore = useUserStore();

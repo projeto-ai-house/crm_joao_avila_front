@@ -130,6 +130,15 @@ export class MenuUtils {
         "cargo",
       ], // LEMBRAR DE MUDAR PERMISSÃO DEPOIS
     },
+
+    {
+      label: "Configurações",
+      pageName: "CONFIGURACOES",
+      icon: "pi pi-cog",
+      to: "/painel/configuracoes",
+      hidden: true,
+      permissions: ["free"],
+    },
   ];
 
   public static getAllMenus(): any[] {
@@ -140,9 +149,11 @@ export class MenuUtils {
     userPermissions: string[]
   ): any[] {
     return this.items.filter((item) => {
+      if (item.hidden) {
+        return false;
+      }
       if (item.permissions && item.permissions.length > 0) {
         return item.permissions.some((pagePermission: string) => {
-          // Allow items with "free" permission for everyone
           if (pagePermission === "free") {
             return true;
           }

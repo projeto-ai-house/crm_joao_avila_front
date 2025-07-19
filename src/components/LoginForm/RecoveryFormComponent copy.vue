@@ -2,7 +2,7 @@
   <Form
     v-slot="$form"
     :resolver="resolver"
-    :initialValues="form"
+    :initialValues="formData"
     @submit="onFormSubmit"
     class="flex justify-center flex-col gap-2 md:px-2"
   >
@@ -22,19 +22,21 @@
       </InputGroupAddon>
       <InputText
         id="email"
-        type="text"
+        name="email"
+        type="email"
         placeholder="E-mail"
-        v-model="form.email"
+        v-model="formData.email"
         class="!bg-white/40"
+        :invalid="$form.email?.invalid"
       />
-      <Message
-        v-if="$form.email?.invalid"
-        severity="error"
-        size="small"
-        variant="simple"
-        >{{ $form.email.error?.message }}</Message
-      >
     </InputGroup>
+    <Message
+      v-if="$form.email?.invalid"
+      severity="error"
+      size="small"
+      variant="simple"
+      >{{ $form.email.error?.message }}</Message
+    >
 
     <div class="py-3">
       <cite class="text-sm text-gray-600">
@@ -47,6 +49,8 @@
       severity="contrast"
       label="Enviar Link de Recuperação"
       class="hover:!bg-[#CEF261] hover:!text-black"
+      :loading="loginLoading"
+      :disabled="loginLoading || $form.email?.invalid"
     />
     <Button
       type="button"
@@ -59,54 +63,55 @@
 </template>
 
 <script lang="ts" setup>
-import { Key, LogIn, Mail, RefreshCcw, RefreshCcwDot, UserIcon } from "lucide-vue-next";
-import Password from "primevue/password";
+import { Mail, RefreshCcw } from "lucide-vue-next";
 import { Button, InputGroup, InputGroupAddon, InputText } from "primevue";
 import { reactive, ref } from "vue";
 // @ts-ignore
+import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { useToast } from "primevue/usetoast";
 import { z } from "zod";
-import { Form } from "@primevue/forms";
+import { Authentication } from "../../services/auth/Authentication";
 
 const emit = defineEmits(["click:login"]);
 
 const toast = useToast();
+const loginLoading = ref(false);
+const formData = reactive({
+  email: "",
+});
 
 const resolver = ref(
   zodResolver(
     z.object({
-      username: z.string().min(1, { message: "Username is required." }),
-      password: z
+      email: z
         .string()
-        .min(8, { message: "Minimo de 8 caracteres" })
-        .max(48, { message: "Máximo de 48 caracteres." })
-        .refine((value) => /[a-z]/.test(value), {
-          message: "Deve conter uma letra minúscula.",
-        })
-        .refine((value) => /[A-Z]/.test(value), {
-          message: "Deve conter uma letra maiúscula.",
-        })
-        .refine((value) => /d/.test(value), {
-          message: "Deve conter um número.",
-        }),
+        .email("Por favor, insira um e-mail válido.")
+        .min(1, "O e-mail é obrigatório."),
     })
   )
 );
 
-const onFormSubmit = ({ valid }) => {
+const onFormSubmit = async ({ valid }) => {
   if (valid) {
-    console.log("Form submitted successfully:", form);
-
-    toast.add({
-      severity: "success",
-      summary: "Form is submitted.",
-      life: 3000,
-    });
+    try {
+      loginLoading.value = true;
+      const { email } = formData;
+      const response = await Authentication.recoverUserPassword(email);
+      if (response.status === 200) {
+        // toast.add({
+        //   severity: "success",
+        //   summary: "E-mail de recuperação enviado.",
+        //   detail: "Verifique sua caixa de entrada.",
+        //   life: 3000,
+        // });
+        emit("click:login");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
+      loginLoading.value = false;
+    }
   }
 };
-
-const form = reactive({
-  email: "",
-});
 </script>

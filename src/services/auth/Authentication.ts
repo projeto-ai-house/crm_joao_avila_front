@@ -25,30 +25,6 @@ export class Authentication {
     }
     return response;
   }
-  // public static async logout(): Promise<void> {
-  //   // Simula uma chamada de API para logout
-  //   return new Promise((resolve) => {
-  //     setTimeout(() => {
-  //       resolve();
-  //     }, 1000);
-  //   });
-  // }
-
-  // public static async register(
-  //   email: string,
-  //   password: string
-  // ): Promise<string> {
-  //   // Simula uma chamada de API para registro
-  //   return new Promise((resolve, reject) => {
-  //     setTimeout(() => {
-  //       if (email && password) {
-  //         resolve("fake-jwt-token");
-  //       } else {
-  //         reject(new Error("Dados inválidos para registro"));
-  //       }
-  //     }, 1000);
-  //   });
-  // }
 
   public static async recoverUserData(): Promise<IUserWithError> {
     // Simula uma chamada de API para recuperar os dados do usuário
@@ -77,5 +53,25 @@ export class Authentication {
       const status = error.status || 500;
       return { error: errorMessage, status, ...({} as UserType) };
     }
+  }
+
+  public static async recoverUserPassword(
+    email: string
+  ): Promise<AxiosResponse> {
+    // Simula uma chamada de API para recuperar a senha do usuário
+    return callApi(ROUTE + "/token", "post", null, {
+      Email: email,
+    });
+  }
+
+  public static async validateToken(
+    email: string,
+    token: string
+  ): Promise<AxiosResponse> {
+    // Simula uma chamada de API para validar o token de recuperação
+    return callApi(ROUTE + "/token", "put", null, {
+      Email: email,
+      Token: token,
+    });
   }
 }

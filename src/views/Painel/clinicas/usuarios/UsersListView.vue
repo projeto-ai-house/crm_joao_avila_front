@@ -183,7 +183,10 @@
     :drawerState="drawerState"
     :inEdition="inEdition"
     @update:drawerState="drawerState = $event"
-    @saveUser="fetchUsers"
+    @saveUser="
+      fetchUsers;
+      fetchUserLinks;
+    "
   />
 </template>
 

@@ -36,13 +36,12 @@
 <script lang="ts" setup>
 import VideoComponent from "@/components/VideoComponent.vue";
 import Card from "primevue/card";
-import LoginFormComponent from "../components/LoginForm/LoginFormComponent.vue";
-import { onBeforeMount, onMounted, ref } from "vue";
-import RecoveryFormComponentCopy from "../components/LoginForm/RecoveryFormComponent copy.vue";
-import { AuthenticationUtils } from "../utils/AuthenticationUtils";
-import { RolesServices } from "../services/roles/RolesServices";
-import { useUserStore } from "../stores/user";
+import { onBeforeMount, ref } from "vue";
 import { useRouter } from "vue-router";
+import LoginFormComponent from "../components/LoginForm/LoginFormComponent.vue";
+import RecoveryFormComponentCopy from "../components/LoginForm/RecoveryFormComponent copy.vue";
+import { useUserStore } from "../stores/user";
+import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -61,8 +60,6 @@ function showLogin() {
 
 function checkAuth() {
   const isAuthenticated = new AuthenticationUtils().isAuthenticated();
-  console.log("Is Authenticated LOGIN:", isAuthenticated);
-
   if (isAuthenticated) {
     router.push({ name: "Inicio" });
   }
