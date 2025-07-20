@@ -62,16 +62,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
-import Toolbar from "primevue/toolbar";
-import Button from "primevue/button";
-import Avatar from "primevue/avatar";
-import Menu from "primevue/menu";
 import { useToast } from "primevue";
+import Avatar from "primevue/avatar";
+import Button from "primevue/button";
+import Menu from "primevue/menu";
 import type { MenuItem, MenuItemCommandEvent } from "primevue/menuitem";
+import Toolbar from "primevue/toolbar";
+import { onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useUserStore } from "../stores/user";
 import { AuthenticationUtils } from "../utils/AuthenticationUtils";
-import { useRouter } from "vue-router";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -101,7 +101,8 @@ const items = ref<MenuItem[]>([
       {
         label: "Configurações",
         icon: "pi pi-cog",
-        disabled: true,
+        disabled: false,
+        url: "/painel/configuracoes",
       },
       {
         label: "Sair",

@@ -27,7 +27,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/recuperar-senha/:code/:email",
     name: "ValidarTokenRecuperacao",
-    redirect: { name: "Login" },
+    component: () => import("../views/LoadingView.vue"),
     beforeEnter: async (to, from, next) => {
       const { code, email } = to.params;
       if (!code || !email) {
@@ -41,14 +41,13 @@ const routes: RouteRecordRaw[] = [
 
         const response = await Authentication.validateToken(emailStr, codeStr);
         const data = await response.data;
-        console.log("Response data:", data);
 
         if (response.status === 200) {
           const store = useUserStore();
           new AuthenticationUtils().storageToken(data?.data?.Token);
           await store.initUser();
 
-          next({ name: "Configurações", state: { inRecovery: true } });
+          next({ name: "Configuracoes", state: { inRecovery: true } });
         } else {
           next({ name: "Login" });
         }
@@ -62,7 +61,15 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/recuperar-senha",
     name: "RecuperarSenhaGuard",
-    redirect: { name: "Login" },
+    component: () => import("../views/LoadingView.vue"),
+    beforeEnter: (to, from, next) => {
+      const authUtils = new AuthenticationUtils();
+      if (authUtils.isAuthenticated()) {
+        next({ name: "Inicio" });
+      } else {
+        next({ name: "Login" });
+      }
+    },
   },
   {
     path: "/painel",
@@ -126,6 +133,12 @@ export const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const store = useUserStore();
+  const freeRoutes = ["RecuperarSenhaGuard", "ValidarTokenRecuperacao"];
+  if (freeRoutes.includes(to.name as string)) {
+    next();
+    return;
+  }
+  console.log(to.name, "beforeEach");
 
   try {
     await store.initUser();

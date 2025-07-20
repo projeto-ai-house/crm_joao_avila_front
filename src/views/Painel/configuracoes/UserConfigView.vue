@@ -11,22 +11,30 @@
       <h1 class="text-2xl md:text-4xl font-normal mb-2">Mednova</h1>
       <p class="text-md px-4 md:text-xl">Configurações do Usuário</p>
       <!-- <LoaderPinwheel class="animate-spin text-gray-600" /> -->
-
-      <p class="text-sm text-gray-600">Em recuperação: {{ inRecovery }}</p>
     </header>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { useToast } from "primevue";
+import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-
-const inRecovery = ref<boolean>(false);
+const toast = useToast();
 
 onMounted(() => {
   const state = router.options.history?.state;
-  inRecovery.value = JSON.parse(state?.inRecovery as string) || false;
+  const inRecovery = state?.inRecovery
+    ? JSON.parse(state?.inRecovery as string)
+    : false;
+  if (inRecovery) {
+    toast.add({
+      severity: "warn",
+      summary: "Você recuperou seu acesso!",
+      detail: "Altere sua senha já!",
+      life: 8000,
+    });
+  }
 });
 </script>

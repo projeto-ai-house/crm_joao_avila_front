@@ -69,13 +69,13 @@ import { reactive, ref } from "vue";
 // @ts-ignore
 import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
-import { useToast } from "primevue/usetoast";
+import { useRouter } from "vue-router";
 import { z } from "zod";
 import { Authentication } from "../../services/auth/Authentication";
 
 const emit = defineEmits(["click:login"]);
 
-const toast = useToast();
+const router = useRouter();
 const loginLoading = ref(false);
 const formData = reactive({
   email: "",
@@ -106,6 +106,9 @@ const onFormSubmit = async ({ valid }) => {
         //   life: 3000,
         // });
         emit("click:login");
+        setTimeout(() => {
+          router.push({ name: "Login" });
+        }, 100);
       }
     } catch (error) {
       console.error("Login error:", error);
