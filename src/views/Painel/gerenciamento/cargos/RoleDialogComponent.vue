@@ -8,7 +8,9 @@
   >
     <template #header>
       <div class="flex flex-col items-start justify-start gap-0">
-        <span class="font-bold whitespace-nowrap">Permissões - {{ props.inEdition?.Nome }}</span>
+        <span class="font-bold whitespace-nowrap"
+          >Permissões - {{ props.inEdition?.Nome }}</span
+        >
         <span class="text-sm text-gray-500">
           Edite as permissões do usuário selecionado.
         </span>
@@ -70,13 +72,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { Checkbox } from "primevue";
 import Dialog from "primevue/dialog";
-import Avatar from "primevue/avatar";
-import Button from "primevue/button";
-import { usePermissionsStore } from "../../../../stores/permissions";
-import { Checkbox, SelectButton } from "primevue";
+import { ref, watch } from "vue";
 import { RolesServices } from "../../../../services/roles/RolesServices";
+import { usePermissionsStore } from "../../../../stores/permissions";
 import { MenuUtils } from "../../../../utils/MenuUtils";
 
 const permissionsStore = usePermissionsStore();
@@ -129,10 +129,15 @@ function generatePermissions() {
       value: perm,
     };
   });
+  console.log("uniquePermissions", Array.from(uniquePermissions));
+
+  console.log("permissionsList", permissionsRoleList);
 
   permissionsRoleList.forEach((permission) => {
     const [perm, action] = permission.split("_");
-    transformedPermissions[perm][action] = true;
+    console.log(perm, action);
+
+    if (perm && action) transformedPermissions[perm][action] = true;
   });
   permissionsStates.value = transformedPermissions;
 
@@ -168,7 +173,6 @@ watch(
     if (state) {
       generatePermissions();
       console.log("inEdition", props.inEdition);
-      
     }
   },
   { immediate: true }

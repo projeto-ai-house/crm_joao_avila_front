@@ -18,15 +18,15 @@ interface IAddUser extends IUser {}
 interface IUpdateUser {
   Usuario: {
     ID: string;
-    Email: string;
-    Cpf: string;
-    data_nascimento: string;
-    Telefone: string;
-    Convenio: string;
-    password_hash: string;
-    nome_completo: string;
+    Email?: string;
+    Cpf?: string;
+    data_nascimento?: string;
+    Telefone?: string;
+    Convenio?: string;
+    password_hash?: string;
+    nome_completo?: string;
   };
-  Role: {
+  Role?: {
     role_id: string;
   };
 }

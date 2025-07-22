@@ -30,7 +30,15 @@ export class RouteAuth {
 
     // Verifica se a rota solicitada está na lista de menus
     const menuList = MenuUtils.getAllMenus();
-    const route = menuList.find((item) => item.to === to);
+
+    const route = menuList.find((item) => {
+      if (item.to?.includes("*")) {
+        const trueRoute = item.to.slice(0, -2);
+
+        return to.includes(trueRoute);
+      }
+      return item.to === to;
+    });
     if (!route) {
       console.error(`Rota não encontrada: ${to}`);
       return false;

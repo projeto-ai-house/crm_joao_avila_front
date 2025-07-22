@@ -106,6 +106,12 @@ const routes: RouteRecordRaw[] = [
         component: PatientsListView,
       },
       {
+        path: "pacientes/:id",
+        name: "PacienteDetalhes",
+        component: () =>
+          import("../views/Painel/clinicas/pacientes/PatientDetailsView.vue"),
+      },
+      {
         path: "cargos",
         name: "Cargos",
         component: RoleListView,
@@ -138,7 +144,6 @@ router.beforeEach(async (to, from, next) => {
     next();
     return;
   }
-  console.log(to.name, "beforeEach");
 
   try {
     await store.initUser();

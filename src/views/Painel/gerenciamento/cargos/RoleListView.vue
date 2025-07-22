@@ -88,16 +88,15 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, onMounted, ref } from "vue";
-import DataTable from "primevue/datatable";
+import { Badge, Button } from "primevue";
 import Column from "primevue/column";
-import { Badge, Button, Dialog, Drawer, Paginator, useConfirm } from "primevue";
-import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
+import DataTable from "primevue/datatable";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { RolesServices } from "../../../../services/roles/RolesServices";
 import { useUserStore } from "../../../../stores/user";
+import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 import RoleDialogComponent from "./RoleDialogComponent.vue";
-import { any } from "zod";
 
 const loading = ref(false);
 const dialogState = ref(false);
@@ -130,6 +129,8 @@ async function fetchRoles() {
     loading.value = true;
     const response = await RolesServices.getRoles({ id: userStore.user?.ID });
     if (response.status === 200) {
+      console.log("response.data", response.data);
+
       users.value = response.data?.data
         ?.filter((role) => role.Nome !== userRole)
         .sort((a: { Hierarquia: number }, b: { Hierarquia: number }) => {

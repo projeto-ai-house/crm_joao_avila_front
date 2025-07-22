@@ -2,10 +2,10 @@
   <!-- BEGIN: TopBar -->
   <div class="flex justify-between items-center pl-1 py-4 bg-white">
     <div>
-      <h2 class="font-semibold text-gray-500">Lista de Usuários</h2>
+      <h2 class="font-semibold text-gray-500">Lista de Pacientes</h2>
       <p class="text-sm text-gray-400">
-        Gerencie os usuários do sistema, incluindo suas informações e
-        permissões.
+        Gerencie os pacientes cadastrados na clínica, incluindo edição e
+        exclusão.
       </p>
     </div>
     <Button
@@ -22,15 +22,72 @@
   </div>
   <!-- END: TopBar -->
 
+  <!-- BEGIN: Insights -->
+  <div class="grid grid-cols-1 md:grid-cols-3 mb-4 gap-4">
+    <Card
+      class="col-span-1 !gap-0 !p-0"
+      title="Total de Pacientes"
+      :value="totalRecords"
+      icon="pi pi-users"
+      color="blue"
+    >
+      <template #title>
+        <span class="text-lg text-gray-500 font-semibold">
+          Pacientes Cadastrados
+        </span>
+      </template>
+      <template #content>
+        <div class="flex items-center justify-start gap-2">
+          <icon class="pi pi-users !text-2xl text-gray-500"></icon>
+          <span class="text-2xl font-bold">{{ totalRecords }}</span>
+        </div>
+      </template>
+    </Card>
+    <Card
+      class="col-span-1 !gap-0 !p-0"
+      title="Pacientes Femininos"
+      :value="insightsData.womenUsers"
+    >
+      <template #title>
+        <span class="text-lg text-gray-500 font-semibold">
+          Pacientes Femininos
+        </span>
+      </template>
+      <template #content>
+        <div class="flex items-center justify-start gap-2">
+          <icon class="pi pi-venus !text-2xl text-pink-500"></icon>
+          <span class="text-2xl font-bold">{{ insightsData.womenUsers }}</span>
+        </div>
+      </template>
+    </Card>
+    <Card
+      class="col-span-1 !gap-0 !p-0"
+      title="Pacientes Masculinos"
+      :value="insightsData.menUsers"
+    >
+      <template #title>
+        <span class="text-lg text-gray-500 font-semibold">
+          Pacientes Masculinos
+        </span>
+      </template>
+      <template #content>
+        <div class="flex items-center justify-start gap-2">
+          <icon class="pi pi-mars !text-2xl text-blue-500"></icon>
+          <span class="text-2xl font-bold">{{ insightsData.menUsers }}</span>
+        </div>
+      </template>
+    </Card>
+  </div>
+
   <!-- BEGIN: Table -->
   <div class="border border-gray-200/70 rounded-lg overflow-hidden">
     <DataTable
-      :value="users"
+      :value="patients"
       v-model:expandedRows="expandedRows"
       stripedRows
       tableStyle="min-width: 50rem"
       :rows="rows"
-      v-model:selection="selectedUsers"
+      v-model:selection="selectedPatients"
       dataKey="ID"
       size="small"
       :loading="loading"
@@ -40,102 +97,24 @@
       <template #loading>
         <span class="!text-gray-500 flex items-center justify-center gap-2">
           <i class="pi pi-spin pi-spinner text-gray-500"></i>
-          Carregando usuários
+          Carregando Pacientes
         </span>
       </template>
 
-      <Column field="NomeCompleto" header="Nome" sortable>
+      <Column field="nome_completo" header="Nome" sortable>
         <template #body="slotProps">
           <span class="font-semibold text-gray-600">{{
-            slotProps.data.NomeCompleto
+            slotProps.data.nome_completo
           }}</span>
         </template>
       </Column>
-      <Column field="Email" header="E-mail" sortable></Column>
-      <Column field="Convenio" header="Convênio" sortable></Column>
-      <Column field="Cargo" header="Cargo" sortable></Column>
-      <Column
-        field="Vinculos"
-        header="Vínculos"
-        sortable
-        v-if="userStore.user?.Role.includes('CEO/DONO')"
-      >
+      <Column field="celular" header="Celular" sortable></Column>
+      <Column field="telefone" header="Telefone" sortable></Column>
+      <Column field="data_nascimento" header="Data de Nascimento" sortable>
         <template #body="slotProps">
-          <div
-            v-if="
-              slotProps.data?.Role?.nome == 'MEDICO' &&
-              !userStore.user?.Role.includes('adm')
-            "
-          >
-            {{
-              slotProps.data.Vinculos?.length
-                ? slotProps.data.Vinculos.map((v) => v.name).join(", ")
-                : "Nenhum vínculo"
-            }}
-          </div>
-          <MultiSelect
-            v-else-if="
-              slotProps.data?.Role?.nome === 'SECRETARIA' &&
-              !userStore.user?.Role.includes('adm')
-            "
-            :placeholder="linksLoading ? 'Carregando...' : 'Selecione'"
-            :loading="linksLoading"
-            v-model="slotProps.data.Vinculos"
-            optionLabel="name"
-            class="max-w-sm"
-            size="small"
-            fluid
-            :filter="false"
-            :showToggleAll="false"
-            :options="
-              users
-                .filter(
-                  (user) =>
-                    user.ID !== slotProps.data.ID &&
-                    user?.Role?.id !==
-                      users.find((u) => u.ID === slotProps.data.ID)?.Role?.id
-                )
-                .map((user) => ({
-                  name: user.NomeCompleto,
-                  value: user.ID,
-                }))
-            "
-          >
-            <template #header>
-              <div class="font-medium px-3 py-2">Vincular com:</div>
-            </template>
-            <template #footer>
-              <div class="p-3 flex gap-2">
-                <Button
-                  label="Salvar"
-                  severity="info"
-                  fluid
-                  size="small"
-                  icon="pi pi-plus"
-                  :loading="linksLoading"
-                  :disabled="!permissionsUserPage.editar || linksLoading"
-                  @click="
-                    saveUserLinks(
-                      slotProps.data.ID,
-                      slotProps.data.Vinculos,
-                      users
-                        .filter(
-                          (user) =>
-                            user.ID !== slotProps.data.ID &&
-                            user?.Role?.id !==
-                              users.find((u) => u.ID === slotProps.data.ID)
-                                ?.Role?.id
-                        )
-                        .map((user) => ({
-                          name: user.NomeCompleto,
-                          value: user.ID,
-                        }))
-                    )
-                  "
-                />
-              </div>
-            </template>
-          </MultiSelect>
+          {{
+            new Date(slotProps.data.data_nascimento).toLocaleDateString("pt-BR")
+          }}
         </template>
       </Column>
 
@@ -149,8 +128,10 @@
               size="small"
               variant="text"
               @click="
-                inEdition = slotProps.data;
-                drawerState = true;
+                router.push({
+                  name: 'PacienteDetalhes',
+                  params: { id: slotProps.data.id },
+                })
               "
               :disabled="!permissionsUserPage.editar"
             />
@@ -182,13 +163,12 @@
 </template>
 
 <script setup lang="ts">
-import { Button, MultiSelect, Paginator, useConfirm, useToast } from "primevue";
+import { Button, Card, Paginator, useConfirm, useToast } from "primevue";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { UserLinksServices } from "../../../../services/user/UserLinksServices";
-import { UsersServices } from "../../../../services/user/UsersServices";
+import { PatientsServices } from "../../../../services/patients/PatientsServices";
 import { useUserStore } from "../../../../stores/user";
 import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 
@@ -197,13 +177,18 @@ const loading = ref(false);
 const linksLoading = ref(false);
 const drawerState = ref(false);
 const inEdition = ref(null);
-const selectedUsers = ref([]);
+const selectedPatients = ref([]);
 const userInDeletion = ref(null);
 const expandedRows = ref({});
 const userStore = useUserStore();
 const confirm = useConfirm();
-const users = ref([]);
+const patients = ref([]);
 const router = useRouter();
+const insightsData = ref({
+  totalUsers: 0,
+  womenUsers: 0,
+  menUsers: 0,
+});
 const permissionsUserPage = ref(
   PermissionsUtils.checkMethodPemission(router.currentRoute.value.fullPath)
 );
@@ -214,70 +199,7 @@ const currentPage = ref(1);
 
 function changePage(event: any) {
   currentPage.value = event.page + 1;
-  fetchUsers();
-}
-
-async function saveUserLinks(userId: string, links: any[], users: any[]) {
-  if (!links || links.length < 1) {
-    toast.add({
-      severity: "warn",
-      summary: "Aviso",
-      detail: "Selecione pelo menos um usuário para vincular.",
-      life: 3000,
-    });
-    linksLoading.value = false;
-    return;
-  }
-  linksLoading.value = true;
-  console.log(users);
-  console.log("links", links);
-
-  let added = 0;
-  let removed = 0;
-
-  for await (const user of users) {
-    try {
-      let response: any;
-      const link = links.find((l) => l.value === user.value);
-      if (!link) {
-        response = await UserLinksServices.deleteLink({
-          SecretariaID: userId,
-          MedicoID: user.value,
-        });
-        if (response.status === 200) {
-          removed++;
-        }
-        continue;
-      }
-      response = await UserLinksServices.postLink({
-        SecretariaID: userId,
-        MedicoID: link?.value,
-      });
-      if (response.status === 200) {
-        added++;
-      }
-      continue;
-    } catch (error) {
-      continue;
-    }
-  }
-  if (added > 0 || removed > 0) {
-    toast.add({
-      severity: "success",
-      summary: "Sucesso",
-      detail: `Vínculos atualizados com sucesso! Adicionados: ${added}, Removidos: ${removed}`,
-      life: 3000,
-    });
-  } else {
-    toast.add({
-      severity: "warn",
-      summary: "Aviso",
-      detail: "Nenhum vínculo foi adicionado ou removido.",
-      life: 3000,
-    });
-  }
-  await fetchUserLinks();
-  linksLoading.value = false;
+  fetchPatients();
 }
 
 const confirmDeleteUser = () => {
@@ -297,7 +219,7 @@ const confirmDeleteUser = () => {
         outlined: true,
       },
       accept: () => {
-        deleteUser(userInDeletion.value);
+        // deleteUser(userInDeletion.value);
       },
       reject: () => {
         userInDeletion.value = null;
@@ -308,30 +230,31 @@ const confirmDeleteUser = () => {
   }
 };
 
-async function deleteUser(userId: string) {
-  try {
-    const response = await UsersServices.deleteUser(userId);
-    if (response.status === 200) {
-      fetchUsers();
-    }
-  } catch (error) {
-    console.error("Error deleting user:", error);
-  }
-}
+// async function deleteUser(userId: string) {
+//   try {
+//     const response = await PatientsServices.deletePatient(userId);
+//     if (response.status === 200) {
+//       fetchPatients();
+//     }
+//   } catch (error) {
+//     console.error("Error deleting user:", error);
+//   }
+// }
 
-async function fetchUsers() {
+async function fetchPatients() {
   try {
     loading.value = true;
-    const response = await UsersServices.getUsers({
+    const response = await PatientsServices.getPatients({
       page: currentPage.value,
     });
     if (response.status === 200) {
-      users.value =
-        response.data?.data?.Usuarios?.map((it: any) => ({
-          ...it,
-          Cargo: it.Role?.nome || "N/A",
-        })) || [];
+      patients.value = response.data?.data?.pacientes || [];
       totalRecords.value = response.data?.data?.Itens || 0;
+      const insights = response.data?.data?.estatisticas || {};
+
+      insightsData.value.totalUsers = insights.total_pacientes || 0;
+      insightsData.value.womenUsers = insights.total_mulheres || 0;
+      insightsData.value.menUsers = insights.total_homens || 0;
     }
   } catch (error) {
     console.error("Error fetching clinics:", error);
@@ -340,55 +263,8 @@ async function fetchUsers() {
   }
 }
 
-async function fetchUserLinks() {
-  try {
-    loading.value = true;
-    linksLoading.value = true;
-    const response = await UserLinksServices.getLinks();
-    if (response.status !== 200) {
-      throw new Error("Failed to fetch user links");
-    }
-    const vinculos = response.data?.data || [];
-    console.log("Vínculos:", vinculos);
-
-    users.value = users.value.map((user) => {
-      const currentUserLinks = vinculos?.filter(
-        (link: any) => link.Secretaria.ID === user.ID
-      );
-      return {
-        ...user,
-        Vinculos: currentUserLinks.map((link: any) => ({
-          name: link.Medico.NomeCompleto,
-          value: link.Medico.ID,
-        })),
-      };
-    });
-    users.value = users.value.map((user) => {
-      const currentUserLinks = vinculos.filter(
-        (link: any) => link.Medico.ID === user.ID
-      );
-      return {
-        ...user,
-        Vinculos: [
-          ...(user.Vinculos || []),
-          ...currentUserLinks.map((link: any) => ({
-            name: link.Secretaria.NomeCompleto,
-            value: link.Secretaria.ID,
-          })),
-        ],
-      };
-    });
-  } catch (error) {
-    console.error("Error fetching user links:", error);
-  } finally {
-    loading.value = false;
-    linksLoading.value = false;
-  }
-}
-
 onMounted(async () => {
-  await fetchUsers();
-  if (users.value.length) await fetchUserLinks();
+  await fetchPatients();
 });
 </script>
 
@@ -398,5 +274,14 @@ onMounted(async () => {
   backdrop-filter: blur(5px);
   color: #4c71c0;
   font-weight: 600;
+}
+
+.p-card-body {
+  padding: 0.8rem !important;
+}
+
+.p-card-body,
+.p-card-caption {
+  gap: 0 !important;
 }
 </style>

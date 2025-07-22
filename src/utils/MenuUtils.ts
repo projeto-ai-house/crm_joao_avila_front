@@ -90,7 +90,15 @@ export class MenuUtils {
       pageName: "PACIENTES",
       icon: "pi pi-users",
       to: "/painel/pacientes",
-      permissions: ["paciente"],
+      permissions: ["procedimentos", "paciente"],
+    },
+    {
+      label: "Pacientes",
+      pageName: "PACIENTES-EDIT",
+      icon: "pi pi-users",
+      to: "/painel/pacientes/*",
+      permissions: ["procedimentos", "paciente"],
+      hidden: true,
     },
     // {
     //   label: "Consultas",
