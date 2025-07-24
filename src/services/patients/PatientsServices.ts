@@ -2,8 +2,10 @@ import type { AxiosResponse } from "axios";
 import callApi from "../Api";
 
 export interface IPatient {
+  id?: string;
   nome_completo: string;
   data_nascimento: string;
+  data_nascimento_datepicker: Date | null; // Mantém Date para o DatePicker
   sexo: string;
   cpf: string;
   rg: string;
@@ -58,11 +60,23 @@ export interface Parent {
 const ROUTE: string = "/pacientes";
 export class PatientsServices {
   public static async getPatients(params: {
-    page: number;
+    pagina: number;
+    limite: number;
   }): Promise<AxiosResponse> {
     return callApi(ROUTE, "get", params);
   }
+  public static async getPatient(
+    id: string
+  ): Promise<AxiosResponse<{ data: IPatient }>> {
+    return callApi(`${ROUTE}/${id}`, "get");
+  }
   public static async postPatient(body: IPatient): Promise<AxiosResponse> {
     return callApi(ROUTE, "post", undefined, body);
+  }
+  public static async putPatient(
+    id: string,
+    body: IPatient
+  ): Promise<AxiosResponse> {
+    return callApi(`${ROUTE}/${id}`, "put", undefined, body);
   }
 }

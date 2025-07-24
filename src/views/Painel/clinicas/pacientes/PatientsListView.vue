@@ -13,11 +13,8 @@
       icon="pi pi-plus"
       severity="primary"
       size="small"
-      @click="
-        inEdition = null;
-        drawerState = true;
-      "
-      :disabled="!permissionsUserPage.editar"
+      @click="router.push({ name: 'PacienteDetalhes', params: { id: 'novo' } })"
+      :disabled="!permissionsUserPage.criar"
     ></Button>
   </div>
   <!-- END: TopBar -->
@@ -245,7 +242,8 @@ async function fetchPatients() {
   try {
     loading.value = true;
     const response = await PatientsServices.getPatients({
-      page: currentPage.value,
+      pagina: currentPage.value,
+      limite: rows,
     });
     if (response.status === 200) {
       patients.value = response.data?.data?.pacientes || [];
@@ -255,6 +253,10 @@ async function fetchPatients() {
       insightsData.value.totalUsers = insights.total_pacientes || 0;
       insightsData.value.womenUsers = insights.total_mulheres || 0;
       insightsData.value.menUsers = insights.total_homens || 0;
+
+      currentPage.value = response.data?.data?.paginacao?.pagina || 1;
+      // rows = response.data?.data?.paginacao?.limite || 20;
+      totalRecords.value = response.data?.data?.paginacao?.total || 0;
     }
   } catch (error) {
     console.error("Error fetching clinics:", error);
