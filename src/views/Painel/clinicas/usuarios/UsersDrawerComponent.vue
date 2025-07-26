@@ -281,7 +281,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { inject, onMounted, ref, watch, type Ref } from "vue";
 //@ts-ignore
 import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
@@ -324,7 +324,7 @@ interface Role {
   Hierarquia: number;
 }
 const blockRole = ref(false);
-const globalLoading = ref(false);
+const globalLoading = inject<Ref<boolean>>("globalLoading");
 const isEditing = ref(false);
 const formClinic = ref(null);
 const listRoles = ref<Role[]>([]);

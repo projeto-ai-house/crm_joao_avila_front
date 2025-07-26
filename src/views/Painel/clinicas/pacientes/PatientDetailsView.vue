@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-between items-center p-1 py-4 bg-white">
+  <div class="flex justify-between items-center p-1 py-4 bg-white pb-4">
     <div>
       <h2 class="font-semibold text-gray-500">Paciente</h2>
       <p class="text-sm text-gray-400"></p>
@@ -801,11 +801,12 @@
 
       <InputGroup class="col-span-12 max-h-[35px]">
         <FloatLabel variant="on">
-          <InputText
-            id="sub1procedimento"
-            size="small"
-            disabled
+          <AutoComplete
             v-model="preScheduleInput"
+            :suggestions="proceduresListFiltred"
+            optionLabel="nome"
+            @complete="searchProcedures"
+            @item-select="(selected) => addProcedure(selected?.value)"
           />
           <label for="sub1procedimento">Procedimento</label>
         </FloatLabel>
@@ -815,28 +816,33 @@
             severity="secondary"
             variant="text"
             size="small"
+            @click="procedureModal.open()"
           />
         </InputGroupAddon>
       </InputGroup>
 
       <!-- Lista Programação de Agendamentos -->
       <div
-        class="col-span-12 border-b border-gray-200 last:border-0 pl-2 pr-1 flex justify-between items-center"
-        v-for="(item, index) in initialValues.procedimento_ids"
+        class="col-span-12 border-b border-gray-200 last:border-0 pl-2 pr-1 flex justify-between items-center -mt-2"
+        v-for="(item, index) in preScheduleList"
         :key="index"
       >
-        {{ item }}
+        {{
+          proceduresList.find((p) => p.id === item)?.nome ||
+          "Procedimento Desconhecido"
+        }}
 
         <Button
           icon="pi pi-trash"
           severity="danger"
           size="small"
           variant="text"
-          class="col-span-1 row-span-1 !p-0.5"
+          class="col-span-1 row-span-1"
+          @click="preScheduleList.splice(index, 1)"
         />
       </div>
       <cite
-        v-show="!initialValues.procedimento_ids?.length"
+        v-show="!preScheduleList?.length"
         class="col-span-12 text-sm text-gray-500"
       >
         Nenhum procedimento agendado.
@@ -926,7 +932,7 @@
 
       <!-- Lista Relacionamentos e Familiares -->
       <div
-        class="col-span-13 border-b border-gray-200 last:border-0 pl-2 pr-1 grid grid-cols-13 gap-x-2 gap-y-2 items-center"
+        class="col-span-13 border-b border-gray-200 last:border-0 pl-2 pr-1 grid grid-cols-13 gap-x-2 gap-y-2 items-center -mt-2"
         v-for="(item, index) in parentsList"
         :key="index"
       >
@@ -937,14 +943,15 @@
           {{ DateUtils.formatDateBRtoISO(item.data_nascimento) }}
         </span>
 
-        <Button
-          icon="pi pi-trash"
-          severity="secondary"
-          variant="text"
-          size="small"
-          class="col-span-1"
-          @click="parentsList.splice(index, 1)"
-        />
+        <div class="col-span-1 !w-full flex justify-center">
+          <Button
+            icon="pi pi-trash"
+            severity="danger"
+            variant="text"
+            size="small"
+            @click="parentsList.splice(index, 1)"
+          />
+        </div>
       </div>
       <cite
         v-show="!initialValues.parentes.length || !parentsList.length"
@@ -964,11 +971,18 @@
       {{ DateUtils.separateDateAndTime(initialValues.created_at)[1] }}
     </cite>
   </Form>
+
+  <ProcedureModalComponent
+    ref="procedureModal"
+    :selectable="true"
+    @send:procedure="addProcedure"
+  />
 </template>
 
 <script lang="ts" setup>
 import { Form } from "@primevue/forms";
 import {
+  AutoComplete,
   Button,
   DatePicker,
   FileUpload,
@@ -982,8 +996,9 @@ import {
   Select,
   Textarea,
 } from "primevue";
-import { nextTick, onMounted, ref } from "vue";
+import { inject, nextTick, onMounted, ref, type Ref } from "vue";
 import { useRouter } from "vue-router";
+import ProcedureModalComponent from "../../../../components/ProcedureModal/ProcedureModalComponent.vue";
 import {
   PatientsServices,
   type IPatient,
@@ -993,12 +1008,14 @@ import { useUserStore } from "../../../../stores/user";
 import { DateUtils } from "../../../../utils/DateUtils";
 import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 
+const globalLoading = inject<Ref<boolean>>("globalLoading");
 const editing = ref(false);
 const router = useRouter();
 const permissionsUserPage = ref(
   PermissionsUtils.checkMethodPemission(router.currentRoute.value.fullPath)
 );
 const userStore = useUserStore();
+const procedureModal = ref(null);
 
 const imageSrc = ref<string | null>(null);
 const initialValues = ref<IPatient>({
@@ -1046,11 +1063,13 @@ const initialValues = ref<IPatient>({
   convenio_3_validade: "",
   convenio_3_titular: "",
   procedimento_ids: [],
+  procedimentos: [],
   parentes: [],
 });
 const patient = ref<IPatient | null>(null);
 
-const proceduresList = ref<string[]>([]);
+const proceduresList = ref<any[]>([]);
+const proceduresListFiltred = ref<any[]>([]);
 const preScheduleInput = ref<string>("");
 const preScheduleList = ref<string[]>([]);
 
@@ -1071,6 +1090,25 @@ function onFileSelect(event: any) {
       imageSrc.value = e.target?.result as string;
     };
     reader.readAsDataURL(file);
+  }
+}
+
+function searchProcedures(event: any) {
+  if (event.query) {
+    proceduresListFiltred.value = proceduresList.value.filter((procedure) =>
+      procedure.nome.toLowerCase().includes(event.query.toLowerCase())
+    );
+  } else {
+    proceduresListFiltred.value = [];
+  }
+}
+
+function addProcedure(procedure: any) {
+  if (procedure) {
+    preScheduleList.value.push(procedure.id);
+    preScheduleInput.value = "";
+  } else {
+    console.error("Procedimento não encontrado.");
   }
 }
 
@@ -1101,7 +1139,9 @@ function addParent() {
 
 async function salvarPaciente() {
   try {
+    globalLoading.value = true;
     if (patient.value) {
+      // Save patient data
       if (editing.value) {
         initialValues.value.id = patient.value.id;
         initialValues.value.data_nascimento = initialValues.value
@@ -1120,7 +1160,7 @@ async function salvarPaciente() {
         await PatientsServices.postPatient(initialValues.value);
       }
 
-      console.log("Salvando paciente:", initialValues.value.parentes);
+      // Delete existing parents
       if (initialValues.value.parentes.length) {
         for await (const parent of initialValues.value.parentes) {
           await PatientsServices.deletePatientParent(initialValues.value.id, {
@@ -1128,6 +1168,7 @@ async function salvarPaciente() {
           });
         }
       }
+      // Save parents
       if (parentsList.value.length) {
         for await (const parent of parentsList.value) {
           await PatientsServices.postPatientParent(initialValues.value.id, {
@@ -1140,15 +1181,34 @@ async function salvarPaciente() {
         }
       }
 
+      // Delete existing procedures
+      if (initialValues.value.procedimentos?.length) {
+        for await (const procedure of initialValues.value.procedimentos) {
+          await PatientsServices.deletePatientProcedure(
+            initialValues.value.id,
+            { procedimento_id: procedure.id }
+          );
+        }
+      }
+      // Save procedures
+      if (preScheduleList.value?.length) {
+        await PatientsServices.postPatientProcedure(initialValues.value.id, {
+          procedimento_ids: preScheduleList.value,
+        });
+      }
+
       await fetchPatientDetails();
     }
   } catch (error) {
     console.error("Erro ao salvar paciente:", error);
+  } finally {
+    globalLoading.value = false;
   }
 }
 
 async function fetchProcedures() {
   try {
+    globalLoading.value = true;
     const response = await ProceduresServices.getProcedures();
     if (response.data?.data) {
       proceduresList.value = response.data?.data;
@@ -1157,6 +1217,8 @@ async function fetchProcedures() {
     }
   } catch (error) {
     console.error("Erro ao buscar procedimentos:", error);
+  } finally {
+    globalLoading.value = false;
   }
 }
 
@@ -1164,8 +1226,9 @@ async function fetchPatientDetails() {
   const patientId = router.currentRoute.value.params.id;
   if (patientId && patientId !== "novo") {
     try {
+      globalLoading.value = true;
       const response = await PatientsServices.getPatient(patientId as string);
-      initialValues.value = response.data?.data;
+      Object.assign(initialValues.value, response.data?.data);
       patient.value = initialValues.value;
       await nextTick();
       initialValues.value.data_nascimento_datepicker = new Date(
@@ -1174,8 +1237,14 @@ async function fetchPatientDetails() {
       parentsList.value = initialValues.value.parentes.length
         ? [...initialValues.value.parentes]
         : [];
+      preScheduleList.value =
+        initialValues.value.procedimentos?.map(
+          (procedure: any) => procedure.id
+        ) || [];
     } catch (error) {
       console.error("Erro ao buscar detalhes do paciente:", error);
+    } finally {
+      globalLoading.value = false;
     }
   } else {
     patient.value = null;

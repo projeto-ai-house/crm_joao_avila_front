@@ -140,31 +140,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, onUnmounted } from "vue";
 import {
   DayPilot,
   DayPilotCalendar,
   DayPilotNavigator,
 } from "@daypilot/daypilot-lite-vue";
+import { Button, Popover } from "primevue";
 import Select from "primevue/select";
 import { useConfirm } from "primevue/useconfirm";
-import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
-import {
-  Button,
-  FloatLabel,
-  InputGroup,
-  InputGroupAddon,
-  InputText,
-  Message,
-  Popover,
-} from "primevue";
-import AgendaDrawerComponent from "./AgendaDrawerComponent.vue";
-import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
+import { inject, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import { useRouter } from "vue-router";
-import { useUserStore } from "../../../../stores/user";
-import { UsersServices } from "../../../../services/user/UsersServices";
+import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
 import { UserLinksServices } from "../../../../services/user/UserLinksServices";
-import { DateUtils } from "../../../../utils/DateUtils";
+import { UsersServices } from "../../../../services/user/UsersServices";
+import { useUserStore } from "../../../../stores/user";
+import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
+import AgendaDrawerComponent from "./AgendaDrawerComponent.vue";
 
 const router = useRouter();
 const permissionsUserPage = ref(
@@ -172,7 +163,7 @@ const permissionsUserPage = ref(
 );
 const calendar = ref<DayPilotCalendar | null>(null);
 const confirm = useConfirm();
-const globalLoading = ref(false);
+const globalLoading = inject<Ref<boolean>>("globalLoading");
 const drawerState = ref(false);
 const inEdition = ref(null);
 const showNavigator = ref(false);

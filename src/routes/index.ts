@@ -107,7 +107,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: "pacientes/:id",
-        name: "PacienteDetalhes",
+        name: "Detalhes do Paciente",
         component: () =>
           import("../views/Painel/clinicas/pacientes/PatientDetailsView.vue"),
       },

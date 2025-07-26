@@ -8,14 +8,26 @@
         exclusão.
       </p>
     </div>
-    <Button
-      label="Adicionar"
-      icon="pi pi-plus"
-      severity="primary"
-      size="small"
-      @click="router.push({ name: 'PacienteDetalhes', params: { id: 'novo' } })"
-      :disabled="!permissionsUserPage.criar"
-    ></Button>
+    <div class="flex items-center gap-2">
+      <Button
+        label="Procedimentos"
+        icon="pi pi-file"
+        severity="secondary"
+        size="small"
+        @click="procedureModal.open()"
+        :disabled="!permissionsUserPage.editar"
+      />
+      <Button
+        label="Adicionar"
+        icon="pi pi-plus"
+        severity="primary"
+        size="small"
+        @click="
+          router.push({ name: 'Detalhes do Paciente', params: { id: 'novo' } })
+        "
+        :disabled="!permissionsUserPage.criar"
+      ></Button>
+    </div>
   </div>
   <!-- END: TopBar -->
 
@@ -126,7 +138,7 @@
               variant="text"
               @click="
                 router.push({
-                  name: 'PacienteDetalhes',
+                  name: 'Detalhes do Paciente',
                   params: { id: slotProps.data.id },
                 })
               "
@@ -157,6 +169,8 @@
     />
   </div>
   <!-- END: Table -->
+
+  <ProcedureModalComponent ref="procedureModal" />
 </template>
 
 <script setup lang="ts">
@@ -165,6 +179,7 @@ import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import ProcedureModalComponent from "../../../../components/ProcedureModal/ProcedureModalComponent.vue";
 import { PatientsServices } from "../../../../services/patients/PatientsServices";
 import { useUserStore } from "../../../../stores/user";
 import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
@@ -186,6 +201,9 @@ const insightsData = ref({
   womenUsers: 0,
   menUsers: 0,
 });
+const procedureModal = ref<InstanceType<typeof ProcedureModalComponent> | null>(
+  null
+);
 const permissionsUserPage = ref(
   PermissionsUtils.checkMethodPemission(router.currentRoute.value.fullPath)
 );
@@ -209,11 +227,12 @@ const confirmDeleteUser = () => {
         label: "Cancelar",
         severity: "secondary",
         outlined: true,
+        size: "small",
       },
       acceptProps: {
         label: "Confirmar",
         severity: "danger",
-        outlined: true,
+        size: "small",
       },
       accept: () => {
         // deleteUser(userInDeletion.value);

@@ -45,7 +45,8 @@ export interface IPatient {
   convenio_3_token: string;
   convenio_3_validade: string;
   convenio_3_titular: string;
-  procedimento_ids: string[];
+  procedimento_ids?: string[];
+  procedimentos?: Procedure[];
   parentes: Parent[];
   created_at?: string; // Data de criação
   updated_at?: string; // Data de atualização
@@ -76,7 +77,14 @@ export class PatientsServices {
   public static async getPatient(
     id: string
   ): Promise<AxiosResponse<{ data: IPatient }>> {
-    return callApi(`${ROUTE}/${id}`, "get");
+    return callApi(
+      `${ROUTE}/${id}`,
+      "get",
+      undefined,
+      undefined,
+      undefined,
+      true
+    );
   }
   public static async postPatient(body: IPatient): Promise<AxiosResponse> {
     return callApi(ROUTE, "post", undefined, body);
@@ -125,7 +133,9 @@ export class PatientsServices {
       `${ROUTE}/${patientId}/procedimentos`,
       "post",
       undefined,
-      body
+      body,
+      undefined,
+      true
     );
   }
   public static async deletePatientProcedure(
@@ -134,7 +144,11 @@ export class PatientsServices {
   ): Promise<AxiosResponse> {
     return callApi(
       `${ROUTE}/${patientId}/procedimentos/${body.procedimento_id}`,
-      "delete"
+      "delete",
+      undefined,
+      undefined,
+      undefined,
+      true
     );
   }
 }

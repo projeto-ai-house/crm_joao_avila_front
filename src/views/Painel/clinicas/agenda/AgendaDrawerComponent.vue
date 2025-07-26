@@ -288,13 +288,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { inject, onMounted, ref, watch, type Ref } from "vue";
 //@ts-ignore
-import { zodResolver } from "@primevue/forms/resolvers/zod";
-import Drawer from "primevue/drawer";
-import Button from "primevue/button";
-import { z } from "zod";
 import { Form } from "@primevue/forms";
+import { zodResolver } from "@primevue/forms/resolvers/zod";
+import { Calendar, User } from "lucide-vue-next";
 import {
   DatePicker,
   FloatLabel,
@@ -304,12 +302,14 @@ import {
   Select,
   useToast,
 } from "primevue";
-import { Calendar, User } from "lucide-vue-next";
+import Button from "primevue/button";
+import Drawer from "primevue/drawer";
 import { useConfirm } from "primevue/useconfirm";
-import { UsersServices } from "../../../../services/user/UsersServices";
-import { UserLinksServices } from "../../../../services/user/UserLinksServices";
-import { useUserStore } from "../../../../stores/user";
+import { z } from "zod";
 import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
+import { UserLinksServices } from "../../../../services/user/UserLinksServices";
+import { UsersServices } from "../../../../services/user/UsersServices";
+import { useUserStore } from "../../../../stores/user";
 import { DateUtils } from "../../../../utils/DateUtils";
 
 const userStore = useUserStore();
@@ -330,7 +330,7 @@ interface Medico {
   Nome: string;
 }
 
-const globalLoading = ref(false);
+const globalLoading = inject<Ref<boolean>>("globalLoading");
 const isEditing = ref(false);
 const appointmentId = ref<string | null>(null);
 const formAgendamento = ref(null);
@@ -608,8 +608,8 @@ watch(
               dataHora.getDate()
             )
           : null;
-          console.log("Data e hora do agendamento:", dataHora);
-          
+        console.log("Data e hora do agendamento:", dataHora);
+
         const hora = dataHora
           ? `${dataHora.getHours().toString().padStart(2, "0")}:${dataHora
               .getMinutes()

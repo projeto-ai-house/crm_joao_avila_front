@@ -1,31 +1,11 @@
 <template>
   <transition name="fade">
     <div
-      v-if="modelValue"
-      class="fixed inset-0 z-[9999] flex items-center justify-center bg-transparent bg-opacity-60 backdrop-blur-sm"
+      v-if="internalValue"
+      class="fixed inset-0 z-[1000] flex items-center justify-center bg-transparent bg-opacity-60 backdrop-blur-sm"
       style="pointer-events: all"
     >
       <div class="flex flex-col items-center">
-        <!-- <svg
-          class="animate-spin h-12 w-12 text-blue-500 mb-4"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v8z"
-          ></path>
-        </svg> -->
         <i
           class="pi pi-spin pi-spinner text-blue-500 mb-4"
           style="font-size: 2.4rem"
@@ -37,7 +17,26 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ modelValue: boolean }>();
+import { ref, watch } from "vue";
+
+const props = defineProps<{ modelValue: boolean }>();
+
+const internalValue = ref(props.modelValue);
+
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue) {
+      // Se está mudando para true, mostra imediatamente
+      internalValue.value = true;
+    } else {
+      // Se está mudando para false, adiciona um atraso de 300ms
+      setTimeout(() => {
+        internalValue.value = false;
+      }, 300);
+    }
+  }
+);
 </script>
 
 <style scoped>

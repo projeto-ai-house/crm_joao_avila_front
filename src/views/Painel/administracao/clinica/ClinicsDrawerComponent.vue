@@ -347,7 +347,7 @@
 
 <script setup lang="ts">
 import { useConfirm } from "primevue/useconfirm";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, ref, watch, type Ref } from "vue";
 //@ts-ignore
 import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
@@ -389,7 +389,7 @@ interface Role {
   Permissoes: any | null;
   Hierarquia: number;
 }
-const globalLoading = ref(false);
+const globalLoading = inject<Ref<boolean>>("globalLoading");
 const isEditing = ref(false);
 const formClinic = ref(null);
 const listRoles = ref<Role[]>([]);
