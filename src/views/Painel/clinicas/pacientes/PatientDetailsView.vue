@@ -789,6 +789,180 @@
         </FloatLabel>
       </div>
     </div>
+
+    <!-- Form Programação de Agendamentos -->
+    <div
+      class="col-span-5 p-4 border border-gray-200 rounded-lg grid grid-cols-12 gap-x-2 gap-y-4 h-fit"
+      v-if="userStore.user.Role?.toUpperCase() === 'MEDICO'"
+    >
+      <div class="col-span-12">
+        <h3 class="font-semibold text-gray-500">Programação de Agendamentos</h3>
+      </div>
+
+      <InputGroup class="col-span-12 max-h-[35px]">
+        <FloatLabel variant="on">
+          <InputText
+            id="sub1procedimento"
+            size="small"
+            disabled
+            v-model="preScheduleInput"
+          />
+          <label for="sub1procedimento">Procedimento</label>
+        </FloatLabel>
+        <InputGroupAddon>
+          <Button
+            icon="pi pi-search"
+            severity="secondary"
+            variant="text"
+            size="small"
+          />
+        </InputGroupAddon>
+      </InputGroup>
+
+      <!-- Lista Programação de Agendamentos -->
+      <div
+        class="col-span-12 border-b border-gray-200 last:border-0 pl-2 pr-1 flex justify-between items-center"
+        v-for="(item, index) in initialValues.procedimento_ids"
+        :key="index"
+      >
+        {{ item }}
+
+        <Button
+          icon="pi pi-trash"
+          severity="danger"
+          size="small"
+          variant="text"
+          class="col-span-1 row-span-1 !p-0.5"
+        />
+      </div>
+      <cite
+        v-show="!initialValues.procedimento_ids?.length"
+        class="col-span-12 text-sm text-gray-500"
+      >
+        Nenhum procedimento agendado.
+      </cite>
+    </div>
+
+    <!-- Relacionamentos e Familiares -->
+    <div
+      class="p-4 border border-gray-200 rounded-lg grid grid-cols-13 gap-x-2 gap-y-4 h-fit"
+      :class="{
+        'col-span-12': userStore.user.Role?.toUpperCase() !== 'MEDICO',
+        'col-span-7': userStore.user.Role?.toUpperCase() === 'MEDICO',
+      }"
+    >
+      <div class="col-span-13">
+        <h3 class="font-semibold text-gray-500">
+          Relacionamentos e Familiares
+        </h3>
+      </div>
+
+      <div class="col-span-3">
+        <FloatLabel variant="on">
+          <InputText
+            id="sub1procedimento"
+            size="small"
+            v-model="parent.nome"
+            fluid
+          />
+          <label for="sub1procedimento">Nome</label>
+        </FloatLabel>
+      </div>
+      <div class="col-span-3">
+        <FloatLabel variant="on">
+          <InputMask
+            id="Cpf"
+            name="Cpf"
+            mask="***.***.***-**"
+            type="text"
+            fluid
+            v-model="parent.cpf"
+            size="small"
+          />
+          <label for="Cpf">CPF</label>
+        </FloatLabel>
+      </div>
+      <div class="col-span-3">
+        <FloatLabel variant="on">
+          <InputMask
+            id="Telefone"
+            name="Telefone"
+            mask="(99) 99999-9999"
+            type="text"
+            fluid
+            v-model="parent.telefone"
+            size="small"
+          />
+          <label for="Telefone">Telefone</label>
+        </FloatLabel>
+      </div>
+
+      <div class="col-span-3">
+        <FloatLabel variant="on">
+          <DatePicker
+            fluid
+            dateFormat="dd/mm/yy"
+            v-model="parent.data_nascimento"
+            size="small"
+            :max-date="new Date()"
+          />
+          <label for="DataNascimento">
+            Nascimento
+            <span class="text-red-500">*</span>
+          </label>
+        </FloatLabel>
+      </div>
+
+      <div class="col-span-1">
+        <Button
+          icon="pi pi-plus"
+          severity="primary"
+          size="small"
+          fluid
+          @click="addParent"
+          class="!w-full"
+        />
+      </div>
+
+      <!-- Lista Relacionamentos e Familiares -->
+      <div
+        class="col-span-13 border-b border-gray-200 last:border-0 pl-2 pr-1 grid grid-cols-13 gap-x-2 gap-y-2 items-center"
+        v-for="(item, index) in parentsList"
+        :key="index"
+      >
+        <span class="font-semibold col-span-3">{{ item.nome }}</span>
+        <span class="col-span-3">{{ item.cpf }}</span>
+        <span class="col-span-3">{{ item.telefone }}</span>
+        <span class="col-span-3">
+          {{ DateUtils.formatDateBRtoISO(item.data_nascimento) }}
+        </span>
+
+        <Button
+          icon="pi pi-trash"
+          severity="secondary"
+          variant="text"
+          size="small"
+          class="col-span-1"
+          @click="parentsList.splice(index, 1)"
+        />
+      </div>
+      <cite
+        v-show="!initialValues.parentes.length || !parentsList.length"
+        class="col-span-13 text-sm text-gray-500"
+      >
+        Nenhum parente cadastrado.
+      </cite>
+    </div>
+
+    <!-- Data criação -->
+    <cite
+      class="col-span-12 text-sm text-gray-500 text-right pb-2"
+      v-if="editing"
+    >
+      Criado em
+      {{ DateUtils.separateDateAndTime(initialValues.created_at)[0] }} às
+      {{ DateUtils.separateDateAndTime(initialValues.created_at)[1] }}
+    </cite>
   </Form>
 </template>
 
@@ -799,6 +973,9 @@ import {
   DatePicker,
   FileUpload,
   FloatLabel,
+  InputGroup,
+  InputGroupAddon,
+  InputMask,
   InputNumber,
   InputText,
   Message,
@@ -811,9 +988,18 @@ import {
   PatientsServices,
   type IPatient,
 } from "../../../../services/patients/PatientsServices";
+import { ProceduresServices } from "../../../../services/procedures/ProceduresServices";
+import { useUserStore } from "../../../../stores/user";
+import { DateUtils } from "../../../../utils/DateUtils";
+import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 
 const editing = ref(false);
 const router = useRouter();
+const permissionsUserPage = ref(
+  PermissionsUtils.checkMethodPemission(router.currentRoute.value.fullPath)
+);
+const userStore = useUserStore();
+
 const imageSrc = ref<string | null>(null);
 const initialValues = ref<IPatient>({
   id: "",
@@ -864,6 +1050,19 @@ const initialValues = ref<IPatient>({
 });
 const patient = ref<IPatient | null>(null);
 
+const proceduresList = ref<string[]>([]);
+const preScheduleInput = ref<string>("");
+const preScheduleList = ref<string[]>([]);
+
+const parent = ref({
+  cpf: "",
+  nome: "",
+  telefone: "",
+  data_nascimento: null,
+  tipo_parentesco: "",
+});
+const parentsList = ref([]);
+
 function onFileSelect(event: any) {
   const file = event.files[0];
   if (file) {
@@ -872,6 +1071,31 @@ function onFileSelect(event: any) {
       imageSrc.value = e.target?.result as string;
     };
     reader.readAsDataURL(file);
+  }
+}
+
+function addParent() {
+  if (parent.value.nome && parent.value.cpf) {
+    const newParent = {
+      nome: parent.value.nome,
+      cpf: parent.value.cpf,
+      telefone: parent.value.telefone,
+      data_nascimento: parent.value.data_nascimento
+        ? DateUtils.formatDateBRtoISO(parent.value.data_nascimento)
+        : "",
+      tipo_parentesco: "Parente", // Default value, can be changed later
+    };
+    parentsList.value = [newParent, ...parentsList.value];
+
+    parent.value = {
+      cpf: "",
+      nome: "",
+      telefone: "",
+      data_nascimento: null,
+      tipo_parentesco: "",
+    };
+  } else {
+    console.log("Preencha todos os campos do parente.");
   }
 }
 
@@ -895,9 +1119,44 @@ async function salvarPaciente() {
           : "";
         await PatientsServices.postPatient(initialValues.value);
       }
+
+      console.log("Salvando paciente:", initialValues.value.parentes);
+      if (initialValues.value.parentes.length) {
+        for await (const parent of initialValues.value.parentes) {
+          await PatientsServices.deletePatientParent(initialValues.value.id, {
+            cpf: parent.cpf,
+          });
+        }
+      }
+      if (parentsList.value.length) {
+        for await (const parent of parentsList.value) {
+          await PatientsServices.postPatientParent(initialValues.value.id, {
+            ...parent,
+            data_nascimento:
+              new Date(
+                DateUtils.formatDateBRtoISO(parent.data_nascimento)
+              ).toISOString() || "",
+          });
+        }
+      }
+
+      await fetchPatientDetails();
     }
   } catch (error) {
     console.error("Erro ao salvar paciente:", error);
+  }
+}
+
+async function fetchProcedures() {
+  try {
+    const response = await ProceduresServices.getProcedures();
+    if (response.data?.data) {
+      proceduresList.value = response.data?.data;
+    } else {
+      console.error("Nenhum procedimento encontrado.");
+    }
+  } catch (error) {
+    console.error("Erro ao buscar procedimentos:", error);
   }
 }
 
@@ -912,6 +1171,9 @@ async function fetchPatientDetails() {
       initialValues.value.data_nascimento_datepicker = new Date(
         initialValues.value.data_nascimento
       );
+      parentsList.value = initialValues.value.parentes.length
+        ? [...initialValues.value.parentes]
+        : [];
     } catch (error) {
       console.error("Erro ao buscar detalhes do paciente:", error);
     }
@@ -922,6 +1184,7 @@ async function fetchPatientDetails() {
 
 onMounted(async () => {
   editing.value = router.currentRoute.value.params.id !== "novo";
-  fetchPatientDetails();
+  await fetchPatientDetails();
+  await fetchProcedures();
 });
 </script>

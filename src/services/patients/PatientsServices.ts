@@ -47,8 +47,16 @@ export interface IPatient {
   convenio_3_titular: string;
   procedimento_ids: string[];
   parentes: Parent[];
+  created_at?: string; // Data de criação
+  updated_at?: string; // Data de atualização
 }
 
+export interface Procedure {
+  id: string;
+  medico_id: string;
+  nome: string;
+  duracao_min: number;
+}
 export interface Parent {
   nome: string;
   tipo_parentesco: string;
@@ -78,5 +86,55 @@ export class PatientsServices {
     body: IPatient
   ): Promise<AxiosResponse> {
     return callApi(`${ROUTE}/${id}`, "put", undefined, body);
+  }
+
+  // Parents
+  public static async postPatientParent(
+    patientId: string,
+    body: Parent
+  ): Promise<AxiosResponse> {
+    return callApi(
+      `${ROUTE}/${patientId}/parentes`,
+      "post",
+      undefined,
+      body,
+      undefined,
+      true
+    );
+  }
+  public static async deletePatientParent(
+    patientId: string,
+    body: { cpf: Parent["cpf"] }
+  ): Promise<AxiosResponse> {
+    return callApi(
+      `${ROUTE}/${patientId}/parentescos`,
+      "delete",
+      undefined,
+      body,
+      undefined,
+      true
+    );
+  }
+
+  // Procedures
+  public static async postPatientProcedure(
+    patientId: string,
+    body: { procedimento_ids: string[] }
+  ): Promise<AxiosResponse> {
+    return callApi(
+      `${ROUTE}/${patientId}/procedimentos`,
+      "post",
+      undefined,
+      body
+    );
+  }
+  public static async deletePatientProcedure(
+    patientId: string,
+    body: { procedimento_id: Procedure["id"] }
+  ): Promise<AxiosResponse> {
+    return callApi(
+      `${ROUTE}/${patientId}/procedimentos/${body.procedimento_id}`,
+      "delete"
+    );
   }
 }

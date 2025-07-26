@@ -114,4 +114,35 @@ export class DateUtils {
     );
     return localDate.toISOString();
   }
+
+  /**
+   * Separa uma data em array contendo data e hora formatadas
+   * @param date Data (string ou Date)
+   * @returns Array [data, hora] formatados
+   */
+  static separateDateAndTime(date: Date | string): [string, string] {
+    if (!date) return ["", ""];
+
+    let d: Date;
+    if (typeof date === "string") {
+      if (date.includes("/")) {
+        const [day, month, year] = date.split("/");
+        d = new Date(`${year}-${month}-${day}`);
+      } else if (date.includes("T") || date.includes("Z")) {
+        d = new Date(date);
+      } else {
+        d = new Date(date);
+      }
+    } else {
+      d = date;
+    }
+
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear().toString();
+    const dateFormatted = `${day}/${month}/${year}`;
+    const timeFormatted = d.toTimeString().split(" ")[0].substring(0, 5); // HH:MM
+
+    return [dateFormatted, timeFormatted];
+  }
 }
