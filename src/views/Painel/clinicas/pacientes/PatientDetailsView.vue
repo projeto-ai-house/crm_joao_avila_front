@@ -32,25 +32,34 @@
       <h3 class="font-semibold text-gray-500">Informações do Paciente</h3>
     </div>
     <div class="col-span-3 row-span-3 flex flex-col gap-2 max-h-full relative">
-      <img
-        v-if="imageSrc"
-        :src="imageSrc"
-        alt="Image"
-        class="shadow-md rounded-xl w-full h-full max-h-[100px]"
-        style="filter: grayscale(100%)"
-      />
+      <div
+        class="!shadow-md !rounded-xl overflow-hidden"
+        v-if="imageSrcLink || initialValues.foto_path"
+      >
+        <Image
+          alt="Image"
+          preview
+          :src="imageSrcLink || initialValues.foto_path"
+          class="w-full h-full max-h-[100px]"
+          style="filter: grayscale(100%)"
+          image-style="object-fit: cover; object-position: top;"
+        />
+      </div>
       <span
         v-else
         class="text-gray-500 w-full flex justify-center items-center h-full bg-gray-200 rounded-xl"
       >
         <i class="pi pi-image"></i>
       </span>
-      <span v-if="!!imageSrc" class="absolute top-2 right-2 shadow-lg">
+      <span v-if="!!imageFile" class="absolute top-2 right-2 shadow-lg">
         <Button
           icon="pi pi-trash"
           severity="danger"
           size="small"
-          @click="imageSrc = ''"
+          @click="
+            imageFile = null;
+            imageSrcLink = null;
+          "
         />
       </span>
       <FileUpload
@@ -143,9 +152,10 @@
 
     <div class="col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
-        <InputText
+        <InputMask
           id="cpf"
           name="cpf"
+          mask="***.***.***-**"
           type="text"
           fluid
           size="small"
@@ -165,9 +175,10 @@
 
     <div class="col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
-        <InputText
+        <InputMask
           id="rg"
           name="rg"
+          mask="99.999.999-9"
           type="text"
           fluid
           size="small"
@@ -314,11 +325,38 @@
         <Select
           v-model="initialValues.prioridade"
           :options="[
+            // Cardiaco
+            // Criança de colo
+            // Lactante
+            // Portador de deficiencia
+            // Obeso
+            // Idoso com idade ou superior a 60 anos
+            // Gestante
+            // Diabetico
+            // Autista
+            // Mobilidade reduzida
+            // Deficiente auditivo
+            // Deficiente visual
+            // Nenhuma
             { label: 'Nenhuma', value: 'Nenhuma' },
-            { label: 'Baixa', value: 'Baixa' },
-            { label: 'Normal', value: 'Normal' },
-            { label: 'Alta', value: 'Alta' },
-            { label: 'Urgente', value: 'Urgente' },
+            { label: 'Cardíaco', value: 'Cardiaco' },
+            { label: 'Criança de colo', value: 'Criança de colo' },
+            { label: 'Lactante', value: 'Lactante' },
+            {
+              label: 'Portador de deficiência',
+              value: 'Portador de deficiencia',
+            },
+            { label: 'Obeso', value: 'Obeso' },
+            {
+              label: 'Idoso (60+ anos)',
+              value: 'Idoso com idade ou superior a 60 anos',
+            },
+            { label: 'Gestante', value: 'Gestante' },
+            { label: 'Diabético', value: 'Diabetico' },
+            { label: 'Autista', value: 'Autista' },
+            { label: 'Mobilidade reduzida', value: 'Mobilidade reduzida' },
+            { label: 'Deficiente auditivo', value: 'Deficiente auditivo' },
+            { label: 'Deficiente visual', value: 'Deficiente visual' },
           ]"
           optionValue="value"
           optionLabel="label"
@@ -350,7 +388,8 @@
             { label: 'Preta', value: 'Preta' },
             { label: 'Parda', value: 'Parda' },
             { label: 'Amarela', value: 'Amarela' },
-            { label: 'Indígena', value: 'Indigena' },
+            { label: 'Indígena', value: 'Indígena' },
+            { label: 'Não Declarada', value: 'Não Declarada' },
           ]"
           optionValue="value"
           optionLabel="label"
@@ -378,7 +417,7 @@
             { label: 'Casado(a)', value: 'Casado(a)' },
             { label: 'Divorciado(a)', value: 'Divorciado(a)' },
             { label: 'Viúvo(a)', value: 'Viúvo(a)' },
-            { label: 'União Estável', value: 'UniaoEstavel' },
+            { label: 'União Estável', value: 'Uniao Estavel' },
           ]"
           optionValue="value"
           optionLabel="label"
@@ -402,22 +441,18 @@
         <Select
           v-model="initialValues.escolaridade"
           :options="[
+            { label: 'Não Alfabetizado', value: 'Não alfabetizado' },
+            { label: 'Educação Infantil', value: 'Educação infantil' },
+            { label: 'Ensino Fundamental', value: 'Ensino fundamental' },
+            { label: 'Ensino Médio', value: 'Ensino médio' },
             {
-              label: 'Ensino Fundamental Incompleto',
-              value: 'Fundamental Incompleto',
+              label: 'Ensino Profissionalizante',
+              value: 'Ensino profissionalizante',
             },
-            {
-              label: 'Ensino Fundamental Completo',
-              value: 'Fundamental Completo',
-            },
-            { label: 'Ensino Médio Incompleto', value: 'Medio Incompleto' },
-            { label: 'Ensino Médio Completo', value: 'Medio Completo' },
-            {
-              label: 'Ensino Superior Incompleto',
-              value: 'Superior Incompleto',
-            },
-            { label: 'Ensino Superior Completo', value: 'Superior Completo' },
-            { label: 'Pós-graduação', value: 'Pos-Graduacao' },
+            { label: 'Graduação Incompleta', value: 'Graduação incompleta' },
+            { label: 'Graduação Completa', value: 'Graduação completa' },
+            { label: 'Mestrado', value: 'Mestrado' },
+            { label: 'Pós-doutorado', value: 'Pós-doutorado' },
           ]"
           optionValue="value"
           optionLabel="label"
@@ -464,9 +499,10 @@
 
     <div class="col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
-        <InputText
+        <InputMask
           id="telefone"
           name="telefone"
+          mask="(99) 9999-9999"
           type="text"
           fluid
           size="small"
@@ -486,9 +522,10 @@
 
     <div class="col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
-        <InputText
+        <InputMask
           id="celular"
           name="celular"
+          mask="(99) 99999-9999"
           type="text"
           fluid
           size="small"
@@ -534,14 +571,24 @@
 
     <div class="col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
-        <InputText
+        <!-- <InputText
           id="cep"
           name="cep"
           type="text"
           fluid
           size="small"
           v-model="initialValues.cep"
+        /> -->
+        <InputMask
+          id="cep"
+          name="cep"
+          mask="99999-999"
+          type="text"
+          fluid
+          size="small"
+          v-model="initialValues.cep"
         />
+
         <label for="cep">CEP</label>
       </FloatLabel>
       <Message
@@ -764,11 +811,11 @@
       </div>
       <div class="col-span-2 row-span-1 flex flex-col gap-1">
         <FloatLabel variant="on">
-          <InputText
+          <DatePicker
             :id="`convenio_${index + 1}_validade`"
             :name="`convenio_${index + 1}_validade`"
-            type="text"
             fluid
+            dateFormat="dd/mm/yy"
             size="small"
             v-model="initialValues[`convenio_${index + 1}_validade`]"
           />
@@ -981,12 +1028,14 @@
 
 <script lang="ts" setup>
 import { Form } from "@primevue/forms";
+import imageCompression from "browser-image-compression";
 import {
   AutoComplete,
   Button,
   DatePicker,
   FileUpload,
   FloatLabel,
+  Image,
   InputGroup,
   InputGroupAddon,
   InputMask,
@@ -1017,7 +1066,8 @@ const permissionsUserPage = ref(
 const userStore = useUserStore();
 const procedureModal = ref(null);
 
-const imageSrc = ref<string | null>(null);
+const imageSrcLink = ref<string | null>(null);
+const imageFile = ref<File | null>(null);
 const initialValues = ref<IPatient>({
   id: "",
   nome_completo: "",
@@ -1050,17 +1100,17 @@ const initialValues = ref<IPatient>({
   convenio_1_plano: "",
   convenio_1_matricula: "",
   convenio_1_token: "",
-  convenio_1_validade: "",
+  convenio_1_validade: null,
   convenio_1_titular: "",
   convenio_2_plano: "",
   convenio_2_matricula: "",
   convenio_2_token: "",
-  convenio_2_validade: "",
+  convenio_2_validade: null,
   convenio_2_titular: "",
   convenio_3_plano: "",
   convenio_3_matricula: "",
   convenio_3_token: "",
-  convenio_3_validade: "",
+  convenio_3_validade: null,
   convenio_3_titular: "",
   procedimento_ids: [],
   procedimentos: [],
@@ -1085,9 +1135,10 @@ const parentsList = ref([]);
 function onFileSelect(event: any) {
   const file = event.files[0];
   if (file) {
+    imageFile.value = file;
     const reader = new FileReader();
     reader.onload = (e) => {
-      imageSrc.value = e.target?.result as string;
+      imageSrcLink.value = e.target?.result as string;
     };
     reader.readAsDataURL(file);
   }
@@ -1137,68 +1188,139 @@ function addParent() {
   }
 }
 
+async function uploadImage(patientId: string) {
+  if (!patientId) {
+    console.error("ID do paciente não fornecido.");
+    return;
+  }
+  if (imageFile.value) {
+    try {
+      globalLoading.value = true;
+      const formData = new FormData();
+
+      const options = {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(imageFile.value, options);
+
+      if (compressedFile) {
+        formData.append("foto", compressedFile, compressedFile.name);
+      }
+
+      const response = await PatientsServices.postPatientImage(
+        patientId,
+        formData
+      );
+      if (response.data?.data) {
+        imageFile.value = null;
+      } else {
+        console.error("Erro ao fazer upload da imagem.");
+      }
+    } catch (error) {
+      console.error("Erro ao fazer upload da imagem:", error);
+    } finally {
+      globalLoading.value = false;
+    }
+  } else {
+    console.warn("Nenhuma imagem selecionada para upload.");
+  }
+}
+
 async function salvarPaciente() {
   try {
     globalLoading.value = true;
-    if (patient.value) {
-      // Save patient data
-      if (editing.value) {
-        initialValues.value.id = patient.value.id;
-        initialValues.value.data_nascimento = initialValues.value
-          .data_nascimento_datepicker
-          ? initialValues.value.data_nascimento_datepicker.toISOString()
-          : "";
-        await PatientsServices.putPatient(
-          initialValues.value.id,
-          initialValues.value
-        );
-      } else {
-        initialValues.value.data_nascimento = initialValues.value
-          .data_nascimento_datepicker
-          ? initialValues.value.data_nascimento_datepicker.toISOString()
-          : "";
-        await PatientsServices.postPatient(initialValues.value);
-      }
+    // Save patient data
+    initialValues.value.data_nascimento = initialValues.value
+      .data_nascimento_datepicker
+      ? initialValues.value.data_nascimento_datepicker.toISOString()
+      : "";
 
-      // Delete existing parents
-      if (initialValues.value.parentes.length) {
-        for await (const parent of initialValues.value.parentes) {
-          await PatientsServices.deletePatientParent(initialValues.value.id, {
-            cpf: parent.cpf,
-          });
-        }
-      }
-      // Save parents
-      if (parentsList.value.length) {
-        for await (const parent of parentsList.value) {
-          await PatientsServices.postPatientParent(initialValues.value.id, {
-            ...parent,
-            data_nascimento:
-              new Date(
-                DateUtils.formatDateBRtoISO(parent.data_nascimento)
-              ).toISOString() || "",
-          });
-        }
-      }
+    // Convert convenio validade dates to ISO strings for API
+    const convenioValidadeFields = [
+      "convenio_1_validade",
+      "convenio_2_validade",
+      "convenio_3_validade",
+    ];
+    const originalValidadeDates = {};
 
-      // Delete existing procedures
-      if (initialValues.value.procedimentos?.length) {
-        for await (const procedure of initialValues.value.procedimentos) {
-          await PatientsServices.deletePatientProcedure(
-            initialValues.value.id,
-            { procedimento_id: procedure.id }
-          );
-        }
+    convenioValidadeFields.forEach((field) => {
+      if (initialValues.value[field]) {
+        originalValidadeDates[field] = initialValues.value[field];
+        initialValues.value[field] = initialValues.value[field].toISOString();
       }
-      // Save procedures
-      if (preScheduleList.value?.length) {
-        await PatientsServices.postPatientProcedure(initialValues.value.id, {
-          procedimento_ids: preScheduleList.value,
+    });
+
+    if (editing.value) {
+      initialValues.value.id = patient.value.id;
+      await PatientsServices.putPatient(
+        initialValues.value.id,
+        initialValues.value
+      );
+    } else {
+      const configuredValues: { [key: string]: any } = {};
+      Object.keys(initialValues.value).forEach((key) => {
+        if (key === "data_nascimento_datepicker") return;
+        if (
+          initialValues.value[key] !== null &&
+          initialValues.value[key] !== ""
+        ) {
+          configuredValues[key] = initialValues.value[key];
+        }
+      });
+      await PatientsServices.postPatient(configuredValues as IPatient);
+    }
+
+    // Restore original Date objects
+    convenioValidadeFields.forEach((field) => {
+      if (originalValidadeDates[field]) {
+        initialValues.value[field] = originalValidadeDates[field];
+      }
+    });
+
+    // Delete existing parents
+    if (initialValues.value.parentes.length) {
+      for await (const parent of initialValues.value.parentes) {
+        await PatientsServices.deletePatientParent(initialValues.value.id, {
+          cpf: parent.cpf,
         });
       }
-
-      await fetchPatientDetails();
     }
+    // Save parents
+    if (parentsList.value.length) {
+      for await (const parent of parentsList.value) {
+        await PatientsServices.postPatientParent(initialValues.value.id, {
+          ...parent,
+          data_nascimento:
+            new Date(
+              DateUtils.formatDateBRtoISO(parent.data_nascimento)
+            ).toISOString() || "",
+        });
+      }
+    }
+
+    // Delete existing procedures
+    if (initialValues.value.procedimentos?.length) {
+      for await (const procedure of initialValues.value.procedimentos) {
+        await PatientsServices.deletePatientProcedure(initialValues.value.id, {
+          procedimento_id: procedure.id,
+        });
+      }
+    }
+    // Save procedures
+    if (preScheduleList.value?.length) {
+      await PatientsServices.postPatientProcedure(initialValues.value.id, {
+        procedimento_ids: preScheduleList.value,
+      });
+    }
+
+    // Upload image if exists
+    if (imageFile.value) {
+      await uploadImage(initialValues.value.id);
+    }
+
+    await fetchPatientDetails();
   } catch (error) {
     console.error("Erro ao salvar paciente:", error);
   } finally {
@@ -1234,6 +1356,22 @@ async function fetchPatientDetails() {
       initialValues.value.data_nascimento_datepicker = new Date(
         initialValues.value.data_nascimento
       );
+
+      // Convert convenio validade strings to Date objects
+      const convenioValidadeFields = [
+        "convenio_1_validade",
+        "convenio_2_validade",
+        "convenio_3_validade",
+      ];
+      convenioValidadeFields.forEach((field) => {
+        if (
+          initialValues.value[field] &&
+          typeof initialValues.value[field] === "string"
+        ) {
+          initialValues.value[field] = new Date(initialValues.value[field]);
+        }
+      });
+
       parentsList.value = initialValues.value.parentes.length
         ? [...initialValues.value.parentes]
         : [];
@@ -1241,6 +1379,10 @@ async function fetchPatientDetails() {
         initialValues.value.procedimentos?.map(
           (procedure: any) => procedure.id
         ) || [];
+
+      initialValues.value.foto_path = initialValues.value.foto_path
+        ? import.meta.env.VITE_API_URL + initialValues.value.foto_path
+        : null;
     } catch (error) {
       console.error("Erro ao buscar detalhes do paciente:", error);
     } finally {
@@ -1257,3 +1399,10 @@ onMounted(async () => {
   await fetchProcedures();
 });
 </script>
+
+<style>
+::v-deep(.p-image-toolbar) {
+  background: #fff !important;
+  background-color: #000 !important;
+}
+</style>

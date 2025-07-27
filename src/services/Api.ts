@@ -8,7 +8,7 @@ import axios from "axios";
 import { NotificationService } from "../utils/NotificationUtils";
 // Cria a instância do Axios com configurações padrão
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://sua-api.com", // use .env ou um fallback
+  baseURL: import.meta.env.VITE_API_URL + "/api/v1" || "https://sua-api.com", // use .env ou um fallback
   timeout: 10000, // tempo máximo de espera (10 segundos)
   headers: {
     "Content-Type": "application/json",

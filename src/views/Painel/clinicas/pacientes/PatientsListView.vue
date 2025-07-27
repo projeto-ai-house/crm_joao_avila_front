@@ -16,6 +16,7 @@
         size="small"
         @click="procedureModal.open()"
         :disabled="!permissionsUserPage.editar"
+        v-if="userStore.user.Role?.toUpperCase() === 'MEDICO'"
       />
       <Button
         label="Adicionar"
@@ -23,7 +24,8 @@
         severity="primary"
         size="small"
         @click="
-          router.push({ name: 'Detalhes do Paciente', params: { id: 'novo' } })
+          globalLoading = true;
+          router.push({ name: 'Detalhes do Paciente', params: { id: 'novo' } });
         "
         :disabled="!permissionsUserPage.criar"
       ></Button>
@@ -32,7 +34,7 @@
   <!-- END: TopBar -->
 
   <!-- BEGIN: Insights -->
-  <div class="grid grid-cols-1 md:grid-cols-3 mb-4 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4 gap-4">
     <Card
       class="col-span-1 !gap-0 !p-0"
       title="Total de Pacientes"
@@ -41,14 +43,14 @@
       color="blue"
     >
       <template #title>
-        <span class="text-lg text-gray-500 font-semibold">
-          Pacientes Cadastrados
-        </span>
+        <span class="text-lg text-gray-500 font-semibold"> Pacientes </span>
       </template>
       <template #content>
         <div class="flex items-center justify-start gap-2">
           <icon class="pi pi-users !text-2xl text-gray-500"></icon>
-          <span class="text-2xl font-bold">{{ totalRecords }}</span>
+          <span class="text-2xl font-bold text-gray-700">{{
+            totalRecords
+          }}</span>
         </div>
       </template>
     </Card>
@@ -58,14 +60,31 @@
       :value="insightsData.womenUsers"
     >
       <template #title>
-        <span class="text-lg text-gray-500 font-semibold">
-          Pacientes Femininos
-        </span>
+        <span class="text-lg text-gray-500 font-semibold"> Mulheres </span>
       </template>
       <template #content>
         <div class="flex items-center justify-start gap-2">
           <icon class="pi pi-venus !text-2xl text-pink-500"></icon>
-          <span class="text-2xl font-bold">{{ insightsData.womenUsers }}</span>
+          <span class="text-2xl font-bold text-gray-700">{{
+            insightsData.womenUsers
+          }}</span>
+        </div>
+      </template>
+    </Card>
+    <Card
+      class="col-span-1 !gap-0 !p-0"
+      title="Pacientes Masculinos"
+      :value="insightsData.menUsers"
+    >
+      <template #title>
+        <span class="text-lg text-gray-500 font-semibold"> Homens </span>
+      </template>
+      <template #content>
+        <div class="flex items-center justify-start gap-2">
+          <icon class="pi pi-mars !text-2xl text-blue-500"></icon>
+          <span class="text-2xl font-bold text-gray-700">{{
+            insightsData.menUsers
+          }}</span>
         </div>
       </template>
     </Card>
@@ -76,13 +95,17 @@
     >
       <template #title>
         <span class="text-lg text-gray-500 font-semibold">
-          Pacientes Masculinos
+          Top 1 Convênios
         </span>
       </template>
       <template #content>
         <div class="flex items-center justify-start gap-2">
-          <icon class="pi pi-mars !text-2xl text-blue-500"></icon>
-          <span class="text-2xl font-bold">{{ insightsData.menUsers }}</span>
+          <icon class="pi pi-trophy !text-2xl text-amber-400"></icon>
+          <span
+            v-tooltip.top="insightsData.convenio_mais_utilizado"
+            class="text-2xl font-medium whitespace-nowrap text-ellipsis overflow-hidden text-gray-700"
+            >{{ insightsData.convenio_mais_utilizado }}</span
+          >
         </div>
       </template>
     </Card>
@@ -137,10 +160,11 @@
               size="small"
               variant="text"
               @click="
+                globalLoading = true;
                 router.push({
                   name: 'Detalhes do Paciente',
                   params: { id: slotProps.data.id },
-                })
+                });
               "
               :disabled="!permissionsUserPage.editar"
             />
@@ -151,10 +175,7 @@
               size="small"
               variant="text"
               class="ml-2"
-              @click="
-                userInDeletion = slotProps.data.ID;
-                confirmDeleteUser();
-              "
+              @click="confirmDeleteUser(slotProps.data.id)"
               :disabled="!permissionsUserPage.excluir"
             />
           </div>
@@ -177,7 +198,7 @@
 import { Button, Card, Paginator, useConfirm, useToast } from "primevue";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { onMounted, ref } from "vue";
+import { inject, onMounted, ref, type Ref } from "vue";
 import { useRouter } from "vue-router";
 import ProcedureModalComponent from "../../../../components/ProcedureModal/ProcedureModalComponent.vue";
 import { PatientsServices } from "../../../../services/patients/PatientsServices";
@@ -200,10 +221,13 @@ const insightsData = ref({
   totalUsers: 0,
   womenUsers: 0,
   menUsers: 0,
+  convenio_mais_utilizado: 0,
 });
 const procedureModal = ref<InstanceType<typeof ProcedureModalComponent> | null>(
   null
 );
+const globalLoading = inject<Ref<boolean>>("globalLoading");
+
 const permissionsUserPage = ref(
   PermissionsUtils.checkMethodPemission(router.currentRoute.value.fullPath)
 );
@@ -217,7 +241,7 @@ function changePage(event: any) {
   fetchPatients();
 }
 
-const confirmDeleteUser = () => {
+const confirmDeleteUser = (userID: string) => {
   try {
     confirm.require({
       message: "Você tem certeza que deseja salvar as alterações?",
@@ -235,10 +259,10 @@ const confirmDeleteUser = () => {
         size: "small",
       },
       accept: () => {
-        // deleteUser(userInDeletion.value);
+        deleteUser(userID);
       },
       reject: () => {
-        userInDeletion.value = null;
+        console.log("Ação cancelada pelo usuário.");
       },
     });
   } catch (error) {
@@ -246,16 +270,19 @@ const confirmDeleteUser = () => {
   }
 };
 
-// async function deleteUser(userId: string) {
-//   try {
-//     const response = await PatientsServices.deletePatient(userId);
-//     if (response.status === 200) {
-//       fetchPatients();
-//     }
-//   } catch (error) {
-//     console.error("Error deleting user:", error);
-//   }
-// }
+async function deleteUser(userId: string) {
+  try {
+    loading.value = true;
+    const response = await PatientsServices.deletePatient(userId);
+    if (response.status === 200) {
+      fetchPatients();
+    }
+  } catch (error) {
+    console.error("Error deleting user:", error);
+  } finally {
+    loading.value = false;
+  }
+}
 
 async function fetchPatients() {
   try {
@@ -272,6 +299,8 @@ async function fetchPatients() {
       insightsData.value.totalUsers = insights.total_pacientes || 0;
       insightsData.value.womenUsers = insights.total_mulheres || 0;
       insightsData.value.menUsers = insights.total_homens || 0;
+      insightsData.value.convenio_mais_utilizado =
+        insights.convenio_mais_utilizado || "Nenhum";
 
       currentPage.value = response.data?.data?.paginacao?.pagina || 1;
       // rows = response.data?.data?.paginacao?.limite || 20;
