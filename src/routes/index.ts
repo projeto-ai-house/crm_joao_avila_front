@@ -72,6 +72,11 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/indicacao/:code",
+    name: "Indicacao",
+    component: () => import("../views/ReferralFormView.vue"),
+  },
+  {
     path: "/painel",
     component: PainelLayout,
     meta: { requiresAuth: true },

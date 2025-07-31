@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full flex flex-col items-start justify-start">
+  <div class="w-full h-full flex flex-col items-start justify-start relative">
     <div
       class="hidden items-center gap-2 md:flex w-full py-3 px-4 rounded-md shadow-lg relative border border-white bg-white overflow-hidden"
     >
@@ -67,6 +67,9 @@
         </div>
       </div>
     </div>
+    <div class="w-full absolute bottom-0 left-0 p-4">
+      <ReferralButton :userId="userData?.ID" @share="handleReferralShare" />
+    </div>
   </div>
 </template>
 
@@ -74,6 +77,7 @@
 import { Button, useToast } from "primevue";
 import { onBeforeMount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import ReferralButton from "../components/Referral/ReferralButton.vue";
 import { useUserStore } from "../stores/user";
 import { MenuUtils } from "../utils/MenuUtils";
 import { PermissionsUtils } from "../utils/PermissionsUtils";
@@ -97,6 +101,16 @@ interface MenuItem {
 }
 
 const items = ref<MenuItem[]>([]);
+
+// Handler para compartilhamento de indicação
+const handleReferralShare = (link: string) => {
+  toast.add({
+    severity: "success",
+    summary: "Link compartilhado!",
+    detail: "O link de indicação foi compartilhado com sucesso.",
+    life: 3000,
+  });
+};
 
 function handleSelectedPage() {
   let page = router.currentRoute.value?.name as string | undefined;

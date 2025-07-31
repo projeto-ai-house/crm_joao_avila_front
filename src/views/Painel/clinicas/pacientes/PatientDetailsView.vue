@@ -1400,9 +1400,4 @@ onMounted(async () => {
 });
 </script>
 
-<style>
-::v-deep(.p-image-toolbar) {
-  background: #fff !important;
-  background-color: #000 !important;
-}
-</style>
+<style></style>

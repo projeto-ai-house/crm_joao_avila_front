@@ -26,6 +26,21 @@ const MyPreset = definePreset(Aura, {
       950: "{blue.950}",
     },
   },
+  components: {
+    image: {
+      toolbar: {
+        // Gradiente suave
+        background:
+          "linear-gradient(to top right, #FFDBF566, #ffffff66, #A8D8EF66)",
+        borderColor: "#7f83c4", // Cor do contorno
+      },
+      action: {
+        // Cor do ícone
+        color: "#7f83c4",
+        hoverBackground: "#7f83c466", // Cor de fundo ao passar o mouse
+      },
+    },
+  },
 });
 
 const pinia = createPinia();
