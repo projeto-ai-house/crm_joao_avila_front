@@ -42,6 +42,15 @@ export class MenuUtils {
         import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
       ],
     },
+    {
+      label: "Indicações",
+      pageName: "INDICACOES",
+      icon: "pi pi-link",
+      to: "/painel/indicacoes",
+      permissions: [
+        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+      ],
+    },
     // {
     //   label: "Médicos",
     //   pageName: "MEDICOS",
@@ -51,18 +60,18 @@ export class MenuUtils {
     //     import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
     //   ],
     // },
-    {
-      label: "Convênios",
-      pageName: "CONVENIOS",
-      icon: "pi pi-credit-card",
-      to: "/painel/convenios",
-      permissions: [
-        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
-      ],
-    },
+    // {
+    //   label: "Convênios",
+    //   pageName: "CONVENIOS",
+    //   icon: "pi pi-credit-card",
+    //   to: "/painel/convenios",
+    //   permissions: [
+    //     import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+    //   ],
+    // },
     {
       placeholder: "Clinica",
-      permissions: ["agendamento", "paciente", "usuario", "relatorio"],
+      permissions: ["agendamento", "paciente", "usuario"],
     },
     {
       label: "Usuários",
@@ -75,8 +84,9 @@ export class MenuUtils {
       label: "Relatórios",
       pageName: "RELATORIOS",
       icon: "pi pi-chart-bar",
-      to: "/painel/relatorios",
-      permissions: ["relatorio"],
+      to: "/painel/relatorios/*",
+      permissions: ["anameneses"],
+      hidden: true,
     },
     {
       label: "Agenda",
@@ -100,12 +110,15 @@ export class MenuUtils {
       permissions: ["procedimentos", "paciente"],
       hidden: true,
     },
-    // {
-    //   label: "Consultas",
-    //   pageName: "CONSULTAS",
-    //   icon: "pi pi-clipboard",
-    //   to: "/painel/clinica/consultas",
-    // },
+
+    {
+      label: "Consultas",
+      pageName: "CONSULTAS",
+      icon: "pi pi-clipboard",
+      to: "/painel/clinica/consultas",
+      permissions: ["relatorio"],
+      hidden: true,
+    },
     // {
     //   placeholder: "Financeiro",
     // },

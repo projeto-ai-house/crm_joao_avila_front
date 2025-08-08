@@ -23,7 +23,6 @@ export const usePermissionsStore = defineStore("permissions", () => {
 
     userPermissions.forEach((permission) => {
       const parts = permission.split("_");
-
       if (parts.length === 2) {
         const [module, action] = parts;
 

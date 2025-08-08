@@ -1,5 +1,8 @@
 <template>
-  <div class="referral-button-wrapper">
+  <div
+    class="referral-button-wrapper"
+    v-if="userStore.user?.Role?.includes('CEO')"
+  >
     <Button
       @click="handleReferralClick"
       class="referral-button"
@@ -40,6 +43,7 @@
 import { UserPlus } from "lucide-vue-next";
 import { Button } from "primevue";
 import { ref } from "vue";
+import { useUserStore } from "../../stores/user";
 import ReferralModal from "./ReferralModal.vue";
 
 interface Props {
@@ -75,6 +79,9 @@ const handleReferralClick = () => {
 const handleShare = (link: string) => {
   emit("share", link);
 };
+
+const userStore = useUserStore();
+// console.log("userStore:", userStore.user);
 </script>
 
 <style scoped>

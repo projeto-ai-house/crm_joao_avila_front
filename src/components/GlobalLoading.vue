@@ -2,7 +2,7 @@
   <transition name="fade">
     <div
       v-if="internalValue"
-      class="fixed inset-0 z-[1000] flex items-center justify-center bg-transparent bg-opacity-60 backdrop-blur-sm"
+      class="fixed inset-0 z-[1200] flex items-center justify-center bg-transparent bg-opacity-60 backdrop-blur-sm"
       style="pointer-events: all"
     >
       <div class="flex flex-col items-center">

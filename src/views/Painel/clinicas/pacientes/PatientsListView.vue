@@ -152,7 +152,22 @@
 
       <Column headerStyle="width:4rem">
         <template #body="slotProps">
-          <div class="flex items-center justify-center">
+          <div class="flex items-center justify-center gap-1">
+            <Button
+              label="Relatório"
+              icon="pi pi-file"
+              severity="info"
+              variant="outlined"
+              size="small"
+              @click="
+                globalLoading = true;
+                router.push({
+                  name: 'Anamneses',
+                  params: { id: slotProps.data.id },
+                });
+              "
+              :disabled="!permissionsUserPage.editar"
+            />
             <Button
               icon="pi pi-user-edit"
               label="Editar"

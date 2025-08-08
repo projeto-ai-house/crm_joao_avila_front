@@ -27,6 +27,7 @@ export const useUserStore = defineStore("user", () => {
 
     // Configura as permissões do usuário após o login
     if (user.value?.Permissoes) {
+      console.log("user.value.Permissoes", user.value.Permissoes);
       await permissionsStore.setPermissions(user.value.Permissoes);
     }
   }

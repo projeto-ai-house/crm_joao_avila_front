@@ -31,19 +31,19 @@ export class PermissionsUtils {
     }
   }
   public static checkMethodPemission(pageRoute: string): {
-    vizualizar: boolean;
+    visualizar: boolean;
     criar: boolean;
     editar: boolean;
     excluir: boolean;
   } {
     const allFalse = {
-      vizualizar: false,
+      visualizar: false,
       criar: false,
       editar: false,
       excluir: false,
     };
     const allTrue = {
-      vizualizar: true,
+      visualizar: true,
       criar: true,
       editar: true,
       excluir: true,
@@ -53,26 +53,35 @@ export class PermissionsUtils {
     if (isAdmin) return allTrue;
 
     const menuList = MenuUtils.getAllMenus();
-    const currentRoute = menuList.find((item) => item.to === pageRoute);
+    const currentRoute = menuList.find((item) => {
+      const realItemTo = item.to?.includes("*")
+        ? item.to?.replace("*", "")
+        : item.to;
+      console.log("realItemTo", realItemTo);
+      console.log("pageRoute", pageRoute);
+
+      return pageRoute?.includes(realItemTo) || item.to === pageRoute;
+    });
     if (!currentRoute) return allFalse;
 
     const requiresdRoutePermissions: string[] = currentRoute.permissions || [];
     // console.log("requiresdRoutePermissions", requiresdRoutePermissions);
     if (requiresdRoutePermissions.length === 0) {
       return allFalse;
-    }    return {
-      vizualizar: requiresdRoutePermissions.some(permission => 
-        permissionsStore.hasPermission(permission, "vizualizar")
-      ),
-      criar: requiresdRoutePermissions.some(permission => 
-        permissionsStore.hasPermission(permission, "criar")
-      ),
-      editar: requiresdRoutePermissions.some(permission => 
-        permissionsStore.hasPermission(permission, "editar")
-      ),
-      excluir: requiresdRoutePermissions.some(permission => 
-        permissionsStore.hasPermission(permission, "excluir")
-      ),
+    }
+    return {
+      visualizar: requiresdRoutePermissions.some((permission) => {
+        return permissionsStore.hasPermission(permission, "visualizar");
+      }),
+      criar: requiresdRoutePermissions.some((permission) => {
+        return permissionsStore.hasPermission(permission, "criar");
+      }),
+      editar: requiresdRoutePermissions.some((permission) => {
+        return permissionsStore.hasPermission(permission, "editar");
+      }),
+      excluir: requiresdRoutePermissions.some((permission) => {
+        return permissionsStore.hasPermission(permission, "excluir");
+      }),
     };
   }
 }
