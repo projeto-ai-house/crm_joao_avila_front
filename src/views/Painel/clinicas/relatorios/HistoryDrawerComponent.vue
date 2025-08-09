@@ -27,11 +27,10 @@
             rows="3"
             fluid
             size="small"
-            :readonly="viewMode"
           />
           <label for="queixa_principal">
             Queixa Principal
-            <span class="text-red-500" v-if="!viewMode">*</span>
+            <span class="text-red-500">*</span>
           </label>
         </FloatLabel>
         <Message
@@ -57,11 +56,10 @@
             rows="4"
             fluid
             size="small"
-            :readonly="viewMode"
           />
           <label for="historia_doenca_atual">
             História da Doença Atual
-            <span class="text-red-500" v-if="!viewMode">*</span>
+            <span class="text-red-500">*</span>
           </label>
         </FloatLabel>
         <Message
@@ -87,7 +85,6 @@
             rows="3"
             fluid
             size="small"
-            :readonly="viewMode"
           />
           <label for="historia_familiar">História Familiar</label>
         </FloatLabel>
@@ -114,7 +111,6 @@
             rows="4"
             fluid
             size="small"
-            :readonly="viewMode"
           />
           <label for="historia_pessoal">História Pessoal</label>
         </FloatLabel>
@@ -141,7 +137,6 @@
             rows="4"
             fluid
             size="small"
-            :readonly="viewMode"
           />
           <label for="revisao_sistemas">Revisão de Sistemas</label>
         </FloatLabel>
@@ -168,7 +163,6 @@
             rows="3"
             fluid
             size="small"
-            :readonly="viewMode"
           />
           <label for="habitos_de_vida">Hábitos de Vida</label>
         </FloatLabel>
@@ -195,7 +189,6 @@
             rows="3"
             fluid
             size="small"
-            :readonly="viewMode"
           />
           <label for="medicamentos_em_uso">Medicamentos em Uso</label>
         </FloatLabel>
@@ -222,7 +215,6 @@
             rows="2"
             fluid
             size="small"
-            :readonly="viewMode"
           />
           <label for="alergias">Alergias</label>
         </FloatLabel>
@@ -248,7 +240,6 @@
 
       <cite
         class="text-gray-400 text-sm col-span-12 mt-4 pt-4 border-t border-gray-100"
-        v-if="!viewMode"
       >
         <span class="text-red-500">*</span> Campos obrigatórios
       </cite>
@@ -319,7 +310,6 @@ const globalLoading = inject<Ref<boolean>>("globalLoading");
 const props = defineProps<{
   drawerState: boolean;
   inEdition: IAnamnese | null;
-  viewMode: boolean;
   permissionsUserPage?: any;
 }>();
 
@@ -329,7 +319,6 @@ const emit = defineEmits<{
 }>();
 
 const isEditing = ref(false);
-const viewMode = ref(false);
 const formAnamnese = ref(null);
 const drawerTitle = ref("");
 
@@ -399,11 +388,30 @@ async function saveAnamnese({ valid, values, states }) {
 
   try {
     globalLoading!.value = true;
+    console.log(initialValues.value);
+
     if (initialValues.value.id) {
-      const response = await AnamneseServices.putAnamnese(initialValues.value);
+      const configuredData = { ...initialValues.value };
+      delete configuredData.created_at;
+      delete configuredData.updated_at;
+      delete configuredData.clinic_id;
+      const response = await AnamneseServices.putAnamnese(configuredData);
+      if (response.status !== 200) {
+        console.error("Erro ao salvar anamnese:", response);
+        return;
+      }
       emit("saveAnamnese", initialValues.value);
     } else {
-      const response = await AnamneseServices.postAnamnese(initialValues.value);
+      const configuredData = { ...initialValues.value };
+      delete configuredData.created_at;
+      delete configuredData.updated_at;
+      delete configuredData.clinic_id;
+      delete configuredData.id;
+      const response = await AnamneseServices.postAnamnese(configuredData);
+      if (response.status !== 200) {
+        console.error("Erro ao incluir anamnese:", response);
+        return;
+      }
       emit("saveAnamnese", initialValues.value);
     }
   } catch (error) {
@@ -418,22 +426,17 @@ watch(
   (newValue) => {
     if (newValue) {
       isEditing.value = !!props.inEdition;
-      viewMode.value = props.viewMode;
 
       if (props.inEdition) {
         initialValues.value = { ...props.inEdition };
-        drawerTitle.value = viewMode.value
-          ? "Visualizar Anamnese"
-          : "Editar Anamnese";
+        drawerTitle.value = "Editar Anamnese";
       } else {
         initialValues.value = { ...emptyAnamnese };
         drawerTitle.value = "Nova Anamnese";
-        viewMode.value = false;
       }
     } else {
       // Reset quando fechar
       isEditing.value = false;
-      viewMode.value = false;
       initialValues.value = { ...emptyAnamnese };
     }
   }

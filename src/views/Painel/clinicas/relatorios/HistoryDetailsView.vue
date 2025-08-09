@@ -113,7 +113,6 @@
   <HistoryDrawerComponent
     v-model:drawerState="drawerVisible"
     :inEdition="selectedAnamnese"
-    :viewMode="viewMode"
     :permissionsUserPage="permissionsUserPage"
     @saveAnamnese="handleSaveAnamnese"
   />
@@ -147,7 +146,6 @@ const anamneses = ref<IAnamnese[]>([]);
 
 // Estados da gaveta
 const drawerVisible = ref(false);
-const viewMode = ref(false);
 
 const patientData = ref<IPatient | null>(null);
 
@@ -168,12 +166,10 @@ const selectedAnamnese = ref<IAnamnese | null>(null);
 function openAnamneseDrawer(anamnese?: IAnamnese, readonly = false) {
   if (anamnese) {
     selectedAnamnese.value = { ...anamnese };
-    viewMode.value = readonly;
   } else {
     selectedAnamnese.value = {
       ...emptyAnamnese,
     };
-    viewMode.value = false;
   }
   drawerVisible.value = true;
 }
