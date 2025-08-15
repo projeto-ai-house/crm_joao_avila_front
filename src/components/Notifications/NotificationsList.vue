@@ -10,7 +10,9 @@
     />
 
     <Popover ref="op">
-      <div class="flex flex-col gap-4 w-[25rem]">TESTADO</div>
+      <div class="flex flex-col gap-4 w-[25rem]">
+        <h2 class="text-md font-semibold">Notificações</h2>
+      </div>
     </Popover>
   </div>
 </template>

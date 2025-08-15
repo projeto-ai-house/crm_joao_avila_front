@@ -119,23 +119,28 @@ function generatePermissions() {
       });
     }
   });
+  const filteredUniquePermissions = Array.from(uniquePermissions).filter(
+    (perm) => perm !== "procedimentos"
+  );
+  console.log("filteredUniquePermissions", filteredUniquePermissions);
+
   const transformedPermissions = {};
-  Array.from(uniquePermissions).forEach((perm: string) => {
+  filteredUniquePermissions.forEach((perm: string) => {
     transformedPermissions[perm] = {};
   });
-  permissionsList.value = Array.from(uniquePermissions).map((perm) => {
+  permissionsList.value = filteredUniquePermissions.map((perm) => {
     return {
       label: perm,
       value: perm,
     };
   });
-  console.log("uniquePermissions", Array.from(uniquePermissions));
+  // console.log("uniquePermissions", Array.from(uniquePermissions));
 
-  console.log("permissionsList", permissionsRoleList);
+  // console.log("permissionsList", permissionsRoleList);
 
   permissionsRoleList.forEach((permission) => {
     const [perm, action] = permission.split("_");
-    console.log(perm, action);
+    // console.log(perm, action);
 
     if (perm && action) transformedPermissions[perm][action] = true;
   });

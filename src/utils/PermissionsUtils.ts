@@ -57,8 +57,8 @@ export class PermissionsUtils {
       const realItemTo = item.to?.includes("*")
         ? item.to?.replace("*", "")
         : item.to;
-      console.log("realItemTo", realItemTo);
-      console.log("pageRoute", pageRoute);
+      // console.log("realItemTo", realItemTo);
+      // console.log("pageRoute", pageRoute);
 
       return pageRoute?.includes(realItemTo) || item.to === pageRoute;
     });

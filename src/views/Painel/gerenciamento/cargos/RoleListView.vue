@@ -66,7 +66,7 @@
             severity="secondary"
             size="small"
             variant="text"
-            :disabled="!permissionsUserPage.editar && false"
+            :disabled="!permissionsUserPage.editar"
             @click="
               inEdition = slotProps.data;
               isEditionPermissionsList = slotProps.data.Permissoes || [];

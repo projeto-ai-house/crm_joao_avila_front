@@ -261,6 +261,7 @@
           severity="success"
           size="small"
           @click="confirmSaveAnamnese()"
+          :disabled="!permissionsUserPage.editar && !permissionsUserPage.criar"
         />
       </div>
     </template>
@@ -281,9 +282,11 @@ import {
   useToast,
 } from "primevue";
 import { useConfirm } from "primevue/useconfirm";
+import { useRouter } from "vue-router";
 import { z } from "zod";
 import { AnamneseServices } from "../../../../services/anamnese/AnamneseServices";
 import { DateUtils } from "../../../../utils/DateUtils";
+import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 
 export interface IAnamnese {
   id?: string;
@@ -306,6 +309,10 @@ export interface IAnamnese {
 const toast = useToast();
 const confirm = useConfirm();
 const globalLoading = inject<Ref<boolean>>("globalLoading");
+const router = useRouter();
+const permissionsUserPage = ref(
+  PermissionsUtils.checkMethodPemission(router.currentRoute.value.fullPath)
+);
 
 const props = defineProps<{
   drawerState: boolean;

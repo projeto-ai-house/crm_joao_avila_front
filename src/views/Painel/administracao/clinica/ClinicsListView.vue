@@ -38,28 +38,77 @@
       <template #empty> Nenhuma clínica encontrada. </template>
       <template #loading> Carregando clínicas... </template>
       <Column expander style="width: 5rem" />
-      <Column field="NomeClinica" sortable header="Nome"></Column>
-      <Column field="dono" sortable header="Responsável"></Column>
-      <Column field="Cnpj" sortable header="CNPJ">
+      <Column
+        field="NomeClinica"
+        sortable
+        header="Nome"
+        style="max-width: 200px"
+      >
         <template #body="slotProps">
-          {{ maskCnpj(slotProps.data.Cnpj) }}
+          <div class="truncate-cell" :title="slotProps.data.NomeClinica">
+            {{ slotProps.data.NomeClinica }}
+          </div>
         </template>
       </Column>
-      <Column field="Plano" sortable header="Plano">
+      <Column
+        field="dono"
+        sortable
+        header="Responsável"
+        style="max-width: 200px"
+      >
         <template #body="slotProps">
-          {{
-            slotProps.data?.Plano?.nome +
-              (slotProps.data?.Plano?.recorrente ? " (Recorrente)" : "") ||
-            "Indefinido"
-          }}
+          <div class="truncate-cell" :title="slotProps.data.dono">
+            {{ slotProps.data.dono }}
+          </div>
         </template>
       </Column>
-      <Column field="Endereco" sortable header="Endereço"></Column>
-      <Column field="Token" sortable header="Token (Integração)">
+      <Column field="Cnpj" sortable header="CNPJ" style="max-width: 200px">
+        <template #body="slotProps">
+          <div class="truncate-cell" :title="maskCnpj(slotProps.data.Cnpj)">
+            {{ maskCnpj(slotProps.data.Cnpj) }}
+          </div>
+        </template>
+      </Column>
+      <Column field="Plano" sortable header="Plano" style="max-width: 200px">
+        <template #body="slotProps">
+          <div
+            class="truncate-cell"
+            :title="
+              slotProps.data?.Plano?.nome +
+                (slotProps.data?.Plano?.recorrente ? ' (Recorrente)' : '') ||
+              'Indefinido'
+            "
+          >
+            {{
+              slotProps.data?.Plano?.nome +
+                (slotProps.data?.Plano?.recorrente ? " (Recorrente)" : "") ||
+              "Indefinido"
+            }}
+          </div>
+        </template>
+      </Column>
+      <Column
+        field="Endereco"
+        sortable
+        header="Endereço"
+        style="max-width: 200px"
+      >
+        <template #body="slotProps">
+          <div class="truncate-cell" :title="slotProps.data.Endereco">
+            {{ slotProps.data.Endereco }}
+          </div>
+        </template>
+      </Column>
+      <Column
+        field="Token"
+        sortable
+        header="Token (Integração)"
+        style="max-width: 200px"
+      >
         <template #body="slotProps">
           <div class="flex items-center gap-2">
             <span
-              class="text-xs font-mono text-gray-600 truncate max-w-xs"
+              class="truncate-cell font-mono text-gray-600"
               :title="slotProps.data.Token"
             >
               {{ slotProps.data.Token }}
@@ -70,16 +119,16 @@
               severity="secondary"
               size="small"
               variant="text"
-              class="p-1"
+              class="p-1 flex-shrink-0"
               @click="copyToken(slotProps.data.Token)"
               v-tooltip="'Copiar token'"
             />
           </div>
         </template>
       </Column>
-      <!-- <Column headerStyle="width:4rem">
+      <Column headerStyle="width:4rem">
         <template #body="slotProps">
-          <Button
+          <!-- <Button
             icon="pi pi-pen-to-square"
             label="Editar"
             severity="secondary"
@@ -88,9 +137,22 @@
             @click="
               inEdition = slotProps.data;
               drawerClinicsState = true;
+            " -->
+
+          <Button
+            label="Assinatura"
+            icon="pi pi-ticket"
+            severity="info"
+            size="small"
+            variant="outlined"
+            v-show="slotProps.data?.AssinaturaId"
+            @click="
+              signatureSelected = slotProps.data?.AssinaturaId;
+              drawerSignatureState = true;
             "
-        /></template>
-      </Column> -->
+          />
+        </template>
+      </Column>
 
       <template #expansion="slotProps">
         <div class="p-2 rounded-lg" v-if="slotProps.data?.Donos?.length > 0">
@@ -100,9 +162,45 @@
             dataKey="id"
             size="small"
           >
-            <Column field="nome_completo" header="Nome" sortable></Column>
-            <Column field="email" header="E-mail" sortable></Column>
-            <Column field="convenio" header="Convênio" sortable></Column>
+            <Column
+              field="nome_completo"
+              header="Nome"
+              sortable
+              style="max-width: 200px"
+            >
+              <template #body="slotProps">
+                <div
+                  class="truncate-cell"
+                  :title="slotProps.data.nome_completo"
+                >
+                  {{ slotProps.data.nome_completo }}
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="email"
+              header="E-mail"
+              sortable
+              style="max-width: 200px"
+            >
+              <template #body="slotProps">
+                <div class="truncate-cell" :title="slotProps.data.email">
+                  {{ slotProps.data.email }}
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="convenio"
+              header="Convênio"
+              sortable
+              style="max-width: 200px"
+            >
+              <template #body="slotProps">
+                <div class="truncate-cell" :title="slotProps.data.convenio">
+                  {{ slotProps.data.convenio }}
+                </div>
+              </template>
+            </Column>
 
             <Column headerStyle="width:4rem">
               <template #body>
@@ -156,6 +254,12 @@
     @update:drawerState="drawerCEOState = $event"
     @saveUser="fetchClinics"
   />
+
+  <SignatureDrawerComponent
+    :drawerState="drawerSignatureState"
+    :assinaturaId="signatureSelected"
+    @update:drawerState="drawerSignatureState = $event"
+  />
 </template>
 
 <script setup lang="ts">
@@ -167,11 +271,14 @@ import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
 import { usePermissionsStore } from "../../../../stores/permissions";
 import UsersDrawerComponent from "../../clinicas/usuarios/UsersDrawerComponent.vue";
 import ClinicsDrawerComponent from "./ClinicsDrawerComponent.vue";
+import SignatureDrawerComponent from "./SignatureDrawerComponent.vue";
 const permissionsStore = usePermissionsStore();
 
 const loading = ref(false);
 const drawerClinicsState = ref(false);
 const drawerCEOState = ref(false);
+const drawerSignatureState = ref(false);
+const signatureSelected = ref(null);
 const inEdition = ref(null);
 const selectedClinics = ref([]);
 const expandedRows = ref({});
@@ -186,7 +293,7 @@ function maskCnpj(cnpj: string) {
   if (!cnpj) return "";
   return cnpj.replace(
     /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-    "$1.$2.$3/$4-$5"
+    "$1.***.***/****-$5"
   );
 }
 
@@ -317,5 +424,26 @@ onMounted(() => {
   backdrop-filter: blur(5px);
   color: #4c71c0;
   font-weight: 600;
+}
+
+.truncate-cell {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
+/* Ensure table cells respect the max-width */
+:deep(.p-datatable-tbody td) {
+  max-width: 200px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
+/* Make sure the flex container in Token column doesn't overflow */
+:deep(.p-datatable-tbody td .flex) {
+  max-width: 100%;
+  overflow: hidden;
 }
 </style>

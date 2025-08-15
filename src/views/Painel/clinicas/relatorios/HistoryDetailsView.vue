@@ -18,7 +18,7 @@
         severity="primary"
         size="small"
         @click="openAnamneseDrawer()"
-        :disabled="!permissionsUserPage.visualizar"
+        :disabled="!permissionsUserPage.criar"
       />
       <Button
         label="Voltar"
@@ -101,6 +101,7 @@
               variant="outlined"
               size="small"
               @click="openAnamneseDrawer(slotProps.data, true)"
+              :disabled="!permissionsUserPage.visualizar"
             />
             <Button
               v-if="userStore.user?.Role?.includes('CEO')"
