@@ -5,6 +5,17 @@ interface IClinic {
   nome_clinica: string;
   Cnpj: string;
   Endereco: string;
+  assinatura_id?: string;
+  plano_custom?: boolean;
+  plano_id?: string;
+  plano_custom_dados?: {
+    nome: string;
+    limite_conversas: number;
+    periodo_dias: number;
+    valor: number;
+    recorrente: boolean;
+    data_inicio: string;
+  };
 }
 
 const ROUTE: string = "/clinica";

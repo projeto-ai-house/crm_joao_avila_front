@@ -464,7 +464,7 @@ async function saveUser({ valid, values, states }) {
     globalLoading.value = true;
 
     let responseUser: any;
-    if (isEditing.value) {
+    if (isEditing.value && props.inEdition?.ID) {
       console.log(initialValues.value);
 
       // Edição de usuário existente
@@ -500,6 +500,7 @@ async function saveUser({ valid, values, states }) {
         Convenio: initialValues.value.Convenio,
         PasswordHash: initialValues.value.PasswordHash,
         RoleID: initialValues.value.RoleID,
+        ClinicaID: props.inEdition?.ClinicaID || null,
       };
       responseUser = await UsersServices.postUser(user);
     }

@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-full flex flex-col items-start justify-start relative">
     <div
-      class="hidden items-center gap-2 md:flex w-full py-3 px-4 rounded-md shadow-lg relative border border-white bg-white overflow-hidden"
+      class="hidden items-center gap-2 lg:flex w-full py-3 px-4 rounded-md shadow-lg relative border border-white bg-white overflow-hidden"
     >
       <div
         class="bg-gradient-to-tr from-blue-400 via-white to-pink-300 blur-md opacity-80 absolute top-0 left-0 w-full h-full rounded-lg z-0"
@@ -79,6 +79,7 @@ import { onBeforeMount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import ReferralButton from "../components/Referral/ReferralButton.vue";
 import { useUserStore } from "../stores/user";
+import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 import { MenuUtils } from "../utils/MenuUtils";
 import { PermissionsUtils } from "../utils/PermissionsUtils";
 
@@ -86,6 +87,7 @@ const router = useRouter();
 const userStore = useUserStore();
 const toast = useToast();
 const emit = defineEmits(["change:page"]);
+// const sseStore = useSSEStore();
 
 const userData = ref(userStore.getData());
 const PAGENAME = ref<string | undefined>("");
@@ -146,6 +148,9 @@ onBeforeMount(() => {
 onMounted(() => {
   handleSelectedPage();
   CLINICNAME.value = userData.value?.Clinica[0]?.Nome;
+  const token = new AuthenticationUtils().getToken();
+
+  // sseStore.connectSSE(token);
 });
 
 watch(

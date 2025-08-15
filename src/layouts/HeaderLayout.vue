@@ -37,8 +37,9 @@
 
       <template #end>
         <div class="flex items-center gap-2">
+          <NotificationsList />
           <Avatar
-            class="cursor-pointer"
+            class="cursor-pointer ml-2"
             :label="initials"
             @click="toggle"
             aria-haspopup="true"
@@ -70,6 +71,7 @@ import type { MenuItem, MenuItemCommandEvent } from "primevue/menuitem";
 import Toolbar from "primevue/toolbar";
 import { onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import NotificationsList from "../components/Notifications/NotificationsList.vue";
 import { useUserStore } from "../stores/user";
 import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 

@@ -43,8 +43,17 @@
       <Column field="Cnpj" sortable header="CNPJ">
         <template #body="slotProps">
           {{ maskCnpj(slotProps.data.Cnpj) }}
-        </template></Column
-      >
+        </template>
+      </Column>
+      <Column field="Plano" sortable header="Plano">
+        <template #body="slotProps">
+          {{
+            slotProps.data?.Plano?.nome +
+              (slotProps.data?.Plano?.recorrente ? " (Recorrente)" : "") ||
+            "Indefinido"
+          }}
+        </template>
+      </Column>
       <Column field="Endereco" sortable header="Endereço"></Column>
       <Column field="Token" sortable header="Token (Integração)">
         <template #body="slotProps">
@@ -109,8 +118,19 @@
             </Column>
           </DataTable>
         </div>
-        <div v-else class="p-4 text-gray-500 bg-blue-50 rounded-lg">
+        <div
+          v-else
+          class="py-1 px-4 text-gray-500 bg-blue-50 rounded-lg flex items-center justify-between"
+        >
           Nenhum responsável encontrado para esta clínica.
+          <Button
+            icon="pi pi-user-plus"
+            label="Adicionar Responsável"
+            severity="primary"
+            size="small"
+            variant="text"
+            @click="addCEO(slotProps.data?.ID)"
+          />
         </div>
       </template>
     </DataTable>
@@ -186,6 +206,22 @@ function editCEO(data: any) {
     PasswordHash: "",
     ID: data.id || "",
     BlockRole: true,
+  };
+  drawerCEOState.value = true;
+}
+
+function addCEO(clinic_id: any) {
+  inEdition.value = {
+    Email: "",
+    NomeCompleto: "",
+    Cpf: "",
+    DataNascimento: "",
+    Telefone: "",
+    Convenio: "",
+    PasswordHash: "",
+    ID: "",
+    BlockRole: true,
+    ClinicaID: clinic_id,
   };
   drawerCEOState.value = true;
 }

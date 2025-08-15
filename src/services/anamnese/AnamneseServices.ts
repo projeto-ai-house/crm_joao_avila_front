@@ -15,14 +15,22 @@ export interface IAnamnese {
 
 const ROUTE: string = "/anamenese";
 export class AnamneseServices {
-  public static async getAnamneses(patient_id: string): Promise<AxiosResponse> {
-    return callApi(ROUTE, "get", { paciente_id: patient_id });
+  public static async getAnamneses(
+    patient_id: string,
+    limit: number,
+    page: number
+  ): Promise<AxiosResponse> {
+    return callApi(ROUTE, "get", {
+      paciente_id: patient_id,
+      limite: limit,
+      pagina: page,
+    });
   }
   public static async postAnamnese(data: IAnamnese): Promise<AxiosResponse> {
-    return callApi(ROUTE, "post", data);
+    return callApi(ROUTE, "post", undefined, data);
   }
   public static async putAnamnese(data: IAnamnese): Promise<AxiosResponse> {
-    return callApi(ROUTE, "put", data);
+    return callApi(ROUTE, "put", undefined, data);
   }
   public static async deleteAnamnese(id: string): Promise<AxiosResponse> {
     return callApi(`${ROUTE}/${id}`, "delete");

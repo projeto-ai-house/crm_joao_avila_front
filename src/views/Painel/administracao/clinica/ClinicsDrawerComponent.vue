@@ -107,9 +107,140 @@
             >{{ $form.Endereco.error.message }}</Message
           >
         </div>
+        <div class="col-span-12 flex flex-col gap-1">
+          <FloatLabel variant="on">
+            <InputText
+              id="assinatura_id"
+              name="assinatura_id"
+              type="text"
+              fluid
+              v-model="initialValues.assinatura_id"
+              size="small"
+            />
+            <label for="assinatura_id">
+              ID da Assinatura
+              <span class="text-red-500">*</span>
+            </label>
+          </FloatLabel>
+          <Message
+            v-if="$form.assinatura_id?.invalid"
+            severity="error"
+            size="small"
+            variant="simple"
+            >{{ $form.assinatura_id.error.message }}</Message
+          >
+        </div>
+
+        <div class="col-span-12 flex flex-col gap-1">
+          <FloatLabel variant="on">
+            <Select
+              v-model="initialValues.plano_id"
+              :options="listPlans"
+              optionValue="id"
+              optionLabel="nome"
+              fluid
+              size="small"
+              @change="handlePlanChange"
+            />
+            <label for="plano_id">Plano</label>
+          </FloatLabel>
+          <Message
+            v-if="$form.plano_id?.invalid"
+            severity="error"
+            size="small"
+            variant="simple"
+            >{{ $form.plano_id.error.message }}</Message
+          >
+        </div>
+
+        <div
+          class="col-span-12 grid grid-cols-12 gap-4 mb-2"
+          v-show="initialValues.plano_custom"
+        >
+          <div class="col-span-12 flex flex-col gap-1">
+            <FloatLabel variant="on">
+              <InputText
+                id="plano_custom_nome"
+                name="plano_custom_nome"
+                type="text"
+                fluid
+                v-model="initialValues.plano_custom_dados.nome"
+                size="small"
+              />
+              <label for="plano_nome">Apelido</label>
+            </FloatLabel>
+          </div>
+          <div class="col-span-6 flex flex-col gap-1">
+            <FloatLabel variant="on">
+              <InputText
+                id="plano_custom_valor"
+                name="plano_custom_valor"
+                type="text"
+                fluid
+                v-model="(initialValues.plano_custom_dados.valor as unknown as string)"
+                size="small"
+              />
+              <label for="plano_valor">Valor do Plano</label>
+            </FloatLabel>
+          </div>
+
+          <div class="col-span-6 flex flex-col gap-1">
+            <FloatLabel variant="on">
+              <InputText
+                id="plano_custom_periodo_dias"
+                name="plano_custom_periodo_dias"
+                type="text"
+                fluid
+                v-model="(initialValues.plano_custom_dados.periodo_dias as unknown as string)"
+                size="small"
+              />
+              <label for="plano_periodo_dias">Período (dias)</label>
+            </FloatLabel>
+          </div>
+          <div class="col-span-6 flex flex-col gap-1">
+            <FloatLabel variant="on">
+              <InputText
+                id="plano_custom_limite_conversas"
+                name="plano_custom_limite_conversas"
+                type="text"
+                fluid
+                v-model="(initialValues.plano_custom_dados.limite_conversas as unknown as string)"
+                size="small"
+              />
+              <label for="plano_limite_conversas">Limite de Conversas</label>
+            </FloatLabel>
+          </div>
+        </div>
+
+        <div class="col-span-7 flex flex-col gap-1">
+          <FloatLabel variant="on">
+            <DatePicker
+              id="plano_custom_data_inicio"
+              name="plano_custom_data_inicio"
+              v-model="initialValues.plano_custom_dados.data_inicio"
+              showIcon
+              dateFormat="dd/mm/yy"
+              inputClass="w-full"
+              size="small"
+            />
+            <label for="plano_custom_data_inicio">Início</label>
+          </FloatLabel>
+        </div>
+
+        <!-- Checkbox Recorrência -->
+        <div class="col-span-5 flex flex-col gap-1 my-auto">
+          <div class="flex items-center gap-2">
+            <Checkbox
+              id="plano_custom_recorrencia"
+              name="plano_custom_recorrencia"
+              :binary="true"
+              v-model="initialValues.plano_custom_dados.recorrente"
+            />
+            <label for="plano_custom_recorrencia">Recorrência</label>
+          </div>
+        </div>
       </div>
 
-      <!-- SEÇÃO: DADOS DO CEO -->
       <div class="col-span-12 grid grid-cols-12 gap-4" v-show="!isEditing">
         <div
           class="col-span-12 flex items-center gap-2 text-gray-700 text-base font-semibold mt-4 mb-1 border-b border-gray-200 pb-2"
@@ -353,6 +484,7 @@ import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { Hospital, SquareUserRound } from "lucide-vue-next";
 import {
+  Checkbox,
   DatePicker,
   FloatLabel,
   InputMask,
@@ -365,6 +497,10 @@ import Button from "primevue/button";
 import Drawer from "primevue/drawer";
 import { z } from "zod";
 import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
+import {
+  PlansServices,
+  type IPlan,
+} from "../../../../services/plans/PlansServices";
 import { RolesServices } from "../../../../services/roles/RolesServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
 import { useUserStore } from "../../../../stores/user";
@@ -393,10 +529,27 @@ const globalLoading = inject<Ref<boolean>>("globalLoading");
 const isEditing = ref(false);
 const formClinic = ref(null);
 const listRoles = ref<Role[]>([]);
+const listPlans = ref<IPlan[]>([
+  {
+    id: "custom",
+    nome: "Plano Personalizado",
+  },
+]);
 const initialValues = ref({
   nome_clinica: "",
   Cnpj: "",
   Endereco: "",
+  assinatura_id: "",
+  plano_custom: false,
+  plano_id: "",
+  plano_custom_dados: {
+    nome: "",
+    limite_conversas: 0,
+    periodo_dias: 0,
+    valor: 0,
+    recorrente: false,
+    data_inicio: null as Date | null,
+  },
   Email: "",
   Nome: "",
   Cpf: "",
@@ -466,6 +619,9 @@ const resolver = computed(() =>
             .string()
             .min(6, { message: "Senha deve ter no mínimo 6 caracteres." })
             .max(48, { message: "Senha deve ter no máximo 48 caracteres." }),
+      assinatura_id: z
+        .string()
+        .min(1, { message: "ID da assinatura é obrigatório." }),
     })
   )
 );
@@ -498,6 +654,15 @@ const confirmAddClinic = () => {
   });
 };
 
+function handlePlanChange(event: any) {
+  const selectedPlan = event.value;
+  if (selectedPlan === "custom") {
+    initialValues.value.plano_custom = true;
+  } else {
+    initialValues.value.plano_custom = false;
+  }
+}
+
 async function saveClinic({ valid, values, states }) {
   if (!valid) {
     return;
@@ -510,7 +675,37 @@ async function saveClinic({ valid, values, states }) {
       nome_clinica: initialValues.value.nome_clinica,
       Cnpj: initialValues.value.Cnpj.replace(/\D/g, ""),
       Endereco: initialValues.value.Endereco,
+      assinatura_id: initialValues.value.assinatura_id,
+      plano_id: initialValues.value.plano_id,
+      plano_custom: initialValues.value.plano_custom,
+      plano_custom_dados: null,
     };
+
+    if (initialValues.value.plano_custom) {
+      clinic.plano_custom_dados = {
+        ...initialValues.value.plano_custom_dados,
+        data_inicio: initialValues.value.plano_custom_dados.data_inicio
+          ? DateUtils.formatDatetoISOGlobalTimezone(
+              initialValues.value.plano_custom_dados.data_inicio
+            )
+          : null,
+      };
+    } else {
+      clinic.plano_custom_dados = listPlans.value.find(
+        (plan) => plan.id === initialValues.value.plano_id
+      ) as any;
+      clinic.plano_custom_dados = {
+        ...clinic.plano_custom_dados,
+        recorrente: initialValues.value.plano_custom_dados.recorrente,
+        data_inicio: initialValues.value.plano_custom_dados.data_inicio
+          ? DateUtils.formatDatetoISOGlobalTimezone(
+              initialValues.value.plano_custom_dados.data_inicio
+            )
+          : null,
+      };
+      delete clinic.plano_custom_dados.id;
+    }
+
     const responseClinic = await ClinicsServices.postClinic(clinic);
     if (responseClinic.status >= 200 && responseClinic.status < 300) {
       const user = {
@@ -548,6 +743,19 @@ async function saveClinic({ valid, values, states }) {
   }
 }
 
+async function fetchPlans() {
+  try {
+    const response = await PlansServices.getPlans();
+    if (response.status === 200) {
+      listPlans.value = [...response.data?.data, ...listPlans.value];
+    } else {
+      console.error("Erro ao carregar planos");
+    }
+  } catch (error) {
+    console.error("Erro ao carregar planos:", error);
+  }
+}
+
 async function fetchRoles() {
   try {
     const user_id = userStore.user?.ID;
@@ -566,6 +774,7 @@ async function fetchRoles() {
 
 onMounted(async () => {
   await fetchRoles();
+  await fetchPlans();
 });
 
 watch(
@@ -579,6 +788,17 @@ watch(
             nome_clinica: "",
             Cnpj: "",
             Endereco: "",
+            assinatura_id: "",
+            plano_custom: false,
+            plano_id: "",
+            plano_custom_dados: {
+              nome: "",
+              limite_conversas: 0,
+              periodo_dias: 0,
+              valor: 0,
+              recorrente: false,
+              data_inicio: null as Date | null,
+            },
             Email: "",
             Nome: "",
             Cpf: "",
@@ -620,6 +840,17 @@ watch(
         nome_clinica: "",
         Cnpj: "",
         Endereco: "",
+        assinatura_id: "",
+        plano_custom: false,
+        plano_id: "",
+        plano_custom_dados: {
+          nome: "",
+          limite_conversas: 0,
+          periodo_dias: 0,
+          valor: 0,
+          recorrente: false,
+          data_inicio: null as Date | null,
+        },
         Email: "",
         Nome: "",
         Cpf: "",

@@ -123,13 +123,11 @@ function stockSeverity(quantity: number): string {
 
 async function fetchRoles() {
   const userRole = userStore.user?.Role;
-  console.log("userRole", userRole);
-
   try {
     loading.value = true;
     const response = await RolesServices.getRoles({ id: userStore.user?.ID });
     if (response.status === 200) {
-      console.log("response.data", response.data);
+      // console.log("response.data", response.data);
 
       users.value = response.data?.data
         ?.filter((role) => role.Nome !== userRole)

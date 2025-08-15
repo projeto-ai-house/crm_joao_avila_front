@@ -311,6 +311,7 @@ const props = defineProps<{
   drawerState: boolean;
   inEdition: IAnamnese | null;
   permissionsUserPage?: any;
+  patientId: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -402,7 +403,10 @@ async function saveAnamnese({ valid, values, states }) {
       }
       emit("saveAnamnese", initialValues.value);
     } else {
-      const configuredData = { ...initialValues.value };
+      const configuredData = {
+        ...initialValues.value,
+        paciente_id: props.patientId,
+      };
       delete configuredData.created_at;
       delete configuredData.updated_at;
       delete configuredData.clinic_id;

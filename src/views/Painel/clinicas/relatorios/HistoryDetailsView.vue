@@ -102,10 +102,25 @@
               size="small"
               @click="openAnamneseDrawer(slotProps.data, true)"
             />
+            <Button
+              v-if="userStore.user?.Role?.includes('CEO')"
+              icon="pi pi-trash"
+              severity="danger"
+              variant="text"
+              size="small"
+              class="ml-2"
+              @click="confirmDeleteAnamnese(slotProps.data)"
+            />
           </div>
         </template>
       </Column>
     </DataTable>
+    <Paginator
+      :rows="rows"
+      :totalRecords="totalRecords"
+      :first="(currentPage - 1) * rows"
+      @page="changePage"
+    />
   </div>
   <!-- END: Lista de Anamneses -->
 
@@ -114,13 +129,14 @@
     v-model:drawerState="drawerVisible"
     :inEdition="selectedAnamnese"
     :permissionsUserPage="permissionsUserPage"
+    :patientId="pacienteId"
     @saveAnamnese="handleSaveAnamnese"
   />
   <!-- END: Drawer de Anamnese -->
 </template>
 
 <script lang="ts" setup>
-import { Button, Column, DataTable } from "primevue";
+import { Button, Column, DataTable, Paginator, useConfirm } from "primevue";
 import { inject, onMounted, ref, type Ref } from "vue";
 import { useRouter } from "vue-router";
 import { AnamneseServices } from "../../../../services/anamnese/AnamneseServices";
@@ -128,17 +144,23 @@ import {
   type IPatient,
   PatientsServices,
 } from "../../../../services/patients/PatientsServices";
+import { useUserStore } from "../../../../stores/user";
 import { DateUtils } from "../../../../utils/DateUtils";
 import { PermissionsUtils } from "../../../../utils/PermissionsUtils";
 import HistoryDrawerComponent, {
   type IAnamnese,
 } from "./HistoryDrawerComponent.vue";
 
+const userStore = useUserStore();
 const globalLoading = inject<Ref<boolean>>("globalLoading");
 const router = useRouter();
 const permissionsUserPage = ref(
   PermissionsUtils.checkMethodPemission(router.currentRoute.value.fullPath)
 );
+const confirm = useConfirm();
+const rows = ref(10); // Número de registros por página
+const totalRecords = ref(0);
+const currentPage = ref(1);
 
 // Estados da tabela
 const loading = ref(false);
@@ -148,6 +170,7 @@ const anamneses = ref<IAnamnese[]>([]);
 const drawerVisible = ref(false);
 
 const patientData = ref<IPatient | null>(null);
+const pacienteId = ref<string | null>(null);
 
 const emptyAnamnese: IAnamnese = {
   id: "",
@@ -174,23 +197,50 @@ function openAnamneseDrawer(anamnese?: IAnamnese, readonly = false) {
   drawerVisible.value = true;
 }
 
+const confirmDeleteAnamnese = (anamnese: IAnamnese) => {
+  confirm.require({
+    message: "Tem certeza que deseja excluir esta anamnese?",
+    header: "Confirmação",
+    icon: "pi pi-exclamation-triangle ",
+    accept: async () => {
+      await handleDeleteAnamnese(anamnese);
+    },
+    rejectProps: {
+      label: "Cancelar",
+      severity: "secondary",
+      outlined: true,
+    },
+    acceptProps: {
+      label: "Excluir",
+      severity: "danger",
+    },
+  });
+};
+
+function changePage(event: any) {
+  currentPage.value = event.page + 1;
+  fetchAnamnesesList(pacienteId.value);
+}
+
 async function handleSaveAnamnese(anamnese: IAnamnese) {
   try {
     globalLoading!.value = true;
-
-    if (anamnese.id) {
-      // TODO: Implementar AnamneseServices.updateAnamnese(anamnese.id, anamnese);
-      console.log("Atualizando anamnese:", anamnese);
-    } else {
-      // TODO: Implementar AnamneseServices.createAnamnese(anamnese);
-      console.log("Criando anamnese:", anamnese);
-    }
-
-    // Fechar gaveta e recarregar lista
     drawerVisible.value = false;
-    await fetchAnamnesesList(selectedAnamnese.value.id);
+    await fetchAnamnesesList(pacienteId.value);
   } catch (error) {
     console.error("Erro ao salvar anamnese:", error);
+  } finally {
+    globalLoading!.value = false;
+  }
+}
+
+async function handleDeleteAnamnese(anamnese: IAnamnese) {
+  try {
+    globalLoading!.value = true;
+    await AnamneseServices.deleteAnamnese(anamnese.id);
+    await fetchAnamnesesList(pacienteId.value);
+  } catch (error) {
+    console.error("Erro ao excluir anamnese:", error);
   } finally {
     globalLoading!.value = false;
   }
@@ -211,10 +261,17 @@ async function fetchPatientDetails(id: string) {
 async function fetchAnamnesesList(pacienteId: string) {
   try {
     loading.value = true;
-    const response = await AnamneseServices.getAnamneses(pacienteId);
+    const response = await AnamneseServices.getAnamneses(
+      pacienteId,
+      rows.value,
+      currentPage.value
+    );
 
     if (response.data && response.data?.data.anamneses) {
       anamneses.value = response.data?.data.anamneses;
+      totalRecords.value = response.data?.data.paginacao.total || 0;
+      currentPage.value = response.data?.data.paginacao.pagina || 1;
+      rows.value = response.data?.data.paginacao.limite || 20;
     } else {
       anamneses.value = [];
     }
@@ -227,11 +284,10 @@ async function fetchAnamnesesList(pacienteId: string) {
 }
 
 onMounted(async () => {
-  const pacienteId = router.currentRoute.value.params.id as string;
-  console.log(permissionsUserPage.value);
+  pacienteId.value = router.currentRoute.value.params.id as string;
   globalLoading!.value = false;
-  await fetchPatientDetails(pacienteId);
-  await fetchAnamnesesList(pacienteId);
+  await fetchPatientDetails(pacienteId.value);
+  await fetchAnamnesesList(pacienteId.value);
 });
 </script>
 
