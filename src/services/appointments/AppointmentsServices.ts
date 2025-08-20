@@ -45,7 +45,14 @@ export class AppointmentsServices {
     medicoId?: string;
     status?: string;
   }): Promise<AxiosResponse> {
-    return callApi(ROUTE, "get", { ...params, limite: 1000 });
+    return callApi(
+      ROUTE,
+      "get",
+      { ...params, limite: 1000 },
+      undefined,
+      undefined,
+      true
+    );
   }
   public static async createAppointment(
     appointmentData: ICreateAppointment

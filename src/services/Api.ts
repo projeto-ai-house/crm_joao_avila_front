@@ -1,6 +1,7 @@
 declare module "axios" {
   export interface AxiosRequestConfig {
     ignoreNotification?: boolean;
+    ignoreErrorNotification?: boolean;
   }
 }
 
@@ -45,7 +46,7 @@ api.interceptors.response.use(
   },
   (error) => {
     const config = error.config || {};
-    if (!config.ignoreNotification) {
+    if (!config.ignoreErrorNotification) {
       if (error.response) {
         NotificationService.tell(
           error.response.status,
@@ -70,7 +71,8 @@ export function callApi(
   params?: any,
   data?: any,
   responseType: "json" | "blob" | "text" = "json",
-  ignoreNotification: boolean = false
+  ignoreNotification: boolean = false,
+  ignoreErrorNotification: boolean = false
 ) {
   // Verifica se o data é FormData
   const isFormData = data instanceof FormData;
@@ -90,6 +92,7 @@ export function callApi(
     headers: headers,
     responseType: responseType || "json", // aqui permite receber Blob como resposta
     ignoreNotification: ignoreNotification, // para ignorar notificações
+    ignoreErrorNotification: ignoreErrorNotification, // para ignorar notificações de erro
   });
 }
 

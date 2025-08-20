@@ -6,6 +6,21 @@
     </div>
     <div class="flex gap-2">
       <Button
+        label="Relatório"
+        icon="pi pi-file"
+        severity="info"
+        variant="outlined"
+        size="small"
+        @click="
+          globalLoading = true;
+          router.push({
+            name: 'Anamneses',
+            params: { id: initialValues.id },
+          });
+        "
+        :disabled="!permissionsUserPage.editar"
+      />
+      <Button
         icon="pi pi-save"
         label="Salvar"
         severity="primary"

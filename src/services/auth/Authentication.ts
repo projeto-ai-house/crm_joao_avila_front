@@ -35,6 +35,7 @@ export class Authentication {
         undefined,
         undefined,
         undefined,
+        true,
         true
       );
       if (response.status === 200) {

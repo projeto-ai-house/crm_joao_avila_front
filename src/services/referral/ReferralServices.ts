@@ -27,7 +27,7 @@ export class ReferralsServices {
     pagina: number;
     limite: number;
   }): Promise<AxiosResponse> {
-    return callApi(ROUTE, "get", params);
+    return callApi(ROUTE, "get", params, undefined, undefined, true);
   }
 
   public static async getReferralSubs(id: string): Promise<AxiosResponse> {

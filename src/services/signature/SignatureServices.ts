@@ -8,6 +8,13 @@ export class SignatureServices {
     pagina: number;
     limite: number;
   }): Promise<AxiosResponse> {
-    return callApi(ROUTE + "/historico", "get", params);
+    return callApi(
+      ROUTE + "/historico",
+      "get",
+      params,
+      undefined,
+      undefined,
+      true
+    );
   }
 }

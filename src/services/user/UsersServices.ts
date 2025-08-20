@@ -6,7 +6,7 @@ interface IUser {
   Nome: string;
   Cpf: string;
   DataNascimento: string;
-  Convenio: string;
+  Convenio?: string;
   PasswordHash: string;
   Telefone: string;
   RoleID: string;

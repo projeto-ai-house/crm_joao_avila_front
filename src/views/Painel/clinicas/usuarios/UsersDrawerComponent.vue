@@ -169,7 +169,7 @@
         </div>
 
         <!-- Convênio -->
-        <div class="col-span-12 flex flex-col gap-1">
+        <!-- <div class="col-span-12 flex flex-col gap-1">
           <FloatLabel variant="on">
             <InputText
               id="Convenio"
@@ -188,7 +188,7 @@
             variant="simple"
             >{{ $form.Convenio.error.message }}</Message
           >
-        </div>
+        </div> -->
 
         <!-- Função/Cargo -->
         <div class="col-span-12 flex flex-col gap-1">
@@ -337,7 +337,7 @@ const initialValues = ref({
   Cpf: "",
   DataNascimento: null as Date | null, // Mantém Date para o DatePicker
   Telefone: "",
-  Convenio: "",
+  // Convenio: "",
   PasswordHash: "",
   RoleID: "",
   ID: "",
@@ -400,7 +400,7 @@ const getValidationSchema = () => {
       .refine((val) => /^\d{10,11}$/.test(val), {
         message: "Telefone inválido. Deve conter 10 ou 11 dígitos.",
       }),
-    Convenio: z.string(),
+    // Convenio: z.string(),
     // .min(1, { message: "Convênio é obrigatório." }),
     PasswordHash: isEditing.value
       ? z.string().optional().or(z.literal(""))
@@ -477,7 +477,7 @@ async function saveUser({ valid, values, states }) {
                 initialValues.value.DataNascimento
               )
             : "",
-          Convenio: initialValues.value.Convenio,
+          // Convenio: initialValues.value.Convenio,
           Email: initialValues.value.Email,
           Telefone: initialValues.value.Telefone.replace(/\D/g, ""),
           ID: initialValues.value.ID,
@@ -497,7 +497,7 @@ async function saveUser({ valid, values, states }) {
           : "",
         Telefone: initialValues.value.Telefone.replace(/\D/g, ""),
         Email: initialValues.value.Email,
-        Convenio: initialValues.value.Convenio,
+        // Convenio: initialValues.value.Convenio,
         PasswordHash: initialValues.value.PasswordHash,
         RoleID: initialValues.value.RoleID,
         ClinicaID: props.inEdition?.ClinicaID || null,
@@ -576,7 +576,7 @@ watch(
         Cpf: "",
         DataNascimento: null,
         Telefone: "",
-        Convenio: "",
+        // Convenio: "",
         PasswordHash: "",
         RoleID: listRoles.value.find((role) => role.Nome === "CEO/DONO")?.ID,
         ID: "",

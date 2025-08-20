@@ -20,11 +20,18 @@ export class AnamneseServices {
     limit: number,
     page: number
   ): Promise<AxiosResponse> {
-    return callApi(ROUTE, "get", {
-      paciente_id: patient_id,
-      limite: limit,
-      pagina: page,
-    });
+    return callApi(
+      ROUTE,
+      "get",
+      {
+        paciente_id: patient_id,
+        limite: limit,
+        pagina: page,
+      },
+      undefined,
+      undefined,
+      true
+    );
   }
   public static async postAnamnese(data: IAnamnese): Promise<AxiosResponse> {
     return callApi(ROUTE, "post", undefined, data);

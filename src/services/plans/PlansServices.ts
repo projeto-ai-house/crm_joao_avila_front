@@ -16,7 +16,7 @@ export class PlansServices {
   public static async getPlans(): Promise<
     AxiosResponse<{ message: string; data: IPlan[] }>
   > {
-    return callApi(ROUTE, "get");
+    return callApi(ROUTE, "get", undefined, undefined, undefined, true);
   }
 
   public static async putPlan(body: {
