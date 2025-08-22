@@ -122,6 +122,24 @@
       </div>
     </Popover>
   </div>
+  <div class="flex items-center gap-x-4 py-4 px-2 flex-wrap">
+    <cite class="flex items-center gap-1">
+      <span class="!w-7 !h-3 !bg-[#308533] rounded-full"></span>
+      Confirmado
+    </cite>
+    <cite class="flex items-center gap-1">
+      <span class="!w-7 !h-3 !bg-[#b25900] rounded-full"></span>
+      Ativo
+    </cite>
+    <cite class="flex items-center gap-1">
+      <span class="!w-7 !h-3 !bg-[#f59e0b] rounded-full"></span>
+      Pendente
+    </cite>
+    <cite class="flex items-center gap-1">
+      <span class="!w-7 !h-3 !bg-[#dc2626] rounded-full"></span>
+      Cancelado
+    </cite>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -201,21 +219,21 @@ const calendarOptions = ref<CalendarOptions>({
     list: "Lista",
   },
   dayHeaderFormat: {
-    weekday: "short",
+    weekday: "long",
     day: "2-digit",
     omitCommas: true,
     formatMatcher: "basic",
   },
   views: {
     dayGridMonth: {
-      dayHeaderFormat: { weekday: "short" },
+      dayHeaderFormat: { weekday: "long" },
     },
     timeGridWeek: {
       dayHeaderFormat: {
         weekday: "long",
         day: "2-digit",
         omitCommas: true,
-        formatMatcher: "basic",
+        formatMatcher: "best fit",
       },
       // limitar visualização de horas na week view
       slotMinTime: "06:00:00",
