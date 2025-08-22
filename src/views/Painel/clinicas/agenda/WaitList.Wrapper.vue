@@ -6,15 +6,16 @@
         label="Atualizar"
         icon="pi pi-refresh"
         size="small"
+        :loading="loading"
         @click="fetchAppointments"
       />
     </div>
 
-    <div v-if="loading" class="flex justify-center py-6">
+    <!-- <div v-if="loading" class="flex justify-center py-6">
       <ProgressSpinner />
-    </div>
+    </div> -->
 
-    <div v-else>
+    <div>
       <div v-if="appointments.length === 0" class="text-sm text-gray-500">
         Nenhum agendamento encontrado para o período.
       </div>
@@ -107,10 +108,10 @@
 
 <script setup lang="ts">
 import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import ProgressSpinner from "primevue/progressspinner";
 import Tag from "primevue/tag";
 import { onMounted, ref } from "vue";
 import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
@@ -118,6 +119,8 @@ import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
 import { useUserStore } from "../../../../stores/user";
 import { DateUtils } from "../../../../utils/DateUtils";
+
+dayjs.extend(isSameOrAfter);
 
 type AppointmentItem = {
   id: string;
@@ -177,49 +180,57 @@ async function fetchAppointments() {
     const resp = await AppointmentsServices.getAppointments(payload);
     const raw = resp?.data?.data?.agendamentos || [];
     // filtrar os que ja passaram em relaçao a hora atual e ordenar pela hora
-    const now = dayjs(new Date());
-    const filtered = raw
+    const now = new Date(Date.now());
+    console.log("Now ORIGINAL: ", now.toISOString());
+
+    // const filtered = raw
+
+    appointments.value = raw
+      .map((a: any, idx: number) => {
+        const rawId = a.ID ?? a.id ?? a.Id ?? `evt_${Date.now()}_${idx}`;
+        const start = a.data_hora
+          ? DateUtils.convertUTCToLocalTime(a.data_hora)
+          : null;
+        const timeFormatted = start ? dayjs(start).format("HH:mm") : "-";
+        const patientName =
+          a.nome_cliente ||
+          a.titulo ||
+          a.NomePaciente ||
+          a.Nome ||
+          a.nome ||
+          "Paciente Desconhecido";
+
+        return {
+          id: String(rawId),
+          patientName,
+          initials: initialsFromName(patientName),
+          timeFormatted,
+          startIso: start,
+          telefone: a.telefone_contato || null,
+          convenio: a.convenio || null,
+          medico_id: a.medico_id || null,
+          status: a.status || null,
+        } as AppointmentItem;
+      })
       .filter((a: any) => {
-        const start = a.data_hora ? dayjs(a.data_hora) : null;
-        return start && dayjs(start).isAfter(now);
+        const start = a.startIso ? dayjs(a.startIso) : null;
+        console.log("Start:", start?.toString());
+        console.log("Now:", dayjs(now).toString());
+
+        return dayjs(start).isSameOrAfter(now);
       })
       .sort((a: any, b: any) => {
-        const startA = a.data_hora ? dayjs(a.data_hora) : null;
-        const startB = b.data_hora ? dayjs(b.data_hora) : null;
+        const startA = a.startIso ? dayjs(a.startIso) : null;
+        const startB = b.startIso ? dayjs(b.startIso) : null;
         return startA && startB ? dayjs(startA).diff(dayjs(startB)) : 0;
       });
-
-    appointments.value = filtered.map((a: any, idx: number) => {
-      const rawId = a.ID ?? a.id ?? a.Id ?? `evt_${Date.now()}_${idx}`;
-      const start = a.data_hora
-        ? DateUtils.convertUTCToLocalTime(a.data_hora)
-        : null;
-      const timeFormatted = start ? dayjs(start).format("HH:mm") : "-";
-      const patientName =
-        a.nome_cliente ||
-        a.titulo ||
-        a.NomePaciente ||
-        a.Nome ||
-        a.nome ||
-        "Paciente Desconhecido";
-
-      return {
-        id: String(rawId),
-        patientName,
-        initials: initialsFromName(patientName),
-        timeFormatted,
-        startIso: start,
-        telefone: a.telefone_contato || null,
-        convenio: a.convenio || null,
-        medico_id: a.medico_id || null,
-        status: a.status || null,
-      } as AppointmentItem;
-    });
   } catch (err) {
     console.error("Erro ao carregar lista de espera:", err);
     appointments.value = [];
   } finally {
-    loading.value = false;
+    setTimeout(() => {
+      loading.value = false;
+    }, 600);
   }
 }
 
@@ -294,6 +305,9 @@ async function fetchMedicos() {
 onMounted(async () => {
   await fetchMedicos();
   await fetchAppointments();
+  setInterval(() => {
+    fetchAppointments();
+  }, 60000);
 });
 </script>
 
