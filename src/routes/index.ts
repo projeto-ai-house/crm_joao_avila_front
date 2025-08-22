@@ -10,7 +10,7 @@ import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 import LoginView from "../views/LoginView.vue";
 import ClinicsListView from "../views/Painel/administracao/clinica/ClinicsListView.vue";
 import ReferralListView from "../views/Painel/administracao/indicacoes/ReferralListView.vue";
-import AgendaView from "../views/Painel/clinicas/agenda/AgendaView_full.vue";
+import AgendaView from "../views/Painel/clinicas/agenda/AgendaView.vue";
 import PatientsListView from "../views/Painel/clinicas/pacientes/PatientsListView.vue";
 import UsersListView from "../views/Painel/clinicas/usuarios/UsersListView.vue";
 import UserConfigView from "../views/Painel/configuracoes/UserConfigView.vue";
