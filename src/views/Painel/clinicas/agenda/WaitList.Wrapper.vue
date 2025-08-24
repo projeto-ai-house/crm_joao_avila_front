@@ -214,8 +214,6 @@ async function fetchAppointments() {
       })
       .filter((a: any) => {
         const start = a.startIso ? dayjs(a.startIso) : null;
-        console.log("Start:", start?.toString());
-        console.log("Now:", dayjs(now).toString());
 
         return dayjs(start).isSameOrAfter(now);
       })

@@ -16,6 +16,16 @@ export interface UserType {
   DataCriacao: string;
   Role: string;
   Clinica: any[];
+  Notificacoes: INotification[];
+}
+export interface INotification {
+  id: string;
+  clinic_id: string;
+  tipo_notificacao: string;
+  mensagem: string;
+  data_inicio_periodo: string;
+  data_fim_periodo: string;
+  created_at: string;
 }
 
 export const useUserStore = defineStore("user", () => {
