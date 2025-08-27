@@ -14,6 +14,7 @@ import AgendaView from "../views/Painel/clinicas/agenda/AgendaView.vue";
 import PatientsListView from "../views/Painel/clinicas/pacientes/PatientsListView.vue";
 import UsersListView from "../views/Painel/clinicas/usuarios/UsersListView.vue";
 import UserConfigView from "../views/Painel/configuracoes/UserConfigView.vue";
+import DashboardView from "../views/Painel/dashboard/DashboardView.vue";
 import RoleListView from "../views/Painel/gerenciamento/cargos/RoleListView.vue";
 import HomeView from "../views/Painel/HomeView.vue";
 import NotFoundView from "../views/Painel/NotFoundView.vue";
@@ -87,9 +88,14 @@ const routes: RouteRecordRaw[] = [
         redirect: { name: "Inicio" },
       },
       {
-        path: "dashboard",
+        path: "inicio",
         name: "Inicio",
         component: HomeView,
+      },
+      {
+        path: "dashboard",
+        name: "Dashboard",
+        component: DashboardView,
       },
       {
         path: "clinicas",

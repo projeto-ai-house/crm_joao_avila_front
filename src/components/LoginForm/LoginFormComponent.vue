@@ -100,16 +100,16 @@
 
 <script lang="ts" setup>
 import { Key, LogIn, UserIcon } from "lucide-vue-next";
-import Password from "primevue/password";
 import { Button, InputGroup, InputGroupAddon, InputText } from "primevue";
-import { onMounted, reactive, ref } from "vue";
+import Password from "primevue/password";
+import { reactive, ref } from "vue";
 // @ts-ignore
+import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { useToast } from "primevue/usetoast";
-import { z } from "zod";
-import { Form } from "@primevue/forms";
-import { Authentication } from "../../services/auth/Authentication";
 import { useRouter } from "vue-router";
+import { z } from "zod";
+import { Authentication } from "../../services/auth/Authentication";
 import { useUserStore } from "../../stores/user";
 
 interface FormValues {
@@ -158,7 +158,7 @@ async function onFormSubmit({ valid }) {
       if (response.status === 200) {
         const { data } = response;
         await userStore.login(data.data);
-        router.push("/painel/dashboard");
+        router.push("/painel/inicio");
       }
     } catch (error) {
       console.error("Login error:", error);

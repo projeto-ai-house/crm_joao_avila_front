@@ -154,7 +154,11 @@ function levelColor(nivel: number) {
 
 function formatDate(dateString: string) {
   try {
-    return DateUtils.separateDateAndTime(new Date(dateString))[0];
+    return (
+      DateUtils.separateDateAndTime(new Date(dateString))[0] +
+      " " +
+      DateUtils.separateDateAndTime(new Date(dateString))[1]
+    );
   } catch (e) {
     return "";
   }
@@ -223,7 +227,9 @@ onMounted(() => {
       origem: "",
       dataHora: n.created_at,
     }))
-    .sort((a, b) => (a.dataHora < b.dataHora ? 1 : -1));
+    .sort((a, b) =>
+      new Date(a.dataHora).getTime() < new Date(b.dataHora).getTime() ? 1 : -1
+    );
   connectSSE();
 });
 

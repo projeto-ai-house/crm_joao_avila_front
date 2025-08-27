@@ -25,6 +25,14 @@ export class MenuUtils {
       ],
     },
     {
+      label: "Inicio",
+      pageName: "INICIO",
+      icon: "pi pi-th-large",
+      to: "/painel/inicio",
+      permissions: ["free"],
+      hidden: true,
+    },
+    {
       label: "Dashboard",
       pageName: "DASHBOARD",
       icon: "pi pi-th-large",
@@ -72,6 +80,21 @@ export class MenuUtils {
     {
       placeholder: "Clinica",
       permissions: ["agendamento", "paciente", "usuario"],
+    },
+    {
+      label: "Inicio",
+      pageName: "INICIO",
+      icon: "pi pi-th-large",
+      to: "/painel/inicio",
+      permissions: ["free"],
+      hidden: true,
+    },
+    {
+      label: "Dashboard",
+      pageName: "DASHBOARD",
+      icon: "pi pi-th-large",
+      to: "/painel/dashboard",
+      permissions: ["dashboard"],
     },
     {
       label: "Usuários",
