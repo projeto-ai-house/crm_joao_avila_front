@@ -319,9 +319,9 @@ const calendarOptions = ref<CalendarOptions>({
         info.el.style.color = "#29722b";
         break;
       case "ATIVO":
-        info.el.style.backgroundColor = "#ff980033";
-        info.el.style.borderColor = "#b25900";
-        info.el.style.color = "#b25900";
+        info.el.style.backgroundColor = "#dbeafe";
+        info.el.style.borderColor = "#1d4ed8";
+        info.el.style.color = "#1d4ed8";
         break;
       case "CANCELADO":
         info.el.style.backgroundColor = "#f4433633";

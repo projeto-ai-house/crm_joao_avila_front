@@ -36,7 +36,7 @@ export class MenuUtils {
       label: "Dashboard",
       pageName: "DASHBOARD",
       icon: "pi pi-th-large",
-      to: "/painel/dashboard",
+      to: "/painel/admindash",
       permissions: [
         import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
       ],

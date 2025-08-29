@@ -1,6 +1,6 @@
 <template>
   <div class="waitlist-wrapper p-4">
-    <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center justify-between mb-3" v-if="!props.minified">
       <h3 class="text-lg font-semibold">Lista de Espera (Resumo)</h3>
       <Button
         label="Atualizar"
@@ -16,8 +16,8 @@
     </div> -->
 
     <div>
-      <div v-if="appointments.length === 0" class="text-sm text-gray-500">
-        Nenhum agendamento encontrado para o período.
+      <div v-if="appointments.length < 1" class="text-sm text-gray-500">
+        Nenhum agendamento encontrado.
       </div>
 
       <DataTable
@@ -25,8 +25,14 @@
         class="bg-white rounded-lg"
         responsiveLayout="scroll"
         size="small"
+        :showHeaders="!props.minified"
+        v-else
       >
-        <Column header="Horário" style="width: 100px; text-align: center">
+        <Column
+          header="Horário"
+          style="width: 100px; text-align: center"
+          :class="{ '!w-min': props.minified }"
+        >
           <template #body="{ data }">
             <div class="flex flex-col items-start">
               <div class="text-sm text-gray-700">{{ data.timeFormatted }}</div>
@@ -43,12 +49,24 @@
           </template>
         </Column>
 
-        <Column header="Status" style="width: 9rem; text-align: left">
+        <Column
+          header="Status"
+          style="text-align: left; width: 9rem"
+          :class="{ '!w-min': props.minified }"
+        >
           <template #body="{ data }">
             <Tag
+              v-if="!props.minified"
               class="w-full h-7"
               :value="data.status || 'PENDENTE'"
               :severity="statusSeverity(data.status)"
+            />
+            <Tag
+              v-else
+              class="w-fit h-7"
+              :icon="statusIcon(data.status)"
+              :severity="statusSeverity(data.status)"
+              v-tooltip.top="data.status"
             />
           </template>
         </Column>
@@ -76,7 +94,7 @@
           </template>
         </Column>
 
-        <Column header="Convênio">
+        <Column header="Convênio" v-if="!props.minified">
           <template #body="{ data }">
             <div class="text-sm text-gray-600">
               {{ data.convenio || "-" }}
@@ -134,10 +152,31 @@ type AppointmentItem = {
   status?: string | null;
 };
 
+const props = defineProps<{
+  minified?: boolean;
+}>();
+
 const appointments = ref<AppointmentItem[]>([]);
 const doctors = ref<any[]>([]);
 const loading = ref(false);
 const userStore = useUserStore();
+
+function statusIcon(status: string | null) {
+  if (!status) return "Clock";
+  const s = String(status).toUpperCase();
+  switch (s) {
+    case "CONFIRMADO":
+      return "pi pi-check-circle";
+    case "CANCELADO":
+      return "pi pi-x-circle";
+    case "CONCLUIDO":
+      return "pi pi-check-circle2";
+    case "ATIVO":
+      return "pi pi-hourglass";
+    default:
+      return "pi pi-clock";
+  }
+}
 
 function statusSeverity(status: string | null) {
   if (!status) return "warning";

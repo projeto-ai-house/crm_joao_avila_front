@@ -14,7 +14,8 @@ import AgendaView from "../views/Painel/clinicas/agenda/AgendaView.vue";
 import PatientsListView from "../views/Painel/clinicas/pacientes/PatientsListView.vue";
 import UsersListView from "../views/Painel/clinicas/usuarios/UsersListView.vue";
 import UserConfigView from "../views/Painel/configuracoes/UserConfigView.vue";
-import DashboardView from "../views/Painel/dashboard/DashboardView.vue";
+import DashboardADMView from "../views/Painel/dashboard/DashboardADMView.vue";
+import DashboardUserView from "../views/Painel/dashboard/DashboardUserView.vue";
 import RoleListView from "../views/Painel/gerenciamento/cargos/RoleListView.vue";
 import HomeView from "../views/Painel/HomeView.vue";
 import NotFoundView from "../views/Painel/NotFoundView.vue";
@@ -94,8 +95,13 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: "dashboard",
-        name: "Dashboard",
-        component: DashboardView,
+        name: "DashboardUser",
+        component: DashboardUserView,
+      },
+      {
+        path: "admindash",
+        name: "DashboardADM",
+        component: DashboardADMView,
       },
       {
         path: "clinicas",

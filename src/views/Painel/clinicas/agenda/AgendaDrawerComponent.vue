@@ -335,6 +335,7 @@ const isEditing = ref(false);
 const appointmentId = ref<string | null>(null);
 const formAgendamento = ref(null);
 const listMedicos = ref<Medico[]>([]);
+const oldDate = ref<Date | null>(null);
 
 const horariosDisponiveis = ref([
   { label: "08:00", value: "08:00" },
@@ -483,6 +484,16 @@ async function saveAppointment({ valid, values, states }) {
     delete appointment.hora;
     delete appointment.data;
 
+    // Deletar data_hora se não houver alteração
+    if (
+      DateUtils.formatDatetoISOGlobalTimezone(oldDate.value) ===
+      DateUtils.formatDatetoISOGlobalTimezone(
+        DateUtils.generateDateAndHour(values.data, values.hora)
+      )
+    ) {
+      delete appointment.data_hora;
+    }
+
     let response: any;
     console.log(isEditing.value, appointmentId.value);
 
@@ -616,6 +627,10 @@ watch(
               .toString()
               .padStart(2, "0")}`
           : "";
+
+        oldDate.value = props.inEdition.data_hora
+          ? new Date(props.inEdition.data_hora)
+          : null;
 
         // Converter data_nascimento para Date
         const dataNascimento = props.inEdition.data_nascimento

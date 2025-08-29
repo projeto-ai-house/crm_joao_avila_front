@@ -80,4 +80,17 @@ export class DashboardServices {
       true
     );
   }
+
+  public static async getAdminDashboard(): Promise<
+    AxiosResponse<{ message: string; data: any }>
+  > {
+    return callApi(
+      ROUTE + "/adm/crescimento",
+      "get",
+      undefined,
+      undefined,
+      undefined,
+      true
+    );
+  }
 }
