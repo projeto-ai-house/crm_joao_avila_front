@@ -355,7 +355,7 @@ interface appointmentDetail {
   nome_paciente: string;
 }
 function getAppointmentDetail(hour: string): appointmentDetail | undefined {
-  return dashboardData.value?.daySchedulesList.find(
+  return dashboardData.value?.daySchedulesList?.find(
     (item: any) => item.horario_inicio.split("T")[1].slice(0, 5) === hour
   );
 }

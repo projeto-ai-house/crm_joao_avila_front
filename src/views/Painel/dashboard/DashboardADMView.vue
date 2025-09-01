@@ -1,65 +1,135 @@
 <template>
   <div class="p-2">
     <!-- Top -->
-    ASDASDASDASDASDADSAD
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h2 class="font-semibold text-gray-500">
-          Dashboard
-          {{ viewMode === "CLINIC" ? "da Clínica" : "da Administração" }}
-        </h2>
+        <h2 class="font-semibold text-gray-500">Dashboard da Administração</h2>
         <p class="text-sm text-gray-400">
           Visão geral das atividades recentes e status do sistema.
         </p>
       </div>
-      <div class="flex flex-col justify-end items-end text-gray-400">
-        <!-- <span class="font-semibold text-gray-800">{{ dateAndHour[1] }}</span> -->
-        <!-- <span class="font-normal text-sm">{{ dateAndHour[0] }}</span> -->
-        <ButtonGroup class="h-6 self-end">
-          <Button
-            size="small"
-            label="Dia"
-            :variant="
-              staticFilters.scheduleChart === 'day' ? 'filled' : 'outlined'
-            "
-            @click="changeChartView('day')"
-          />
-          <Button
-            size="small"
-            label="Mês"
-            :variant="
-              staticFilters.scheduleChart === 'month' ? 'filled' : 'outlined'
-            "
-            @click="changeChartView('month')"
-          />
-        </ButtonGroup>
+      <div class="flex items-center gap-4">
+        <div class="text-right">
+          <div class="text-xs text-gray-400">Crescimento clínicas</div>
+          <div class="font-bold text-lg text-green-600">
+            {{
+              dashboardData?.crescimento_clinicas_percent?.toFixed(2)
+                ? dashboardData?.crescimento_clinicas_percent?.toFixed(2) + "%"
+                : "-"
+            }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumo rápido -->
+    <div class="grid grid-cols-12 gap-4 mb-4">
+      <!-- Card compacto: Clínicas -->
+      <div class="col-span-4">
+        <CardComponent title="Clínicas" :loading="Loading" :icon="TrendingUp">
+          <div class="flex items-center gap-4">
+            <div class="flex-1">
+              <div class="text-xs text-gray-400">Total de clínicas</div>
+              <div class="text-xl font-bold text-gray-800">
+                {{
+                  dashboardData?.estatisticas_do_sistema
+                    ?.total_clinicas_system ?? "-"
+                }}
+              </div>
+              <div class="mt-1">
+                <span
+                  class="inline-flex items-center text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded"
+                >
+                  <i class="pi pi-arrow-up mr-1" style="font-size: 0.75rem"></i>
+                  {{
+                    Math.round(
+                      dashboardData?.crescimento_clinicas_percent ?? 0
+                    )
+                  }}%
+                </span>
+                <span class="ml-2 text-xs text-gray-400"> crescimento </span>
+              </div>
+            </div>
+          </div>
+        </CardComponent>
+      </div>
+
+      <!-- Card compacto: Pacientes -->
+      <div class="col-span-4">
+        <CardComponent title="Pacientes" :loading="Loading" :icon="Users">
+          <div class="flex items-center gap-4">
+            <div class="flex-1">
+              <div class="text-xs text-gray-400">Total de pacientes</div>
+              <div class="text-xl font-bold text-gray-800">
+                {{
+                  dashboardData?.estatisticas_do_sistema
+                    ?.total_pacientes_system ?? "-"
+                }}
+              </div>
+              <div class="mt-1">
+                <span
+                  class="inline-flex items-center text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded"
+                >
+                  <i class="pi pi-arrow-up mr-1" style="font-size: 0.75rem"></i>
+                  {{
+                    Math.round(
+                      dashboardData?.estatisticas_do_sistema
+                        ?.crescimento_pacientes_system_percent ?? 0
+                    )
+                  }}%
+                </span>
+                <span class="ml-2 text-xs text-gray-400"> crescimento </span>
+              </div>
+            </div>
+          </div>
+        </CardComponent>
+      </div>
+
+      <!-- Card compacto: Agendamentos -->
+      <div class="col-span-4">
+        <CardComponent title="Agendamentos" :loading="Loading" :icon="Calendar">
+          <div class="flex items-center gap-4">
+            <div class="flex-1">
+              <div class="text-xs text-gray-400">Total de agendamentos</div>
+              <div class="text-xl font-bold text-gray-800">
+                {{
+                  dashboardData?.estatisticas_do_sistema
+                    ?.total_agendamentos_system ?? "-"
+                }}
+              </div>
+              <div class="mt-1">
+                <span
+                  class="inline-flex items-center text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded"
+                >
+                  <i class="pi pi-arrow-up mr-1" style="font-size: 0.75rem"></i>
+                  {{
+                    Math.round(
+                      dashboardData?.estatisticas_do_sistema
+                        ?.crescimento_agendamentos_system_percent ?? 0
+                    )
+                  }}%
+                </span>
+                <span class="ml-2 text-xs text-gray-400">crescimento</span>
+              </div>
+            </div>
+          </div>
+        </CardComponent>
       </div>
     </div>
 
     <!-- Panel -->
     <div class="w-full h-full grid grid-cols-12 gap-4">
-      <!-- Taxa de Agendamento -->
-      <div class="col-span-3">
-        <CardComponent
-          :loading="Loading"
-          title="Taxa de Agendamento"
-          :icon="TrendingUp"
-        >
-          <div class="flex flex-col justify-center items-start gap-2 h-full">
-            <span class="font-bold text-2xl text-blue-700"> 78% </span>
-            <ProgressBar
-              class="w-full !h-2"
-              :value="78"
-              color="#2563EB"
-              :show-value="false"
-            />
-            <cite class="text-sm text-gray-400"> Todos os leads </cite>
-          </div>
-        </CardComponent>
-      </div>
+      <!-- (Removido) Taxa de Agendamento: não exibir card com valor hardcoded -->
 
-      <!-- Agendamentos por IA -->
-      <div class="col-span-3">
+      <!-- Agendamentos por IA (exibir apenas se houver dados reais) -->
+      <div
+        class="col-span-3"
+        v-if="
+          (staticFilters.scheduleChart === 'day'
+            ? dashboardData?.dayAI?.agendamentos?.agendamentos_por_ia
+            : dashboardData?.monthAI?.agendamentos?.agendamentos_por_ia) > 0
+        "
+      >
         <CardComponent
           :loading="Loading"
           title="Agendamentos por IA"
@@ -74,14 +144,21 @@
               }}
             </span>
             <cite class="text-sm text-gray-400">
-              Agendamentos automatizados
+              Agendamentos gerados pela assistente (IA)
             </cite>
           </div>
         </CardComponent>
       </div>
 
-      <!-- Tempo Economizado -->
-      <div class="col-span-3">
+      <!-- Tempo Economizado (exibir apenas se houver dados reais) -->
+      <div
+        class="col-span-3"
+        v-if="
+          (staticFilters.scheduleChart === 'day'
+            ? dashboardData?.dayAI?.resposta?.total_mensagens
+            : dashboardData?.monthAI?.resposta?.total_mensagens) > 0
+        "
+      >
         <CardComponent
           :loading="Loading"
           title="Tempo Economizado"
@@ -101,7 +178,9 @@
                     )
               }}
             </span>
-            <cite class="text-sm text-gray-400"> Todos os leads </cite>
+            <cite class="text-sm text-gray-400"
+              >Estimativa de horas economizadas pela IA</cite
+            >
           </div>
         </CardComponent>
       </div>
@@ -110,173 +189,187 @@
       <div class="col-span-3">
         <CardComponent
           :loading="Loading"
-          :title="`Pacientes ${
-            staticFilters.scheduleChart === 'day' ? 'Hoje' : 'Este Mês'
-          }`"
+          :title="`Pacientes por Clínica`"
           :icon="Users"
         >
-          <div class="flex flex-col justify-center items-center gap-4">
-            <div class="w-full h-48 relative overflow-hidden">
-              <p
-                v-if="
-                  !pieChartData ||
-                  !pieChartData.labels ||
-                  pieChartData.labels.length === 0
-                "
-                class="text-center text-gray-400 mt-16"
-              >
-                Sem dados para exibir
-              </p>
-              <Chart
-                v-else
-                type="doughnut"
-                :data="pieChartData"
-                class="w-full h-full"
-                :options="{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  aspectRatio: 1,
-                  plugins: {
-                    legend: {
-                      position: 'right',
-                      labels: {
-                        boxWidth: 10,
-                        boxHeight: 10,
-                        padding: 8,
-                        font: {
-                          size: 11,
-                        },
-                      },
-                    },
+          <div class="flex flex-col justify-center items-center gap-4 p-4 pt-8">
+            <!-- <div class="w-full h-48 relative overflow-hidden"> -->
+            <p
+              v-if="
+                !pieChartData ||
+                !pieChartData.labels ||
+                pieChartData.labels.length === 0
+              "
+              class="text-center text-gray-400 mt-16"
+            >
+              Sem dados para exibir
+            </p>
+            <Chart
+              v-else
+              type="doughnut"
+              :data="pieChartData"
+              class="max-h-full max-w-full h-fit"
+              :options="{
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 1,
+                plugins: {
+                  legend: {
+                    display: false,
                   },
-                  layout: {
-                    padding: 8,
-                  },
-                }"
-              />
-            </div>
+                },
+              }"
+            />
+            <!-- </div> -->
+          </div>
+        </CardComponent>
+      </div>
+
+      <!-- Grafico Agendamentos por Clinica -->
+      <div class="col-span-9">
+        <CardComponent
+          :loading="Loading"
+          title="Agendamentos por Clínica"
+          :icon="TrendingUp"
+        >
+          <div class="w-full h-full pt-4">
+            <Chart
+              type="bar"
+              :data="barChartData"
+              :options="barChartOptions"
+              class="w-full h-full"
+            />
           </div>
         </CardComponent>
       </div>
 
       <!-- Horarios Hoje -->
-      <div class="col-span-9">
-        <CardComponent
-          :loading="Loading"
-          title="Horarios Hoje"
-          :icon="Calendar"
-        >
-          <div
-            class="flex flex-col justify-start items-start gap-2 h-full max-h-[40vw] overflow-y-auto py-2 pr-2"
-          >
-            <div
-              v-for="hour in hours"
-              :key="hour"
-              class="flex justify-between items-center border border-gray-200 rounded-lg w-full"
-            >
-              <div class="px-4 py-2 flex justify-between items-center w-full">
-                <!-- Esquerda -->
-                <div class="flex justify-start items-center gap-6">
-                  <span class="text-md text-gray-700 font-semibold">{{
-                    hour
-                  }}</span>
-                  <div class="flex justify-between items-center gap-2">
-                    <i
-                      class="pi pi-user w-4 h-4 text-green-500"
-                      v-if="getAppointmentDetail(hour)?.nome_paciente"
-                    ></i>
-                    <i class="pi pi-clock w-4 h-4 text-gray-400" v-else></i>
-                    <span
-                      class="text-sm"
-                      :class="{
-                        'font-semibold text-gray-700':
-                          !!getAppointmentDetail(hour)?.nome_paciente,
-                        'font-normal text-gray-400':
-                          !getAppointmentDetail(hour)?.nome_paciente,
-                      }"
-                    >
-                      {{
-                        getAppointmentDetail(hour)?.nome_paciente ||
-                        "Disponível"
-                      }}
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Direita -->
-                <div
-                  v-if="getAppointmentDetail(hour)?.nome_paciente"
-                  :class="`bg-[#4CAF50] text-xs font-medium px-2 py-1 text-white rounded-sm`"
-                >
-                  Ocupadoo
-                </div>
-                <div
-                  v-else
-                  class="bg-gray-100 text-xs px-2 py-1 rounded-md font-medium"
-                >
-                  Livre
-                </div>
+      <!-- Indicadores agregados (abaixo dos gráficos) -->
+      <div class="col-span-12">
+        <div class="grid grid-cols-12 gap-4 mb-4">
+          <div class="col-span-3">
+            <CardComponent :loading="Loading" title="" :icon="TrendingUp">
+              <div class="text-xs text-gray-400">Clínicas com agendamentos</div>
+              <div class="text-2xl font-bold text-gray-800">
+                {{ clinicsWithAppointments }}
+                <span class="text-sm text-gray-500 font-normal">
+                  de {{ clinicStats.length }}
+                </span>
               </div>
-            </div>
+            </CardComponent>
           </div>
-        </CardComponent>
+          <div class="col-span-3">
+            <CardComponent :loading="Loading" title="" :icon="TrendingUp">
+              <div class="text-xs text-gray-400">Total de pacientes (soma)</div>
+              <div class="text-2xl font-bold text-gray-800">
+                {{ formatNumber(totalPacientesAll) }}
+              </div>
+            </CardComponent>
+          </div>
+          <div class="col-span-3">
+            <CardComponent :loading="Loading" title="" :icon="TrendingUp">
+              <div class="text-xs text-gray-400">
+                Total de agendamentos (soma)
+              </div>
+              <div class="text-2xl font-bold text-gray-800">
+                {{ formatNumber(totalAgendamentosAll) }}
+              </div>
+            </CardComponent>
+          </div>
+          <div class="col-span-3">
+            <CardComponent :loading="Loading" title="" :icon="TrendingUp">
+              <div class="text-xs text-gray-400">
+                Crescimento médio agendamentos
+              </div>
+              <div class="text-2xl font-bold text-gray-800">
+                {{ Math.round(avgCrescimentoAgendamentos) }}%
+              </div>
+            </CardComponent>
+          </div>
+        </div>
       </div>
 
-      <!-- Aniversariantes -->
+      <!-- Tabela local de clínicas (colunas numéricas) -->
       <div class="col-span-12">
         <CardComponent
           :loading="Loading"
-          title="Aniversariantes"
-          :icon="Calendar"
+          title="Clínicas - Detalhes numéricos"
+          :icon="TrendingUp"
         >
-          <div
-            class="flex flex-col justify-center items-start gap-2 h-full mt-2"
-          >
-            <div
-              v-if="
-                !dashboardData?.birthdays?.aniversariantes_do_dia ||
-                dashboardData?.birthdays?.aniversariantes_do_dia?.length < 1
-              "
-              class="text-gray-400"
-            >
-              Nenhum aniversariante hoje.
-            </div>
-            <div
-              v-else
-              class="grid grid-cols-3 w-full gap-2 max-h-[20vw] overflow-y-auto"
-            >
-              <div
-                v-for="(aniversariante, index) in dashboardData?.birthdays
-                  ?.aniversariantes_do_dia"
-                :key="index"
-                class="w-full border border-gray-200 py-4 col-span-1 rounded-lg px-4 mb-2 flex justify-between items-center"
-              >
-                <div class="flex justify-start items-center">
-                  <span
-                    class="mr-2 rounded-full overflow-hidden bg-gradient-to-tl from-blue-700 to-blue-400 text-white w-8 h-8 flex justify-center items-center"
-                    v-tooltip="aniversariante.tipo"
-                  >
-                    <i
-                      :class="
-                        aniversariante.tipo === 'Usuário'
-                          ? 'pi pi-user'
-                          : 'pi pi-briefcase'
-                      "
-                      style="stroke-width: 2.4px"
-                    ></i>
-                  </span>
-                  <div>
-                    <p class="font-semibold text-gray-700">
-                      {{ aniversariante.nome_completo }}
-                    </p>
-                    <cite class="text-sm text-gray-400">
-                      {{ dayjs().diff(aniversariante.data_nascimento, "year") }}
-                      anos
-                    </cite>
+          <div class="border border-gray-100 rounded-lg overflow-hidden">
+            <DataTable :value="pagedClinics" size="small" class="text-sm">
+              <!-- <Column header="ID" style="width: 220px">
+                <template #body="slotProps">
+                  <div class="truncate-cell" :title="slotProps.data.id">
+                    {{ slotProps.data.id }}
                   </div>
-                </div>
-                <i class="pi pi-gift text-blue-700 mr-4"></i>
-              </div>
+                </template>
+              </Column> -->
+              <Column header="Nome">
+                <template #body="slotProps">
+                  <div class="truncate-cell" :title="slotProps.data.nome">
+                    {{ slotProps.data.nome }}
+                  </div>
+                </template>
+              </Column>
+              <Column header="Pacientes">
+                <template #body="slotProps">{{
+                  formatNumber(slotProps.data.total_pacientes || 0)
+                }}</template>
+              </Column>
+              <Column header="Agendamentos">
+                <template #body="slotProps">{{
+                  formatNumber(slotProps.data.total_agendamentos || 0)
+                }}</template>
+              </Column>
+              <Column header="Cres. Pacientes (%)">
+                <template #body="slotProps">
+                  <span
+                    :class="
+                      (slotProps.data.crescimento_pacientes_percent ?? 0) > 0
+                        ? 'text-green-600 font-semibold'
+                        : (slotProps.data.crescimento_pacientes_percent ?? 0) <
+                          0
+                        ? 'text-red-600 font-semibold'
+                        : 'text-gray-400'
+                    "
+                  >
+                    {{
+                      Math.round(
+                        slotProps.data.crescimento_pacientes_percent || 0
+                      )
+                    }}%
+                  </span>
+                </template>
+              </Column>
+              <Column header="Cres. Agendamentos (%)">
+                <template #body="slotProps">
+                  <span
+                    :class="
+                      (slotProps.data.crescimento_agendamentos_percent ?? 0) > 0
+                        ? 'text-green-600 font-semibold'
+                        : (slotProps.data.crescimento_agendamentos_percent ??
+                            0) < 0
+                        ? 'text-red-600 font-semibold'
+                        : 'text-gray-400'
+                    "
+                  >
+                    {{
+                      Math.round(
+                        slotProps.data.crescimento_agendamentos_percent || 0
+                      )
+                    }}%
+                  </span>
+                </template>
+              </Column>
+            </DataTable>
+            <div class="p-2 bg-white">
+              <Paginator
+                :rows="clinicRows"
+                :totalRecords="clinicStats.length"
+                :first="clinicFirst"
+                @page="onClinicPage"
+              />
             </div>
           </div>
         </CardComponent>
@@ -286,11 +379,10 @@
 </template>
 
 <script setup lang="ts">
-import dayjs from "dayjs";
 import { Bot, Calendar, Clock, TrendingUp, Users } from "lucide-vue-next";
-import { Button, ButtonGroup, ProgressBar } from "primevue";
+import { Column, DataTable, Paginator } from "primevue";
 import Chart from "primevue/chart";
-import { nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
 import CardComponent from "../../../components/Card/CardComponent.vue";
 import { DashboardServices } from "../../../services/dashboard/DashboardServices";
 import { useUserStore } from "../../../stores/user";
@@ -308,46 +400,87 @@ const pieChartData = ref<any>({
   labels: [],
   datasets: [],
 });
-const hours = [
-  "08:00",
-  "08:30",
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-];
+const barChartData = ref<any>({
+  labels: [],
+  datasets: [],
+});
 
-function changeChartView(view: "day" | "month") {
-  staticFilters.value.scheduleChart = view;
-  // rebuild chart based on loaded dashboardData
-  updatePieChart();
+const barChartOptions = ref<any>({
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    x: {
+      ticks: { color: "#6b7280" },
+    },
+    y: {
+      beginAtZero: true,
+      ticks: { color: "#6b7280" },
+    },
+  },
+  plugins: {
+    legend: { display: false },
+  },
+});
+
+const clinicRows = ref(10);
+const clinicFirst = ref(0);
+const clinicPage = ref(1);
+
+function onClinicPage(event: any) {
+  console.log(event);
+  clinicFirst.value = event.first;
+  clinicPage.value = event.page + 1;
 }
 
-interface appointmentDetail {
-  horario_inicio: string;
-  horario_fim: string;
-  status: string;
-  nome_medico: string;
-  nome_paciente: string;
+function formatNumber(v: number) {
+  return new Intl.NumberFormat("pt-BR").format(v ?? 0);
 }
-function getAppointmentDetail(hour: string): appointmentDetail | undefined {
-  return dashboardData.value?.daySchedulesList.find(
-    (item: any) => item.horario_inicio.split("T")[1].slice(0, 5) === hour
+
+const clinicStats = computed(
+  () => dashboardData.value?.estatisticas_por_clinica || []
+);
+
+const totalPacientesAll = computed(() =>
+  clinicStats.value.reduce(
+    (s: number, c: any) => s + (c.total_pacientes || 0),
+    0
+  )
+);
+const totalAgendamentosAll = computed(() =>
+  clinicStats.value.reduce(
+    (s: number, c: any) => s + (c.total_agendamentos || 0),
+    0
+  )
+);
+const avgCrescimentoPacientes = computed(() => {
+  if (!clinicStats.value.length) return 0;
+  return (
+    clinicStats.value.reduce(
+      (s: number, c: any) => s + (c.crescimento_pacientes_percent || 0),
+      0
+    ) / clinicStats.value.length
   );
-}
+});
+const avgCrescimentoAgendamentos = computed(() => {
+  if (!clinicStats.value.length) return 0;
+  return (
+    clinicStats.value.reduce(
+      (s: number, c: any) => s + (c.crescimento_agendamentos_percent || 0),
+      0
+    ) / clinicStats.value.length
+  );
+});
+
+const clinicsWithAppointments = computed(
+  () =>
+    clinicStats.value.filter((c: any) => (c.total_agendamentos || 0) > 0).length
+);
+
+const pagedClinics = computed(() => {
+  const start = clinicFirst.value || 0;
+  const end = start + (clinicRows.value || 6);
+  return clinicStats.value.slice(start, end);
+});
 
 function calculateTime(aiMidTime = 0, messagesCount = 0) {
   const humanMidTime = 30000;
@@ -360,75 +493,17 @@ function calculateTime(aiMidTime = 0, messagesCount = 0) {
   return `${diff / 60}h`;
 }
 
-function extractStatusCounts(obj: any) {
-  // Try several common keys to be resilient to API shape
-  return (
-    obj?.status_counts || obj?.statusCounts || obj?.status_count || obj || {}
-  );
-}
-
-function updatePieChart() {
-  const mode = staticFilters.value.scheduleChart;
-  if (!dashboardData.value) {
-    pieChartData.value = { labels: [], datasets: [] };
-    return;
-  }
-
-  const source =
-    mode === "day"
-      ? dashboardData.value.daySchedule
-      : dashboardData.value.monthSchedule;
-  const counts = extractStatusCounts(source);
-
-  //   if (!counts || Object.keys(counts).length === 0) {
-  //     pieChartData.value = { labels: [], datasets: [] };
-  //     return;
-  //   }
-
-  const labels = Object.keys(counts);
-  const data = Object.values(counts).map((v: any) => Number(v) || 0);
-
-  const backgroundColor = labels.map((l: any) => statusColor(l));
-
-  pieChartData.value = {
-    labels,
-    datasets: [
-      {
-        data,
-        backgroundColor,
-      },
-    ],
-  };
-}
-
-function statusColor(status: any) {
-  const s = String(status || "")
-    .toUpperCase()
-    .trim();
-  switch (s) {
-    case "CONFIRMADO":
-      return "#4caf50";
-    case "ATIVO":
-      return "#ff9800";
-    case "CANCELADO":
-      return "#f44336";
-    case "CONCLUIDO":
-      return "#2196f3";
-    case "OCUPADO":
-      return "#4CAF50";
-    default:
-      return "#9CA3AF"; // fallback gray
-  }
-}
-
 async function fetchData() {
   try {
     Loading.value = true;
     const response = await DashboardServices.getAdminDashboard();
+    console.log(response.data);
 
     dashboardData.value = response.data?.data;
 
     console.log(dashboardData.value);
+    // build charts
+    updateCharts();
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
     // Handle error as needed
@@ -443,13 +518,63 @@ onMounted(() => {
     new Date().toLocaleDateString("pt-BR", { dateStyle: "short" }),
     new Date().toLocaleTimeString("pt-BR", { timeStyle: "short" }),
   ];
-  const userRole = userStore.getData().Role;
-  if (userRole === "ADM") {
-    viewMode.value = "ADM";
-    return;
-  }
-
-  viewMode.value = "CLINIC";
   fetchData();
 });
+
+function updateCharts() {
+  const stats = dashboardData.value;
+  if (!stats) return;
+
+  // Pie chart: agendamentos por clínica (top 6)
+  const labels = (stats.estatisticas_por_clinica || []).map(
+    (c: any) => c.nome || "—"
+  );
+  const values = (stats.estatisticas_por_clinica || []).map(
+    (c: any) => c.total_pacientes || 0
+  );
+
+  // limit labels to top 8 by value
+  const pairs = labels.map((l: string, i: number) => ({
+    label: l,
+    value: values[i],
+  }));
+  pairs.sort((a: any, b: any) => b.value - a.value);
+  const top = pairs.slice(0, 8);
+
+  pieChartData.value = {
+    labels: top.map((p: any) => p.label),
+    datasets: [
+      {
+        data: top.map((p: any) => p.value),
+        backgroundColor: [
+          "#3B82F6",
+          "#06B6D4",
+          "#10B981",
+          "#F59E0B",
+          "#EF4444",
+          "#8B5CF6",
+          "#F472B6",
+          "#A3E635",
+        ],
+        hoverOffset: 6,
+      },
+    ],
+  };
+
+  // Bar chart: agendamentos por clinica (all, but capped label length)
+  barChartData.value = {
+    labels: (stats.estatisticas_por_clinica || []).map((c: any) =>
+      (c.nome || "—").slice(0, 18)
+    ),
+    datasets: [
+      {
+        label: "Agendamentos",
+        data: (stats.estatisticas_por_clinica || []).map(
+          (c: any) => c.total_agendamentos || 0
+        ),
+        backgroundColor: "#3B82F6",
+      },
+    ],
+  };
+}
 </script>

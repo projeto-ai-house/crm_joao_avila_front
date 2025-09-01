@@ -95,12 +95,12 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: "dashboard",
-        name: "DashboardUser",
+        name: "Dashboard",
         component: DashboardUserView,
       },
       {
         path: "admindash",
-        name: "DashboardADM",
+        name: "Dashboard (Admin)",
         component: DashboardADMView,
       },
       {
