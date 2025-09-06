@@ -184,8 +184,8 @@
     :inEdition="inEdition"
     @update:drawerState="drawerState = $event"
     @saveUser="
-      fetchUsers;
-      fetchUserLinks;
+      fetchUsers();
+      fetchUserLinks();
     "
   />
 </template>
@@ -340,7 +340,7 @@ async function fetchUsers() {
         response.data?.data?.Usuarios?.map((it: any) => ({
           ...it,
           Cargo: it.Role?.nome || "N/A",
-        })) || [];
+        })).sort((a, b) => a.NomeCompleto.localeCompare(b.NomeCompleto)) || [];
       totalRecords.value = response.data?.data?.Itens || 0;
     }
   } catch (error) {

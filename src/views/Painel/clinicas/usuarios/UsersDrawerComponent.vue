@@ -285,6 +285,7 @@ import { inject, onMounted, ref, watch, type Ref } from "vue";
 //@ts-ignore
 import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
+import dayjs from "dayjs";
 import { SquareUserRound } from "lucide-vue-next";
 import {
   DatePicker,
@@ -447,8 +448,6 @@ const confirmSaveUser = () => {
 };
 
 async function saveUser({ valid, values, states }) {
-  console.log(initialValues.value);
-
   if (!valid) {
     toast.add({
       severity: "error",
@@ -458,8 +457,6 @@ async function saveUser({ valid, values, states }) {
     });
     return;
   }
-  console.log("Formulário válido. Salvando usuário...", initialValues.value);
-
   try {
     globalLoading.value = true;
 
@@ -504,10 +501,11 @@ async function saveUser({ valid, values, states }) {
       };
       responseUser = await UsersServices.postUser(user);
     }
-    if (responseUser.status >= 200 && responseUser.status < 300) {
-      emit("saveUser", responseUser.data);
-      emit("update:drawerState", false);
+    if (responseUser.status !== 200 && responseUser.status !== 201) {
+      throw new Error("Erro ao salvar usuário");
     }
+    emit("saveUser", responseUser.data);
+    emit("update:drawerState", false);
   } catch (error) {
     console.error("Erro ao salvar usuário:", error);
   } finally {
@@ -552,9 +550,17 @@ watch(
           PasswordHash: "",
           RoleID: props.inEdition.Role?.id || "",
           DataNascimento: props.inEdition.DataNascimento
-            ? new Date(props.inEdition.DataNascimento)
+            ? dayjs(props.inEdition.DataNascimento)
+                .add(
+                  dayjs(props.inEdition.DataNascimento).utcOffset() * -1,
+                  "minutes"
+                )
+                .toDate()
             : null,
         };
+        console.log("anterior", props.inEdition.DataNascimento);
+        console.log("novo", initialValues.value.DataNascimento);
+
         blockRole.value = props.inEdition.BlockRole || false;
         if (blockRole.value) {
           initialValues.value.RoleID = listRoles.value.find(

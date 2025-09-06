@@ -6,7 +6,8 @@
     </div>
     <div class="flex gap-2">
       <Button
-        label="Relatório"
+        v-if="editing"
+        label="Anamneses"
         icon="pi pi-file"
         severity="info"
         variant="outlined"
@@ -1044,6 +1045,7 @@
 <script lang="ts" setup>
 import { Form } from "@primevue/forms";
 import imageCompression from "browser-image-compression";
+import dayjs from "dayjs";
 import {
   AutoComplete,
   Button,
@@ -1368,9 +1370,15 @@ async function fetchPatientDetails() {
       Object.assign(initialValues.value, response.data?.data);
       patient.value = initialValues.value;
       await nextTick();
-      initialValues.value.data_nascimento_datepicker = new Date(
-        initialValues.value.data_nascimento
-      );
+      initialValues.value.data_nascimento_datepicker = initialValues.value
+        .data_nascimento
+        ? dayjs(initialValues.value.data_nascimento)
+            .add(
+              dayjs(initialValues.value.data_nascimento).utcOffset() * -1,
+              "minutes"
+            )
+            .toDate()
+        : null;
 
       // Convert convenio validade strings to Date objects
       const convenioValidadeFields = [

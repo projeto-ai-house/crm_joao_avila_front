@@ -154,7 +154,7 @@
         <template #body="slotProps">
           <div class="flex items-center justify-center gap-1">
             <Button
-              label="Relatório"
+              label="Anamneses"
               icon="pi pi-file"
               severity="info"
               variant="outlined"
