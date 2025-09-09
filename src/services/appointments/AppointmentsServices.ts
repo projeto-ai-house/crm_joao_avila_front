@@ -3,19 +3,19 @@ import callApi from "../Api";
 
 interface IAppointments {
   id: string;
-  medico_id: string;
-  titulo: string;
-  data_hora: string; // ISO 8601 datetime string
-  duracao_sec: number;
-  status: string;
-  convenio: string;
-  telefone_contato: string;
-  nome_cliente: string;
-  data_nascimento: string; // ISO 8601 date string
-  medico: {
-    id: string;
-    nome_completo: string;
-    email: string;
+  medico_id?: string;
+  titulo?: string;
+  data_hora?: string; // ISO 8601 datetime string
+  duracao_sec?: number;
+  status?: string;
+  convenio?: string;
+  telefone_contato?: string;
+  nome_cliente?: string;
+  data_nascimento?: string; // ISO 8601 date string
+  medico?: {
+    id?: string;
+    nome_completo?: string;
+    email?: string;
   };
 }
 
@@ -60,9 +60,17 @@ export class AppointmentsServices {
     return callApi(ROUTE, "post", undefined, appointmentData);
   }
   public static async updateAppointment(
-    appointmentData: IAppointments
+    appointmentData: IAppointments,
+    skipNotification = false
   ): Promise<AxiosResponse> {
-    return callApi(ROUTE, "put", undefined, appointmentData);
+    return callApi(
+      ROUTE,
+      "put",
+      undefined,
+      appointmentData,
+      undefined,
+      !skipNotification
+    );
   }
   public static async deleteAppointment(
     deleteData: IDeleteAppointments

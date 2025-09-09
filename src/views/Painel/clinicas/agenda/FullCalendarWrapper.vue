@@ -122,21 +122,21 @@
       </div>
     </Popover>
   </div>
-  <div class="flex items-center gap-x-4 py-4 px-2 flex-wrap">
+  <div class="flex items-center gap-x-4 py-4 px-2 flex-wrap text-sm">
     <cite class="flex items-center gap-1">
-      <span class="!w-7 !h-3 !bg-[#308533] rounded-full"></span>
+      <span class="!w-7 !h-3 !bg-[#4caf50] rounded-full"></span>
       Confirmado
     </cite>
     <cite class="flex items-center gap-1">
-      <span class="!w-7 !h-3 !bg-[#b25900] rounded-full"></span>
+      <span class="!w-7 !h-3 !bg-[#1d4ed8] rounded-full"></span>
       Ativo
     </cite>
     <cite class="flex items-center gap-1">
-      <span class="!w-7 !h-3 !bg-[#f59e0b] rounded-full"></span>
-      Pendente
+      <span class="!w-7 !h-3 !bg-[#a5a5a5] rounded-full"></span>
+      Concluído
     </cite>
     <cite class="flex items-center gap-1">
-      <span class="!w-7 !h-3 !bg-[#dc2626] rounded-full"></span>
+      <span class="!w-7 !h-3 !bg-[#f44336] rounded-full"></span>
       Cancelado
     </cite>
   </div>
@@ -329,9 +329,9 @@ const calendarOptions = ref<CalendarOptions>({
         info.el.style.color = "#990f0f";
         break;
       case "CONCLUIDO":
-        info.el.style.backgroundColor = "#2196f333";
-        info.el.style.borderColor = "#185996";
-        info.el.style.color = "#185996";
+        info.el.style.backgroundColor = "#a5a5a533";
+        info.el.style.borderColor = "#828282";
+        info.el.style.color = "#828282";
         break;
     }
     const titleEl = info.el.querySelector(".fc-event-title") as HTMLElement;

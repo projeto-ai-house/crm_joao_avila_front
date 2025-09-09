@@ -311,6 +311,7 @@ import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
 import { useUserStore } from "../../../../stores/user";
 import { DateUtils } from "../../../../utils/DateUtils";
+import dayjs from "dayjs";
 
 const userStore = useUserStore();
 const toast = useToast();
@@ -454,6 +455,17 @@ const confirmSaveAgendamento = () => {
     });
   }
 };
+
+function handlePhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+
+  if (digits.length <= 11) {
+    return phone;
+  } else if (digits.length > 11) {
+    // remover prefixos de país, se houver 45(88)8312-3121
+    phone = phone.replace(/^\+55|^55/, "");
+  }
+}
 
 async function saveAppointment({ valid, values, states }) {
   if (!valid) {
@@ -641,10 +653,15 @@ watch(
           titulo: props.inEdition.titulo || "AGENDAMENTO",
           convenio: props.inEdition.convenio || "",
           Nome_paciente: props.inEdition.nome_cliente || "",
-          telefone_contato: props.inEdition.telefone_contato || "",
+          telefone_contato:
+            handlePhoneNumber(props.inEdition.telefone_contato) || "",
           data: data,
           hora: hora,
-          data_nascimento: dataNascimento,
+          data_nascimento: dataNascimento
+            ? dayjs(dataNascimento)
+                .add(dayjs(dataNascimento).utcOffset() * -1, "minutes")
+                .toDate()
+            : null,
           MedicoID: props.inEdition.medico_id || "",
           status: props.inEdition.status || "ATIVO",
         };

@@ -1,5 +1,8 @@
 <template>
-  <div class="waitlist-wrapper p-4">
+  <div :class="['waitlist-wrapper p-4', { minified: props.minified }]">
+    <!-- Popup menu for status actions -->
+    <Menu ref="statusMenu" :model="statusMenuItems" popup appendTo="body" />
+
     <div class="flex items-center justify-between mb-3" v-if="!props.minified">
       <h3 class="text-lg font-semibold">Lista de Espera (Resumo)</h3>
       <Button
@@ -30,20 +33,25 @@
       >
         <Column
           header="Horário"
-          style="width: 100px; text-align: center"
+          style="width: 120px; text-align: left"
           :class="{ '!w-min': props.minified }"
         >
           <template #body="{ data }">
-            <div class="flex flex-col items-start">
+            <div
+              v-if="props.minified"
+              class="text-sm text-gray-700"
+              style="
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              "
+            >
+              {{ data.timeFormatted }}
+            </div>
+            <div v-else class="flex flex-col items-start">
               <div class="text-sm text-gray-700">{{ data.timeFormatted }}</div>
               <div class="text-xs text-gray-500">
-                {{
-                  data.startIso
-                    ? dayjs(data.startIso).isSame(dayjs(), "day")
-                      ? "Hoje"
-                      : dayjs(data.startIso).format("DD/MM/YYYY")
-                    : "-"
-                }}
+                {{ dateLabel(data.startIso) }}
               </div>
             </div>
           </template>
@@ -57,23 +65,40 @@
           <template #body="{ data }">
             <Tag
               v-if="!props.minified"
-              class="w-full h-7"
+              class="w-full h-7 cursor-pointer"
               :value="data.status || 'PENDENTE'"
               :severity="statusSeverity(data.status)"
+              @click="onStatusTagClick($event, data)"
             />
             <Tag
               v-else
-              class="w-fit h-7"
+              class="w-fit h-7 cursor-pointer"
               :icon="statusIcon(data.status)"
               :severity="statusSeverity(data.status)"
               v-tooltip.top="data.status"
+              @click="onStatusTagClick($event, data)"
             />
           </template>
         </Column>
 
         <Column header="Paciente">
           <template #body="{ data }">
-            <div class="flex items-center gap-3">
+            <div
+              v-if="props.minified"
+              class="flex items-center gap-2"
+              style="
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              "
+            >
+              <span
+                class="text-sm font-semibold"
+                style="min-width: 0; overflow: hidden; text-overflow: ellipsis"
+                >{{ data.patientName }}</span
+              >
+            </div>
+            <div v-else class="flex items-center gap-3">
               <div>
                 <div class="text-sm font-semibold">{{ data.patientName }}</div>
                 <div class="text-xs text-gray-500">
@@ -84,9 +109,19 @@
           </template>
         </Column>
 
-        <Column header="Médico">
+        <Column
+          header="Médico"
+          :style="props.minified ? 'max-width: 200px;' : ''"
+        >
           <template #body="{ data }">
-            <div class="text-sm text-gray-600">
+            <div
+              class="text-sm text-gray-600"
+              :style="
+                props.minified
+                  ? 'white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'
+                  : ''
+              "
+            >
               {{
                 doctors.find((doc) => doc.ID === data.medico_id)?.Nome || "-"
               }}
@@ -130,8 +165,16 @@ import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
+import Menu from "primevue/menu";
+import type { MenuItem } from "primevue/menuitem";
 import Tag from "primevue/tag";
-import { onMounted, ref } from "vue";
+import {
+  onBeforeMount,
+  onBeforeUnmount,
+  onMounted,
+  onUnmounted,
+  ref,
+} from "vue";
 import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
 import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
@@ -160,19 +203,59 @@ const appointments = ref<AppointmentItem[]>([]);
 const doctors = ref<any[]>([]);
 const loading = ref(false);
 const userStore = useUserStore();
+const interval = ref<number | null>(null);
+
+// Status dropdown menu
+const statusMenu = ref();
+const selectedRow = ref<AppointmentItem | null>(null);
+const statusMenuItems = ref<MenuItem[]>([
+  {
+    label: "Ativo",
+    icon: "pi pi-clock",
+    command: () => {
+      updateStatus("ATIVO");
+    },
+  },
+  {
+    label: "Confirmado",
+    icon: "pi pi-check",
+    command: () => {
+      updateStatus("CONFIRMADO");
+    },
+  },
+  {
+    label: "Cancelado",
+    icon: "pi pi-times",
+    command: () => {
+      updateStatus("CANCELADO");
+    },
+  },
+  {
+    label: "Concluído",
+    icon: "pi pi-check-circle",
+    command: () => {
+      updateStatus("CONCLUIDO");
+    },
+  },
+]);
+
+function onStatusTagClick(event: MouseEvent, row: AppointmentItem) {
+  selectedRow.value = row;
+  statusMenu.value?.toggle(event);
+}
 
 function statusIcon(status: string | null) {
   if (!status) return "Clock";
   const s = String(status).toUpperCase();
   switch (s) {
     case "CONFIRMADO":
-      return "pi pi-check-circle";
+      return "pi pi-check";
     case "CANCELADO":
-      return "pi pi-x-circle";
+      return "pi pi-x";
     case "CONCLUIDO":
-      return "pi pi-check-circle2";
+      return "pi pi-check-circle";
     case "ATIVO":
-      return "pi pi-hourglass";
+      return "pi pi-clock";
     default:
       return "pi pi-clock";
   }
@@ -183,11 +266,13 @@ function statusSeverity(status: string | null) {
   const s = String(status).toUpperCase();
   switch (s) {
     case "CONFIRMADO":
-      return "success";
+      return "warn";
     case "CANCELADO":
       return "danger";
     case "CONCLUIDO":
-      return "info";
+      return "success";
+    case "ATIVO":
+      return "warning";
     default:
       return "warning";
   }
@@ -200,12 +285,44 @@ function initialsFromName(name: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+function dateLabel(startIso: string | null) {
+  if (!startIso) return "-";
+  return dayjs(startIso).isSame(dayjs(), "day")
+    ? "Hoje"
+    : dayjs(startIso).format("DD/MM/YYYY");
+}
+
 const calculateTodayRange = () => {
   const now = new Date();
   const start = dayjs(now).startOf("day").format("YYYY-MM-DD") + "T00:00:00Z";
   const end = dayjs(now).endOf("day").format("YYYY-MM-DD") + "T23:59:59Z";
   return { dataInicio: start, dataFim: end };
 };
+
+async function updateStatus(newStatus: string) {
+  if (!selectedRow.value) return;
+  const appointmentId = selectedRow.value.id;
+  try {
+    const payload = {
+      id: appointmentId,
+      status: newStatus,
+    };
+    const response = await AppointmentsServices.updateAppointment(
+      payload,
+      true
+    );
+    if (response.status === 200) {
+      // Atualizar a lista de agendamentos após a alteração
+      await fetchAppointments();
+    } else {
+      console.error("Erro ao atualizar status do agendamento:", response);
+    }
+  } catch (error) {
+    console.error("Erro ao atualizar status do agendamento:", error);
+  } finally {
+    selectedRow.value = null;
+  }
+}
 
 async function fetchAppointments() {
   loading.value = true;
@@ -342,14 +459,47 @@ async function fetchMedicos() {
 onMounted(async () => {
   await fetchMedicos();
   await fetchAppointments();
-  setInterval(() => {
-    fetchAppointments();
-  }, 60000);
+  if (props.minified) {
+    interval.value = setInterval(() => {
+      if (!localStorage.getItem(import.meta.env.VITE_TOKEN_KEY)) {
+        clearInterval(interval.value);
+      } else {
+        fetchAppointments();
+      }
+    }, 30000);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (interval.value) {
+    clearInterval(interval.value);
+    interval.value = null;
+  }
+});
+
+onUnmounted(() => {
+  if (interval.value) {
+    clearInterval(interval.value);
+    interval.value = null;
+  }
 });
 </script>
 
 <style scoped>
 .waitlist-wrapper {
   min-width: 320px;
+}
+
+/* Minified mode: keep cells on one line and ellipsis overflow */
+.waitlist-wrapper.minified :deep(.p-datatable .p-datatable-tbody > tr > td) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.waitlist-wrapper.minified :deep(.p-tag) {
+  line-height: 1;
 }
 </style>
