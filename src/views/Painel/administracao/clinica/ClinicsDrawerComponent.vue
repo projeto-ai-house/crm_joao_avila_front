@@ -828,6 +828,7 @@ watch(
             Email: props.inEdition?.Donos[0].email || "",
             Convenio: props.inEdition?.Donos[0].convenio || "",
             ClinicaID: props.inEdition?.ID || "",
+            plano_custom_dados: props.inEdition?.Plano,
             ...props.inEdition,
           };
           console.log("Valores iniciais para edição:", initialValues.value);

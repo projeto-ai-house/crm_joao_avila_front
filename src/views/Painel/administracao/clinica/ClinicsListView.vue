@@ -128,29 +128,32 @@
       </Column>
       <Column headerStyle="width:4rem">
         <template #body="slotProps">
-          <!-- <Button
-            icon="pi pi-pen-to-square"
-            label="Editar"
-            severity="secondary"
-            size="small"
-            variant="text"
-            @click="
-              inEdition = slotProps.data;
-              drawerClinicsState = true;
-            " -->
+          <div class="flex justify-start items-center gap-2">
+            <Button
+              icon="pi pi-pen-to-square"
+              label="Editar"
+              severity="secondary"
+              size="small"
+              variant="text"
+              @click="
+                inEdition = slotProps.data;
+                drawerClinicsState = true;
+              "
+            />
 
-          <Button
-            label="Assinatura"
-            icon="pi pi-ticket"
-            severity="info"
-            size="small"
-            variant="outlined"
-            v-show="slotProps.data?.AssinaturaId"
-            @click="
-              signatureSelected = slotProps.data?.AssinaturaId;
-              drawerSignatureState = true;
-            "
-          />
+            <Button
+              label="Assinatura"
+              icon="pi pi-ticket"
+              severity="info"
+              size="small"
+              variant="outlined"
+              v-show="slotProps.data?.AssinaturaId"
+              @click="
+                signatureSelected = slotProps.data?.AssinaturaId;
+                drawerSignatureState = true;
+              "
+            />
+          </div>
         </template>
       </Column>
 
