@@ -37,16 +37,76 @@
     >
       <template #empty> Nenhuma clínica encontrada. </template>
       <template #loading> Carregando clínicas... </template>
-      <Column expander style="width: 5rem" />
+      <Column expander style="width: 1rem" />
+      <Column field="" header="" class="" style="max-width: 200px">
+        <template #body="slotProps">
+          <div class="flex items-center gap-2">
+            <div v-tooltip.top="slotProps.data.Ativa ? 'Ativa' : 'Inativa'">
+              <Power
+                class="w-4 h-4 text-green-300"
+                style="stroke-width: 3.4px"
+                v-if="!!slotProps.data.Ativa"
+              />
+              <PowerOff
+                class="w-4 h-4 text-red-300"
+                style="stroke-width: 3.4px"
+                v-if="!slotProps.data.Ativa"
+              />
+            </div>
+
+            <div
+              v-tooltip.top="
+                'Limite do plano atingido em ' +
+                (slotProps.data.LimiteAtingidoEm
+                  ? new Date(
+                      slotProps.data.LimiteAtingidoEm
+                    ).toLocaleDateString()
+                  : 'N/A')
+              "
+            >
+              <TriangleAlert
+                class="w-4 h-4 text-orange-400"
+                style="stroke-width: 3px"
+                v-if="slotProps.data.LimitePlanoAtingido"
+              />
+            </div>
+          </div>
+        </template>
+      </Column>
       <Column
         field="NomeClinica"
         sortable
         header="Nome"
+        class="!pl-0"
         style="max-width: 200px"
       >
         <template #body="slotProps">
-          <div class="truncate-cell" :title="slotProps.data.NomeClinica">
+          <div
+            class="truncate-cell font-medium"
+            :title="slotProps.data.NomeClinica"
+          >
             {{ slotProps.data.NomeClinica }}
+          </div>
+        </template>
+      </Column>
+      <Column field="Status" sortable header="Status" style="max-width: 200px">
+        <template #body="slotProps">
+          <div
+            :title="translateStatus(slotProps.data.Status)"
+            class="truncate-cell font-medium text-gray-500"
+            :class="{
+              '!text-green-400': slotProps.data.Status === 'paid',
+              '!text-blue-400': slotProps.data.Status === 'active',
+            }"
+          >
+            {{ translateStatus(slotProps.data.Status) }}
+            <Check
+              v-if="
+                slotProps.data.Status === 'paid' ||
+                slotProps.data.Status === 'active'
+              "
+              class="inline w-4 h-4"
+            />
           </div>
         </template>
       </Column>
@@ -61,6 +121,47 @@
             {{ slotProps.data.dono }}
           </div>
         </template>
+        <!-- 
+        AssinaturaId
+: 
+"in_1Ruyn7LwRkNmI7bLXM5WOSpY"
+Ativa
+: 
+true
+Cnpj
+: 
+"12312132323233"
+Donos
+: 
+null
+Endereco
+: 
+" TESTE token 2"
+ID
+: 
+"760a12e1-107d-4be1-a96d-2bb508c425b0"
+LimiteAtingidoEm
+: 
+null
+LimitePlanoAtingido
+: 
+false
+NomeClinica
+: 
+"Clinica Mestra"
+Plano
+: 
+{nome: "", limite_conversas: 0, periodo_dias: 0, valor: 0, recorrente: null,…}
+Status
+: 
+"paid"
+Token
+: 
+""
+plano_id
+: 
+"e6eb6472-b61f-429c-a66a-c1f370bfb941"
+        -->
       </Column>
       <Column field="Cnpj" sortable header="CNPJ" style="max-width: 200px">
         <template #body="slotProps">
@@ -71,19 +172,35 @@
       </Column>
       <Column field="Plano" sortable header="Plano" style="max-width: 200px">
         <template #body="slotProps">
-          <div
-            class="truncate-cell"
-            :title="
-              slotProps.data?.Plano?.nome +
-                (slotProps.data?.Plano?.recorrente ? ' (Recorrente)' : '') ||
-              'Indefinido'
-            "
-          >
-            {{
-              slotProps.data?.Plano?.nome +
-                (slotProps.data?.Plano?.recorrente ? " (Recorrente)" : "") ||
-              "Indefinido"
-            }}
+          <div class="flex items-center">
+            <div
+              class="pl-2 pr-1 rounded-l-full h-6"
+              :class="{
+                'border border-orange-600 font-semibold text-orange-600 bg-white ':
+                  slotProps.data?.LimitePlanoAtingido,
+              }"
+              :title="
+                slotProps.data?.Plano?.nome +
+                  (slotProps.data?.Plano?.recorrente ? ' (Recorrente)' : '') ||
+                'Indefinido'
+              "
+            >
+              {{
+                slotProps.data?.Plano?.nome +
+                  (slotProps.data?.Plano?.recorrente ? " (Recorrente)" : "") ||
+                "Indefinido"
+              }}
+            </div>
+            <div
+              v-if="slotProps.data.LimitePlanoAtingido"
+              class="text-xs bg-orange-600 pl-2 pr-3 py-0 rounded-r-full text-white font-semibold flex items-center justify-center h-6"
+              v-tooltip.top="
+                generateDaysCount(slotProps.data.LimiteAtingidoEm) +
+                ' Dias desde o limite de uso atingido'
+              "
+            >
+              {{ generateDaysCount(slotProps.data.LimiteAtingidoEm) }}
+            </div>
           </div>
         </template>
       </Column>
@@ -266,6 +383,8 @@
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
+import { Check, Power, PowerOff, TriangleAlert } from "lucide-vue-next";
 import { Button, Paginator, useToast } from "primevue";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
@@ -303,6 +422,21 @@ function maskCnpj(cnpj: string) {
 function changePage(event: any) {
   currentPage.value = event.page + 1;
   fetchClinics();
+}
+
+function translateStatus(status: string) {
+  if (!status) return "Indefinido";
+  if (status === "paid") return "Pago";
+  if (status === "active") return "Ativo";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+function generateDaysCount(date: string) {
+  if (!date) return "-";
+  const now = dayjs();
+  const pastDate = dayjs(date);
+  const diff = now.diff(pastDate, "day");
+  return diff + (diff === 1 ? " dia" : " dias");
 }
 
 function editCEO(data: any) {

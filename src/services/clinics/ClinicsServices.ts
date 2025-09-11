@@ -28,4 +28,10 @@ export class ClinicsServices {
   public static async postClinic(body: IClinic): Promise<AxiosResponse> {
     return callApi(ROUTE, "post", undefined, body);
   }
+  public static async putClinic(
+    id: string,
+    body: IClinic
+  ): Promise<AxiosResponse> {
+    return callApi(`${ROUTE}/${id}`, "put", undefined, body);
+  }
 }

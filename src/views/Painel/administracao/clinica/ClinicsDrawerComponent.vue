@@ -446,6 +446,45 @@
         </div>
       </div>
 
+      <div
+        class="bg-red-100 border border-red-300 text-red-800 text-sm p-3 rounded-lg col-span-12 mt-2"
+        v-if="isEditing"
+        :class="{
+          '!bg-blue-100 !border-blue-300 !text-blue-800': initialValues.Ativa,
+        }"
+      >
+        <div class="flex justify-between items-start gap-2">
+          <div v-if="initialValues.Ativa">
+            <div class="font-semibold mb-1">Clínica Ativa:</div>
+            <span class="text-justify font-normal">
+              Ao desativar a clínica, todos os usuários vinculados a ela serão
+              desativados e não poderão mais acessar o sistema.
+            </span>
+          </div>
+          <div v-else>
+            <div class="font-semibold mb-1">Clínica Inativa:</div>
+            <span class="text-justify font-normal">
+              Ao ativar a clínica, todos os usuários vinculados a ela serão
+              ativados e poderão acessar o sistema normalmente.
+            </span>
+          </div>
+
+          <div>
+            <!-- <Button
+              icon="pi pi-exclamation-triangle"
+              severity="danger"
+              size="small"
+              label="Desativar"
+              class="p-0 mt-1"
+            /> -->
+            <ToggleSwitch
+              v-model="initialValues.Ativa"
+              @value-change="handleToggleChange"
+            />
+          </div>
+        </div>
+      </div>
+
       <cite
         class="text-gray-400 text-sm col-span-12 mt-2 pt-2 border-t border-gray-100"
       >
@@ -491,6 +530,7 @@ import {
   InputText,
   Message,
   Select,
+  ToggleSwitch,
   useToast,
 } from "primevue";
 import Button from "primevue/button";
@@ -528,6 +568,7 @@ interface Role {
 const globalLoading = inject<Ref<boolean>>("globalLoading");
 const isEditing = ref(false);
 const formClinic = ref(null);
+const old_assinatura_id = ref("");
 const listRoles = ref<Role[]>([]);
 const listPlans = ref<IPlan[]>([
   {
@@ -537,6 +578,7 @@ const listPlans = ref<IPlan[]>([
 ]);
 const initialValues = ref({
   nome_clinica: "",
+  Ativa: false,
   Cnpj: "",
   Endereco: "",
   assinatura_id: "",
@@ -641,6 +683,10 @@ const confirmAddClinic = () => {
       severity: "success",
     },
     accept: () => {
+      if (isEditing.value) {
+        editClinicOnly();
+        return;
+      }
       formClinic.value?.submit();
     },
     reject: () => {
@@ -654,6 +700,31 @@ const confirmAddClinic = () => {
   });
 };
 
+function handleToggleChange(value: boolean) {
+  const action = value ? "ativar" : "desativar";
+  confirm.require({
+    message: `Tem certeza que deseja ${action} a clínica?`,
+    header: "Confirmação",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: {
+      label: "Cancelar",
+      severity: "secondary",
+      outlined: true,
+    },
+    acceptProps: {
+      label: "Confirmar",
+      severity: "success",
+    },
+    accept: () => {
+      initialValues.value.Ativa = value;
+    },
+    reject: () => {
+      // Reverter o valor do toggle switch
+      initialValues.value.Ativa = !value;
+    },
+  });
+}
+
 function handlePlanChange(event: any) {
   const selectedPlan = event.value;
   if (selectedPlan === "custom") {
@@ -663,11 +734,69 @@ function handlePlanChange(event: any) {
   }
 }
 
+async function editClinicOnly() {
+  try {
+    globalLoading.value = true;
+    const clinic = {
+      nome_clinica: initialValues.value.nome_clinica,
+      Cnpj: initialValues.value.Cnpj.replace(/\D/g, ""),
+      Endereco: initialValues.value.Endereco,
+      plano_id: initialValues.value.plano_id,
+      plano_custom: initialValues.value.plano_custom,
+      plano_custom_dados: null,
+      is_active: initialValues.value.Ativa,
+    };
+    if (old_assinatura_id.value !== initialValues.value.assinatura_id) {
+      clinic["assinatura_id"] = initialValues.value.assinatura_id;
+    }
+
+    if (initialValues.value.plano_custom) {
+      clinic.plano_custom_dados = {
+        ...initialValues.value.plano_custom_dados,
+        data_inicio: initialValues.value.plano_custom_dados.data_inicio
+          ? DateUtils.formatDatetoISOGlobalTimezone(
+              initialValues.value.plano_custom_dados.data_inicio
+            )
+          : null,
+      };
+    } else {
+      clinic.plano_custom_dados = listPlans.value.find(
+        (plan) => plan.id === initialValues.value.plano_id
+      ) as any;
+      clinic.plano_custom_dados = {
+        ...clinic.plano_custom_dados,
+        recorrente: initialValues.value.plano_custom_dados.recorrente,
+        data_inicio: initialValues.value.plano_custom_dados.data_inicio
+          ? DateUtils.formatDatetoISOGlobalTimezone(
+              initialValues.value.plano_custom_dados.data_inicio
+            )
+          : null,
+      };
+      delete clinic.plano_custom_dados.id;
+    }
+
+    const responseClinic = await ClinicsServices.putClinic(
+      props.inEdition?.ID,
+      clinic
+    );
+
+    if (responseClinic.status >= 200 && responseClinic.status < 300) {
+      emit("saveClinic", responseClinic.data);
+      emit("update:drawerState", false);
+    } else {
+      return;
+    }
+  } catch (error) {
+    console.error("Erro ao salvar clínica:", error);
+  } finally {
+    globalLoading.value = false;
+  }
+}
+
 async function saveClinic({ valid, values, states }) {
   if (!valid) {
     return;
   }
-  console.log("Formulário válido. Salvando clínica...", initialValues.value);
 
   try {
     globalLoading.value = true;
@@ -706,7 +835,16 @@ async function saveClinic({ valid, values, states }) {
       delete clinic.plano_custom_dados.id;
     }
 
-    const responseClinic = await ClinicsServices.postClinic(clinic);
+    let responseClinic: any;
+    if (isEditing.value) {
+      responseClinic = await ClinicsServices.putClinic(
+        props.inEdition?.ID,
+        clinic
+      );
+    } else {
+      responseClinic = await ClinicsServices.postClinic(clinic);
+    }
+
     if (responseClinic.status >= 200 && responseClinic.status < 300) {
       const user = {
         Nome: initialValues.value.Nome,
@@ -786,6 +924,7 @@ watch(
           isEditing.value = false;
           initialValues.value = {
             nome_clinica: "",
+            Ativa: false,
             Cnpj: "",
             Endereco: "",
             assinatura_id: "",
@@ -813,25 +952,17 @@ watch(
           break;
         default:
           isEditing.value = true;
-          console.log("props.inEdition:", props.inEdition);
-
+          old_assinatura_id.value = props.inEdition?.AssinaturaId || "";
           initialValues.value = {
             nome_clinica: props.inEdition?.NomeClinica || "",
-            Nome: props.inEdition?.Donos[0].nome_completo || "",
-            Cpf: props.inEdition?.Donos[0].cpf || "",
-            DataNascimento: props.inEdition?.Donos[0].data_nascimento
-              ? new Date(
-                  props.inEdition?.Donos[0].data_nascimento
-                ).toISOString()
-              : null,
-            Telefone: props.inEdition?.Donos[0].telefone || "",
-            Email: props.inEdition?.Donos[0].email || "",
-            Convenio: props.inEdition?.Donos[0].convenio || "",
             ClinicaID: props.inEdition?.ID || "",
-            plano_custom_dados: props.inEdition?.Plano,
+            assinatura_id: props.inEdition?.AssinaturaId || "",
+            plano_custom_dados: Object.assign(
+              initialValues.value.plano_custom_dados,
+              props.inEdition?.Plano
+            ),
             ...props.inEdition,
           };
-          console.log("Valores iniciais para edição:", initialValues.value);
 
           break;
       }
@@ -839,6 +970,7 @@ watch(
       isEditing.value = false;
       initialValues.value = {
         nome_clinica: "",
+        Ativa: false,
         Cnpj: "",
         Endereco: "",
         assinatura_id: "",

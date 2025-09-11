@@ -32,7 +32,7 @@
               for="assinatura_id"
               class="text-sm font-medium text-gray-900"
             >
-              Nome da Clínica
+              ID da Assinatura
             </label>
             <InputText
               id="assinatura_id"
