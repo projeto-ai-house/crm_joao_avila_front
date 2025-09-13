@@ -4,8 +4,15 @@
     v-else
     class="bg-white border border-gray-200 rounded-xl p-4 h-full flex flex-col"
   >
-    <div class="w-full flex justify-between items-center">
-      <h3 class="font-semibold text-gray-800">{{ props.title }}</h3>
+    <div
+      class="w-full flex justify-between items-center"
+      :class="{
+        'justify-end': !props.title,
+      }"
+    >
+      <h3 v-show="!!props.title" class="font-semibold text-gray-800">
+        {{ props.title }}
+      </h3>
       <icon
         :is="props.icon"
         class="text-gray-400 w-5 h-5"

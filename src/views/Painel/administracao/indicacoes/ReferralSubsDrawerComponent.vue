@@ -12,8 +12,17 @@
         <span class="font-bold">Submissões</span>
       </div>
     </template>
-    <DataTable :value="submissions">
-      <Column field="nome_clinica_indicada" header="Identificação">
+    <DataTable :value="submissions" scrollable scrollHeight="flex">
+      <Column
+        field="nome_clinica_indicada"
+        header="Identificação"
+        :bodyStyle="{
+          maxWidth: '300px',
+          whiteSpace: 'nowrap',
+          overflow: 'auto',
+          textOverflow: 'ellipsis',
+        }"
+      >
         <template #body="slotProps">
           <span class="font-semibold text-gray-600">
             {{ slotProps.data.nome_clinica_indicada || "Não informado" }}
@@ -23,7 +32,16 @@
           </span>
         </template>
       </Column>
-      <Column field="cnpj_indicado" header="CNPJ">
+      <Column
+        field="cnpj_indicado"
+        header="CNPJ"
+        :bodyStyle="{
+          maxWidth: '300px',
+          whiteSpace: 'nowrap',
+          overflow: 'auto',
+          textOverflow: 'ellipsis',
+        }"
+      >
         <template #body="slotProps">
           <div class="flex items-center gap-2">
             <span>{{ slotProps.data.cnpj_indicado || "Não informado" }}</span>
@@ -39,7 +57,16 @@
           </div>
         </template>
       </Column>
-      <Column field="email_indicado" header="E-mail">
+      <Column
+        field="email_indicado"
+        header="E-mail"
+        :bodyStyle="{
+          maxWidth: '300px',
+          whiteSpace: 'nowrap',
+          overflow: 'auto',
+          textOverflow: 'ellipsis',
+        }"
+      >
         <template #body="slotProps">
           <div class="flex items-center gap-2">
             <span>{{ slotProps.data.email_indicado || "Não informado" }}</span>
@@ -55,7 +82,16 @@
           </div>
         </template>
       </Column>
-      <Column field="telefone_whatsapp_indicado" header="Telefone/WhatsApp">
+      <Column
+        field="telefone_whatsapp_indicado"
+        header="Telefone/WhatsApp"
+        :bodyStyle="{
+          maxWidth: '300px',
+          whiteSpace: 'nowrap',
+          overflow: 'auto',
+          textOverflow: 'ellipsis',
+        }"
+      >
         <template #body="slotProps">
           <div class="flex items-center gap-2">
             <span>{{

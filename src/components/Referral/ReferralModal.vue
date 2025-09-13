@@ -14,14 +14,12 @@
         </div>
         <div class="flex flex-col">
           <span class="font-bold text-lg text-gray-800">Indique um Amigo</span>
-          <span class="text-sm text-gray-500"
-            >Compartilhe e ganhe benefícios</span
-          >
+          <span class="text-sm text-gray-500">Indique e ganhe R$200,00</span>
         </div>
       </div>
     </template>
 
-    <div class="referral-modal-content">
+    <div class="referral-modal-content p-0 sm:p-4">
       <!-- Mensagem explicativa -->
       <div class="referral-message">
         <div class="referral-message-icon">
@@ -30,8 +28,8 @@
         <div class="referral-message-text">
           <p class="text-gray-700 leading-relaxed">
             Basta compartilhar o link abaixo com a pessoa que você deseja
-            indicar. Quando ela se cadastrar usando seu link, vocês recebem
-            benefícios exclusivos!
+            indicar. Quando ela fechar qualquer plano pelo seu link, vocês dois
+            ganham um desconto de R$200,00 no seu próximo plano!
           </p>
         </div>
       </div>
@@ -56,7 +54,7 @@
                 size="small"
                 class="referral-copy-button"
                 :loading="copyLoading"
-                @click="copyLink"
+                @click="copyLink(referralLink)"
                 v-tooltip.top="copyTooltip"
               />
             </InputGroupAddon>
@@ -79,11 +77,15 @@
         <ul class="referral-benefits-list">
           <li class="referral-benefit-item">
             <CheckCircle class="w-4 h-4 text-green-500" />
-            <span>Desconto especial no seu plano</span>
+            <span>Ganhe R$200,00 de desconto por indicação </span>
           </li>
           <li class="referral-benefit-item">
             <CheckCircle class="w-4 h-4 text-green-500" />
-            <span>Condições diferenciadas para o indicado</span>
+            <span> Desconto especial no plano do indicado </span>
+          </li>
+          <li class="referral-benefit-item">
+            <CheckCircle class="w-4 h-4 text-green-500" />
+            <span> Prioridade no seu suporte </span>
           </li>
         </ul>
       </div>
@@ -197,11 +199,12 @@ const handleVisibilityChange = (value: boolean) => {
   emit("update:visible", value);
 };
 
-const copyLink = async () => {
-  if (!referralLink.value) return;
+const copyLink = async (link: string) => {
+  if (!referralLink.value || link) return;
+  const realLink = link || referralLink.value;
   copyLoading.value = true;
   try {
-    await navigator.clipboard.writeText(referralLink.value);
+    await navigator.clipboard.writeText(realLink);
     copySuccess.value = true;
     copyTooltip.value = "Copiado!";
     toast.add({
@@ -226,22 +229,30 @@ const copyLink = async () => {
   }
 };
 
-const shareLink = () => {
+const shareLink = async () => {
   if (!referralLink.value) return;
-  if (navigator.share) {
-    navigator
-      .share({
-        title: "Indicação Mednova",
-        text: "Olá! Quero te indicar a Mednova, uma plataforma incrível para gestão médica. Use meu link para se cadastrar:",
-        url: referralLink.value,
-      })
-      .catch(() => {
-        copyLink();
-      });
-  } else {
-    copyLink();
+
+  const shareData = {
+    title: "Indicação Mednova",
+    text: "Olá! Quero te indicar a Mednova, uma plataforma incrível para gestão médica. Use meu link para se cadastrar:",
+    url: referralLink.value,
+  };
+
+  try {
+    // Verifica se o navegador suporta e pode compartilhar
+    if (
+      navigator.share &&
+      (!navigator.canShare || navigator.canShare(shareData))
+    ) {
+      await navigator.share(shareData);
+      emit("share", referralLink.value);
+    } else {
+      await copyLink(referralLink.value); // fallback: copia para área de transferência
+    }
+  } catch (err) {
+    // Se o usuário cancelar ou der erro, copia o link
+    await copyLink(referralLink.value);
   }
-  emit("share", referralLink.value);
 };
 
 const closeModal = () => {
@@ -277,7 +288,7 @@ const closeModal = () => {
 }
 
 .referral-modal-content {
-  padding: 1.5rem;
+  /* padding: 1.5rem; */
   display: flex;
   flex-direction: column;
   gap: 1.5rem;

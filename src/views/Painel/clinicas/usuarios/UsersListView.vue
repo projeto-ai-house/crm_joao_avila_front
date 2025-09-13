@@ -13,6 +13,7 @@
       icon="pi pi-plus"
       severity="primary"
       size="small"
+      class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2"
       @click="
         inEdition = null;
         drawerState = true;
@@ -44,16 +45,38 @@
         </span>
       </template>
 
-      <Column field="NomeCompleto" header="Nome" sortable>
+      <Column
+        field="NomeCompleto"
+        header="Nome"
+        sortable
+        bodyClass="whitespace-nowrap max-w-[300px]"
+      >
         <template #body="slotProps">
-          <span class="font-semibold text-gray-600">{{
-            slotProps.data.NomeCompleto
-          }}</span>
+          <span
+            class="font-semibold text-gray-600 max-w-[300px] overflow-hidden text-ellipsis inline-block"
+          >
+            {{ slotProps.data.NomeCompleto }}
+          </span>
         </template>
       </Column>
-      <Column field="Email" header="E-mail" sortable></Column>
-      <Column field="Convenio" header="Convênio" sortable></Column>
-      <Column field="Cargo" header="Cargo" sortable></Column>
+      <Column
+        field="Email"
+        header="E-mail"
+        sortable
+        bodyClass="whitespace-nowrap max-w-[300px]"
+      ></Column>
+      <Column
+        field="Convenio"
+        header="Convênio"
+        sortable
+        bodyClass="whitespace-nowrap max-w-[300px]"
+      ></Column>
+      <Column
+        field="Cargo"
+        header="Cargo"
+        sortable
+        bodyClass="whitespace-nowrap max-w-[300px]"
+      ></Column>
       <Column
         field="Vinculos"
         header="Vínculos"
@@ -304,7 +327,6 @@ const confirmDeleteUser = () => {
       acceptProps: {
         label: "Confirmar",
         severity: "danger",
-        outlined: true,
       },
       accept: () => {
         deleteUser(userInDeletion.value);

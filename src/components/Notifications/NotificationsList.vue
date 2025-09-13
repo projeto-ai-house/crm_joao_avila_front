@@ -22,8 +22,8 @@
       </transition>
     </div>
 
-    <Popover ref="popoverComponent" class="max-w-[96vw]">
-      <div class="w-[26rem] bg-white">
+    <Popover ref="popoverComponent" class="max-w-[98vw]">
+      <div class="w-[26rem] max-w-full bg-white">
         <div class="flex items-start justify-between mb-2">
           <div>
             <h2 class="text-md font-semibold text-gray-800">Notificações</h2>

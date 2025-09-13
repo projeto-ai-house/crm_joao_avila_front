@@ -2,33 +2,43 @@
   <Dialog
     v-model:visible="props.dialogState"
     modal
-    header="Edit Profile"
-    :style="{ width: '40rem' }"
+    :closable="true"
+    :style="{ width: '100%', maxWidth: '480px', padding: 0 }"
+    contentClass="p-0"
+    class="rounded-xl shadow-2xl m-2"
     @update:visible="emit('update:dialogState', $event)"
   >
     <template #header>
-      <div class="flex flex-col items-start justify-start gap-0">
-        <span class="font-bold whitespace-nowrap"
-          >Permissões - {{ props.inEdition?.Nome }}</span
-        >
+      <div
+        class="flex flex-col items-start gap-0 px-1 pt-4 pb-1 sm:px-2 sm:pt-6 sm:pb-2"
+      >
+        <span class="font-bold text-lg text-gray-800 whitespace-nowrap">
+          Permissões - {{ props.inEdition?.Nome }}
+        </span>
         <span class="text-sm text-gray-500">
           Edite as permissões do usuário selecionado.
         </span>
       </div>
     </template>
-    <div class="flex flex-col items-center justify-center gap-4">
+    <div
+      class="flex flex-col gap-2 px-1 sm:px-2 pb-1 pt-1 w-full sm:gap-4 sm:pb-2 sm:pt-2"
+    >
       <div
         v-for="(permission, index) in permissionsList"
         :key="index"
-        class="w-full"
+        class="w-full border-b last:border-b-0 border-gray-100 py-1 sm:py-2"
       >
-        <div class="flex items-center justify-between">
-          <span class="font-semibold">{{
-            permission.label[0]?.toUpperCase() + permission.label?.slice(1)
-          }}</span>
-          <div class="flex items-center gap-2">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2"
+        >
+          <span class="font-semibold text-gray-700">
+            {{
+              permission.label[0]?.toUpperCase() + permission.label?.slice(1)
+            }}
+          </span>
+          <div class="grid grid-cols-2 sm:flex sm:items-center gap-1 sm:gap-2">
             <div
-              class="flex items-center gap-2 mx-1"
+              class="flex items-center gap-1"
               v-for="(value, i) in ['criar', 'editar', 'excluir', 'visualizar']"
               :key="i"
             >
@@ -37,6 +47,7 @@
                 :inputId="`${permission.label}-${value}`"
                 :name="`${permission.label}-${value}`"
                 :binary="true"
+                class="accent-primary"
                 @change="
                   editPermission({
                     permission: permission.label,
@@ -45,7 +56,10 @@
                   })
                 "
               />
-              <label :for="`${permission.label}-${value}`">
+              <label
+                :for="`${permission.label}-${value}`"
+                class="text-xs sm:text-sm text-gray-600 cursor-pointer"
+              >
                 {{ permissionLabels[value] }}
               </label>
             </div>
@@ -53,21 +67,7 @@
         </div>
       </div>
     </div>
-    <!-- <template #footer>
-      <Button
-        label="Cancelar"
-        text
-        severity="secondary"
-        @click="emit('update:dialogState', false)"
-        autofocus
-      />
-      <Button
-        label="Salvar"
-        severity="primary"
-        @click="emit('update:dialogState', false)"
-        autofocus
-      />
-    </template> -->
+    <!-- Rodapé removido conforme solicitado -->
   </Dialog>
 </template>
 

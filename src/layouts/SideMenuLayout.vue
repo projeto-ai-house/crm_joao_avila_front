@@ -79,7 +79,6 @@ import { onBeforeMount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import ReferralButton from "../components/Referral/ReferralButton.vue";
 import { useUserStore } from "../stores/user";
-import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 import { MenuUtils } from "../utils/MenuUtils";
 import { PermissionsUtils } from "../utils/PermissionsUtils";
 
@@ -120,7 +119,8 @@ function handleSelectedPage() {
     page = router.currentRoute.value?.path.split("/").pop() as
       | string
       | undefined;
-  if (page) PAGENAME.value = page;
+  if (page?.toUpperCase()?.includes("DASHBOARD")) PAGENAME.value = "Dashboard";
+  else if (page) PAGENAME.value = page;
   else PAGENAME.value = "Home";
 }
 
@@ -148,8 +148,6 @@ onBeforeMount(() => {
 onMounted(() => {
   handleSelectedPage();
   CLINICNAME.value = userData.value?.Clinica[0]?.Nome;
-  const token = new AuthenticationUtils().getToken();
-
   // sseStore.connectSSE(token);
 });
 

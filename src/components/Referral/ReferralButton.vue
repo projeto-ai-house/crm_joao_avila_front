@@ -15,7 +15,7 @@
         </div>
         <div class="referral-text">
           <span class="referral-title">Indique um Amigo</span>
-          <span class="referral-subtitle">Ganhe benefícios exclusivos</span>
+          <span class="referral-subtitle">Indique e ganhe R$200,00!</span>
         </div>
         <!-- <div class="referral-arrow">
           <ChevronRight class="w-4 h-4" />

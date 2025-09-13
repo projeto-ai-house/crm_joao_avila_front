@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-between items-center p-1 py-4 bg-white pb-4">
+  <div class="flex justify-between items-center p-1 sm:py-4 bg-white pb-4">
     <div>
       <h2 class="font-semibold text-gray-500">Paciente</h2>
       <p class="text-sm text-gray-400"></p>
@@ -8,10 +8,12 @@
       <Button
         v-if="editing"
         label="Anamneses"
-        icon="pi pi-file"
+        icon="pi pi-clipboard"
         severity="info"
         variant="outlined"
         size="small"
+        class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2"
+        v-tooltip="'Ver Anamneses do Paciente'"
         @click="
           globalLoading = true;
           router.push({
@@ -26,6 +28,8 @@
         label="Salvar"
         severity="primary"
         size="small"
+        class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2"
+        v-tooltip="'Salvar alterações'"
         @click="salvarPaciente"
       />
       <Button
@@ -33,9 +37,14 @@
         severity="secondary"
         size="small"
         variant="text"
-        class="ml-2"
+        class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2 sm:ml-2"
+        v-tooltip="'Voltar'"
         @click="router.go(-1)"
-      />
+      >
+        <template #icon>
+          <Undo2 class="w-4 h-4" />
+        </template>
+      </Button>
     </div>
   </div>
   <Form
@@ -47,7 +56,9 @@
     <div class="col-span-12 border-t border-gray-200 mt-2 pt-2">
       <h3 class="font-semibold text-gray-500">Informações do Paciente</h3>
     </div>
-    <div class="col-span-3 row-span-3 flex flex-col gap-2 max-h-full relative">
+    <div
+      class="col-span-12 sm:col-span-3 row-span-3 flex flex-col gap-2 max-h-full relative"
+    >
       <div
         class="!shadow-md !rounded-xl overflow-hidden"
         v-if="imageSrcLink || initialValues.foto_path"
@@ -88,7 +99,7 @@
       />
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-6 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="nome_clinica"
@@ -113,7 +124,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-6 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <DatePicker
           id="DataNascimento"
@@ -137,7 +148,7 @@
       >
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-6 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <Select
           v-model="initialValues.sexo"
@@ -166,7 +177,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputMask
           id="cpf"
@@ -189,7 +200,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputMask
           id="rg"
@@ -212,7 +223,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="nacionalidade"
@@ -234,7 +245,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="profissao"
@@ -260,7 +271,7 @@
       <h3 class="font-semibold text-gray-500">Dados Físicos</h3>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-4 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputNumber
           id="altura_cm"
@@ -284,7 +295,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-4 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputNumber
           id="peso_kg"
@@ -310,7 +321,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-4 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputNumber
           id="imc"
@@ -336,7 +347,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <Select
           v-model="initialValues.prioridade"
@@ -395,7 +406,7 @@
       <h3 class="font-semibold text-gray-500">Informações Pessoais</h3>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <Select
           v-model="initialValues.cor_pele"
@@ -424,7 +435,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <Select
           v-model="initialValues.estado_civil"
@@ -452,7 +463,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <Select
           v-model="initialValues.escolaridade"
@@ -487,7 +498,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="indicacao"
@@ -513,7 +524,7 @@
       <h3 class="font-semibold text-gray-500">Contato</h3>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputMask
           id="telefone"
@@ -536,7 +547,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputMask
           id="celular"
@@ -559,7 +570,7 @@
       </Message>
     </div>
 
-    <div class="col-span-6 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-6 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="email"
@@ -585,7 +596,7 @@
       <h3 class="font-semibold text-gray-500">Endereço</h3>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <!-- <InputText
           id="cep"
@@ -617,7 +628,7 @@
       </Message>
     </div>
 
-    <div class="col-span-6 row-span-1 flex flex-col gap-1">
+    <div class="col-span-9 sm:col-span-6 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="endereco"
@@ -661,7 +672,7 @@
       </Message>
     </div>
 
-    <div class="col-span-6 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-6 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="complemento"
@@ -683,7 +694,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="cidade"
@@ -705,7 +716,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="estado"
@@ -727,7 +738,7 @@
       </Message>
     </div>
 
-    <div class="col-span-3 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <InputText
           id="pais"
@@ -749,7 +760,7 @@
       </Message>
     </div>
 
-    <div class="col-span-9 row-span-1 flex flex-col gap-1">
+    <div class="col-span-12 sm:col-span-9 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <!-- <textarea
           id="observacoes"
@@ -760,7 +771,7 @@
         /> -->
         <Textarea
           v-model="initialValues.observacoes"
-          rows="1"
+          rows="3"
           cols=""
           size="small"
           fluid
@@ -786,7 +797,7 @@
       v-for="(convenio, index) in [1, 2, 3]"
       :key="index"
     >
-      <div class="col-span-3 row-span-1 flex flex-col gap-1">
+      <div class="col-span-6 sm:col-span-3 row-span-1 flex flex-col gap-1">
         <FloatLabel variant="on">
           <InputText
             :id="`convenio_${index + 1}_plano`"
@@ -799,7 +810,7 @@
           <label for="convenio_1_plano">Plano</label>
         </FloatLabel>
       </div>
-      <div class="col-span-2 row-span-1 flex flex-col gap-1">
+      <div class="col-span-6 sm:col-span-2 row-span-1 flex flex-col gap-1">
         <FloatLabel variant="on">
           <InputText
             :id="`convenio_${index + 1}_matricula`"
@@ -812,7 +823,7 @@
           <label for="convenio_1_matricula">Matrícula</label>
         </FloatLabel>
       </div>
-      <div class="col-span-2 row-span-1 flex flex-col gap-1">
+      <div class="col-span-12 sm:col-span-2 row-span-1 flex flex-col gap-1">
         <FloatLabel variant="on">
           <InputText
             :id="`convenio_${index + 1}_token`"
@@ -825,7 +836,7 @@
           <label for="convenio_1_token">Token</label>
         </FloatLabel>
       </div>
-      <div class="col-span-2 row-span-1 flex flex-col gap-1">
+      <div class="col-span-5 sm:col-span-2 row-span-1 flex flex-col gap-1">
         <FloatLabel variant="on">
           <DatePicker
             :id="`convenio_${index + 1}_validade`"
@@ -838,7 +849,7 @@
           <label for="convenio_1_validade">Validade</label>
         </FloatLabel>
       </div>
-      <div class="col-span-3 row-span-1 flex flex-col gap-1">
+      <div class="col-span-7 sm:col-span-3 row-span-1 flex flex-col gap-1">
         <FloatLabel variant="on">
           <InputText
             :id="`convenio_${index + 1}_titular`"
@@ -851,11 +862,14 @@
           <label for="convenio_1_titular">Titular</label>
         </FloatLabel>
       </div>
+      <span
+        class="col-span-12 text-gray-400 border-b border-gray-200 pb-2"
+      ></span>
     </div>
 
     <!-- Form Programação de Agendamentos -->
     <div
-      class="col-span-5 p-4 border border-gray-200 rounded-lg grid grid-cols-12 gap-x-2 gap-y-4 h-fit"
+      class="col-span-12 sm:col-span-5 p-4 border border-gray-200 rounded-lg grid grid-cols-12 gap-x-2 gap-y-4 h-fit"
       v-if="userStore.user.Role?.toUpperCase() === 'MEDICO'"
     >
       <div class="col-span-12">
@@ -916,8 +930,10 @@
     <div
       class="p-4 border border-gray-200 rounded-lg grid grid-cols-13 gap-x-2 gap-y-4 h-fit"
       :class="{
-        'col-span-12': userStore.user.Role?.toUpperCase() !== 'MEDICO',
-        'col-span-7': userStore.user.Role?.toUpperCase() === 'MEDICO',
+        'col-span-12 sm:col-span-12':
+          userStore.user.Role?.toUpperCase() !== 'MEDICO',
+        'col-span-12 sm:col-span-7':
+          userStore.user.Role?.toUpperCase() === 'MEDICO',
       }"
     >
       <div class="col-span-13">
@@ -926,7 +942,7 @@
         </h3>
       </div>
 
-      <div class="col-span-3">
+      <div class="col-span-12 sm:col-span-3">
         <FloatLabel variant="on">
           <InputText
             id="sub1procedimento"
@@ -937,7 +953,7 @@
           <label for="sub1procedimento">Nome</label>
         </FloatLabel>
       </div>
-      <div class="col-span-3">
+      <div class="col-span-12 sm:col-span-3">
         <FloatLabel variant="on">
           <InputMask
             id="Cpf"
@@ -951,7 +967,7 @@
           <label for="Cpf">CPF</label>
         </FloatLabel>
       </div>
-      <div class="col-span-3">
+      <div class="col-span-12 sm:col-span-3">
         <FloatLabel variant="on">
           <InputMask
             id="Telefone"
@@ -966,7 +982,7 @@
         </FloatLabel>
       </div>
 
-      <div class="col-span-3">
+      <div class="col-span-10 sm:col-span-3">
         <FloatLabel variant="on">
           <DatePicker
             fluid
@@ -982,7 +998,7 @@
         </FloatLabel>
       </div>
 
-      <div class="col-span-1">
+      <div class="col-span-2 sm:col-span-1">
         <Button
           icon="pi pi-plus"
           severity="primary"
@@ -999,14 +1015,16 @@
         v-for="(item, index) in parentsList"
         :key="index"
       >
-        <span class="font-semibold col-span-3">{{ item.nome }}</span>
-        <span class="col-span-3">{{ item.cpf }}</span>
-        <span class="col-span-3">{{ item.telefone }}</span>
-        <span class="col-span-3">
+        <span class="font-semibold col-span-12 sm:col-span-3">{{
+          item.nome
+        }}</span>
+        <span class="col-span-12 sm:col-span-3">{{ item.cpf }}</span>
+        <span class="col-span-12 sm:col-span-3">{{ item.telefone }}</span>
+        <span class="col-span-10 sm:col-span-3">
           {{ DateUtils.formatDateBRtoISO(item.data_nascimento) }}
         </span>
 
-        <div class="col-span-1 !w-full flex justify-center">
+        <div class="col-span-2 sm:col-span-1 !w-full flex justify-center">
           <Button
             icon="pi pi-trash"
             severity="danger"
@@ -1046,6 +1064,7 @@
 import { Form } from "@primevue/forms";
 import imageCompression from "browser-image-compression";
 import dayjs from "dayjs";
+import { Undo2 } from "lucide-vue-next";
 import {
   AutoComplete,
   Button,
@@ -1061,6 +1080,7 @@ import {
   Message,
   Select,
   Textarea,
+  useToast,
 } from "primevue";
 import { inject, nextTick, onMounted, ref, type Ref } from "vue";
 import { useRouter } from "vue-router";
@@ -1080,6 +1100,7 @@ const router = useRouter();
 const permissionsUserPage = ref(
   PermissionsUtils.checkMethodPemission(router.currentRoute.value.fullPath)
 );
+const toast = useToast();
 const userStore = useUserStore();
 const procedureModal = ref(null);
 
@@ -1175,6 +1196,12 @@ function addProcedure(procedure: any) {
   if (procedure) {
     preScheduleList.value.push(procedure.id);
     preScheduleInput.value = "";
+    toast.add({
+      severity: "success",
+      summary: "Procedimento adicionado",
+      detail: `Procedimento ${procedure.nome} adicionado à programação de agendamentos.`,
+      life: 1000,
+    });
   } else {
     console.error("Procedimento não encontrado.");
   }

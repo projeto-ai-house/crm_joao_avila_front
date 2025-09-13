@@ -1,7 +1,7 @@
 <template>
   <div class="p-2">
     <!-- Top -->
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-4">
       <div>
         <h2 class="font-semibold text-gray-500">Dashboard da Administração</h2>
         <p class="text-sm text-gray-400">
@@ -9,7 +9,7 @@
         </p>
       </div>
       <div class="flex items-center gap-4">
-        <div class="text-right">
+        <div class="sm:text-right">
           <div class="text-xs text-gray-400">Crescimento clínicas</div>
           <div class="font-bold text-lg text-green-600">
             {{
@@ -25,7 +25,7 @@
     <!-- Resumo rápido -->
     <div class="grid grid-cols-12 gap-4 mb-4">
       <!-- Card compacto: Clínicas -->
-      <div class="col-span-4">
+      <div class="col-span-12 sm:col-span-4">
         <CardComponent title="Clínicas" :loading="Loading" :icon="TrendingUp">
           <div class="flex items-center gap-4">
             <div class="flex-1">
@@ -55,7 +55,7 @@
       </div>
 
       <!-- Card compacto: Pacientes -->
-      <div class="col-span-4">
+      <div class="col-span-12 sm:col-span-4">
         <CardComponent title="Pacientes" :loading="Loading" :icon="Users">
           <div class="flex items-center gap-4">
             <div class="flex-1">
@@ -86,7 +86,7 @@
       </div>
 
       <!-- Card compacto: Agendamentos -->
-      <div class="col-span-4">
+      <div class="col-span-12 sm:col-span-4">
         <CardComponent title="Agendamentos" :loading="Loading" :icon="Calendar">
           <div class="flex items-center gap-4">
             <div class="flex-1">
@@ -119,9 +119,6 @@
 
     <!-- Panel -->
     <div class="w-full h-full grid grid-cols-12 gap-4">
-      <!-- (Removido) Taxa de Agendamento: não exibir card com valor hardcoded -->
-
-      <!-- Agendamentos por IA (exibir apenas se houver dados reais) -->
       <div
         class="col-span-3"
         v-if="
@@ -151,7 +148,7 @@
       </div>
 
       <!-- Tempo Economizado (exibir apenas se houver dados reais) -->
-      <div
+      <!-- <div
         class="col-span-3"
         v-if="
           (staticFilters.scheduleChart === 'day'
@@ -183,10 +180,10 @@
             >
           </div>
         </CardComponent>
-      </div>
+      </div> -->
 
       <!-- GRAFICO Pacientes Hoje -->
-      <div class="col-span-3">
+      <div class="col-span-12 sm:col-span-3">
         <CardComponent
           :loading="Loading"
           :title="`Pacientes por Clínica`"
@@ -226,7 +223,7 @@
       </div>
 
       <!-- Grafico Agendamentos por Clinica -->
-      <div class="col-span-9">
+      <div class="col-span-12 sm:col-span-9">
         <CardComponent
           :loading="Loading"
           title="Agendamentos por Clínica"
@@ -247,8 +244,8 @@
       <!-- Indicadores agregados (abaixo dos gráficos) -->
       <div class="col-span-12">
         <div class="grid grid-cols-12 gap-4 mb-4">
-          <div class="col-span-3">
-            <CardComponent :loading="Loading" title="" :icon="TrendingUp">
+          <div class="col-span-6 sm:col-span-3">
+            <CardComponent :loading="Loading" title="" :icon="ClipboardPlus">
               <div class="text-xs text-gray-400">Clínicas com agendamentos</div>
               <div class="text-2xl font-bold text-gray-800">
                 {{ clinicsWithAppointments }}
@@ -258,16 +255,16 @@
               </div>
             </CardComponent>
           </div>
-          <div class="col-span-3">
-            <CardComponent :loading="Loading" title="" :icon="TrendingUp">
+          <div class="col-span-6 sm:col-span-3">
+            <CardComponent :loading="Loading" title="" :icon="Users">
               <div class="text-xs text-gray-400">Total de pacientes (soma)</div>
               <div class="text-2xl font-bold text-gray-800">
                 {{ formatNumber(totalPacientesAll) }}
               </div>
             </CardComponent>
           </div>
-          <div class="col-span-3">
-            <CardComponent :loading="Loading" title="" :icon="TrendingUp">
+          <div class="col-span-6 sm:col-span-3">
+            <CardComponent :loading="Loading" title="" :icon="Tally5">
               <div class="text-xs text-gray-400">
                 Total de agendamentos (soma)
               </div>
@@ -276,8 +273,12 @@
               </div>
             </CardComponent>
           </div>
-          <div class="col-span-3">
-            <CardComponent :loading="Loading" title="" :icon="TrendingUp">
+          <div class="col-span-6 sm:col-span-3">
+            <CardComponent
+              :loading="Loading"
+              title=""
+              :icon="ChartNoAxesCombined"
+            >
               <div class="text-xs text-gray-400">
                 Crescimento médio agendamentos
               </div>
@@ -294,9 +295,9 @@
         <CardComponent
           :loading="Loading"
           title="Clínicas - Detalhes numéricos"
-          :icon="TrendingUp"
+          :icon="Logs"
         >
-          <div class="border border-gray-100 rounded-lg overflow-hidden">
+          <div class="rounded-lg overflow-hidden">
             <DataTable :value="pagedClinics" size="small" class="text-sm">
               <!-- <Column header="ID" style="width: 220px">
                 <template #body="slotProps">
@@ -379,7 +380,16 @@
 </template>
 
 <script setup lang="ts">
-import { Bot, Calendar, Clock, TrendingUp, Users } from "lucide-vue-next";
+import {
+  Bot,
+  Calendar,
+  ChartNoAxesCombined,
+  ClipboardPlus,
+  Logs,
+  Tally5,
+  TrendingUp,
+  Users,
+} from "lucide-vue-next";
 import { Column, DataTable, Paginator } from "primevue";
 import Chart from "primevue/chart";
 import { computed, nextTick, onMounted, ref } from "vue";
@@ -427,7 +437,6 @@ const clinicFirst = ref(0);
 const clinicPage = ref(1);
 
 function onClinicPage(event: any) {
-  console.log(event);
   clinicFirst.value = event.first;
   clinicPage.value = event.page + 1;
 }
@@ -487,7 +496,7 @@ function calculateTime(aiMidTime = 0, messagesCount = 0) {
   if (aiMidTime === 0 || messagesCount === 0) return "0h";
   const totalAI = (aiMidTime / 1000) * messagesCount;
   const totalHuman = (humanMidTime / 1000) * messagesCount;
-  console.log(Math.round(totalAI - totalHuman));
+  // console.log(Math.round(totalAI - totalHuman));
   const diff = Math.round(totalAI - totalHuman) * -1;
 
   return `${diff / 60}h`;
@@ -497,11 +506,11 @@ async function fetchData() {
   try {
     Loading.value = true;
     const response = await DashboardServices.getAdminDashboard();
-    console.log(response.data);
+    // console.log(response.data);
 
     dashboardData.value = response.data?.data;
 
-    console.log(dashboardData.value);
+    // console.log(dashboardData.value);
     // build charts
     updateCharts();
   } catch (error) {

@@ -1,6 +1,6 @@
 <template>
   <!-- BEGIN: TopBar -->
-  <div class="flex justify-between items-center pl-1 py-4 bg-white">
+  <div class="flex justify-between items-start pl-1 py-4 bg-white">
     <div>
       <h2 class="font-semibold text-gray-500">Lista de Clínicas</h2>
       <p class="text-sm text-gray-400">
@@ -8,16 +8,19 @@
         responsáveis.
       </p>
     </div>
-    <Button
-      label="Adicionar"
-      icon="pi pi-plus"
-      severity="primary"
-      size="small"
-      @click="
-        inEdition = null;
-        drawerClinicsState = true;
-      "
-    ></Button>
+    <div>
+      <Button
+        label="Adicionar"
+        icon="pi pi-plus"
+        severity="primary"
+        size="small"
+        class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2"
+        @click="
+          inEdition = null;
+          drawerClinicsState = true;
+        "
+      ></Button>
+    </div>
   </div>
   <!-- END: TopBar -->
 
@@ -121,47 +124,6 @@
             {{ slotProps.data.dono }}
           </div>
         </template>
-        <!-- 
-        AssinaturaId
-: 
-"in_1Ruyn7LwRkNmI7bLXM5WOSpY"
-Ativa
-: 
-true
-Cnpj
-: 
-"12312132323233"
-Donos
-: 
-null
-Endereco
-: 
-" TESTE token 2"
-ID
-: 
-"760a12e1-107d-4be1-a96d-2bb508c425b0"
-LimiteAtingidoEm
-: 
-null
-LimitePlanoAtingido
-: 
-false
-NomeClinica
-: 
-"Clinica Mestra"
-Plano
-: 
-{nome: "", limite_conversas: 0, periodo_dias: 0, valor: 0, recorrente: null,…}
-Status
-: 
-"paid"
-Token
-: 
-""
-plano_id
-: 
-"e6eb6472-b61f-429c-a66a-c1f370bfb941"
-        -->
       </Column>
       <Column field="Cnpj" sortable header="CNPJ" style="max-width: 200px">
         <template #body="slotProps">
@@ -174,7 +136,7 @@ plano_id
         <template #body="slotProps">
           <div class="flex items-center">
             <div
-              class="pl-2 pr-1 rounded-l-full h-6"
+              class="truncate-cell pl-2 pr-1 rounded-l-full h-6"
               :class="{
                 'border border-orange-600 font-semibold text-orange-600 bg-white ':
                   slotProps.data?.LimitePlanoAtingido,
@@ -193,10 +155,10 @@ plano_id
             </div>
             <div
               v-if="slotProps.data.LimitePlanoAtingido"
-              class="text-xs bg-orange-600 pl-2 pr-3 py-0 rounded-r-full text-white font-semibold flex items-center justify-center h-6"
+              class="text-xs bg-orange-600 pl-2 pr-3 py-0 rounded-r-full text-white font-semibold flex items-center justify-center h-6 min-w-max"
               v-tooltip.top="
                 generateDaysCount(slotProps.data.LimiteAtingidoEm) +
-                ' Dias desde o limite de uso atingido'
+                ' dias desde o limite de uso atingido'
               "
             >
               {{ generateDaysCount(slotProps.data.LimiteAtingidoEm) }}

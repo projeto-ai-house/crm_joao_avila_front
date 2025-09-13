@@ -570,12 +570,7 @@ const isEditing = ref(false);
 const formClinic = ref(null);
 const old_assinatura_id = ref("");
 const listRoles = ref<Role[]>([]);
-const listPlans = ref<IPlan[]>([
-  {
-    id: "custom",
-    nome: "Plano Personalizado",
-  },
-]);
+const listPlans = ref<IPlan[]>([]);
 const initialValues = ref({
   nome_clinica: "",
   Ativa: false,
@@ -727,7 +722,10 @@ function handleToggleChange(value: boolean) {
 
 function handlePlanChange(event: any) {
   const selectedPlan = event.value;
-  if (selectedPlan === "custom") {
+  const customPlan = listPlans.value.find((plan) =>
+    plan.nome?.toUpperCase().includes("PERSONALIZADO")
+  );
+  if (!!customPlan && customPlan?.id === selectedPlan) {
     initialValues.value.plano_custom = true;
   } else {
     initialValues.value.plano_custom = false;
@@ -885,7 +883,14 @@ async function fetchPlans() {
   try {
     const response = await PlansServices.getPlans();
     if (response.status === 200) {
-      listPlans.value = [...response.data?.data, ...listPlans.value];
+      listPlans.value = [
+        ...response.data?.data.map((plan) => ({
+          ...plan,
+          nome: plan.nome?.includes("Custom")
+            ? "Plano Personalizado"
+            : plan.nome,
+        })),
+      ];
     } else {
       console.error("Erro ao carregar planos");
     }
@@ -963,7 +968,11 @@ watch(
             ),
             ...props.inEdition,
           };
-
+          if (!!initialValues.value.plano_custom_dados) {
+            handlePlanChange({
+              value: initialValues.value.plano_id,
+            });
+          }
           break;
       }
     } else {

@@ -1,5 +1,5 @@
 <template>
-  <div class="card w-full">
+  <div class="card w-full relative">
     <Toolbar
       style="padding: 1rem 1rem 1rem 1.5rem"
       class="!rounded-none !border-t-0 !border-l-0 !border-r-0 border-gray-200"
@@ -31,7 +31,7 @@
         <img
           src="@/assets/images/logo.png"
           alt="Mednova Logo"
-          class="w-10 h-10 mb-1 mx-auto drop-shadow-2xl drop-shadow-gray-800/20 block md:hidden"
+          class="w-10 h-10 mb-1 mx-auto drop-shadow-2xl drop-shadow-gray-800/20 block md:hidden sm:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"
         />
       </template>
 

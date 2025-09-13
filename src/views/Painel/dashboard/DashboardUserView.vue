@@ -38,7 +38,7 @@
     <!-- Panel -->
     <div class="w-full h-full grid grid-cols-12 gap-4">
       <!-- Taxa de Agendamento -->
-      <div class="col-span-3">
+      <div class="col-span-12 sm:col-span-3">
         <CardComponent
           :loading="Loading"
           title="Taxa de Agendamento"
@@ -58,7 +58,7 @@
       </div>
 
       <!-- Agendamentos por IA -->
-      <div class="col-span-3">
+      <div class="col-span-12 sm:col-span-3">
         <CardComponent
           :loading="Loading"
           title="Agendamentos por IA"
@@ -80,7 +80,7 @@
       </div>
 
       <!-- Tempo Economizado -->
-      <div class="col-span-3">
+      <div class="col-span-12 sm:col-span-3">
         <CardComponent
           :loading="Loading"
           title="Tempo Economizado"
@@ -106,7 +106,7 @@
       </div>
 
       <!-- GRAFICO Pacientes Hoje -->
-      <div class="col-span-3">
+      <div class="col-span-12 sm:col-span-3">
         <CardComponent
           :loading="Loading"
           :title="`Pacientes ${
@@ -159,7 +159,7 @@
       </div>
 
       <!-- Horarios Hoje -->
-      <div class="col-span-9">
+      <div class="col-span-12 sm:col-span-9">
         <CardComponent
           :loading="Loading"
           title="Horarios Hoje"
@@ -222,7 +222,7 @@
       </div>
 
       <!-- Lista de Espera -->
-      <div class="col-span-3">
+      <div class="col-span-12 sm:col-span-3">
         <CardComponent :loading="Loading" title="Lista de Espera" :icon="Clock">
           <div
             class="flex flex-col justify-start items-start gap-2 h-full overflow-auto max-h-[40vw] w-full"
@@ -253,7 +253,7 @@
             </div>
             <div
               v-else
-              class="grid grid-cols-3 w-full gap-2 max-h-[20vw] overflow-y-auto"
+              class="grid grid-cols-1 sm:grid-cols-3 w-full gap-2 max-h-[20vw] overflow-y-auto"
             >
               <div
                 v-for="(aniversariante, index) in dashboardData?.birthdays

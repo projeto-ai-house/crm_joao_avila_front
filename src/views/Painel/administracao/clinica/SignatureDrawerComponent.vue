@@ -71,8 +71,17 @@
             <template #empty> Nenhum histórico encontrado. </template>
             <Column field="tipo" sortable header="Tipo">
               <template #body="slotProps">
-                <div class="truncate-cell" :title="slotProps.data.tipo">
-                  {{ slotProps.data.tipo }}
+                <div
+                  class="truncate-cell"
+                  :title="
+                    stripeSubscriptionEventDescriptions[slotProps.data.tipo] ||
+                    slotProps.data.tipo
+                  "
+                >
+                  {{
+                    stripeSubscriptionEventDescriptions[slotProps.data.tipo] ||
+                    slotProps.data.tipo
+                  }}
                 </div>
               </template>
             </Column>
@@ -118,6 +127,32 @@ const props = defineProps<{
   drawerState: boolean;
   assinaturaId?: string | null;
 }>();
+const stripeSubscriptionEventDescriptions: { [eventType: string]: string } = {
+  "customer.created": "Cliente criado",
+  "customer.subscription.created": "Assinatura criada",
+  "customer.subscription.deleted": "Assinatura terminada",
+  "customer.subscription.paused": "Assinatura pausada",
+  "customer.subscription.resumed": "Assinatura retomada",
+  "customer.subscription.trial_will_end": "Período de teste vai acabar",
+  "customer.subscription.updated": "Assinatura atualizada",
+  "entitlements.active_entitlement_summary.updated":
+    "Resumo de direitos ativos atualizado",
+  "invoice.created": "Fatura criada",
+  "invoice.finalized": "Fatura finalizada",
+  "invoice.finalization_failed": "Falha ao finalizar fatura",
+  "invoice.paid": "Fatura paga",
+  "invoice.payment_action_required": "Pagamento requer ação do cliente",
+  "invoice.payment_failed": "Pagamento da fatura falhou",
+  "invoice.upcoming": "Fatura próxima",
+  "invoice.updated": "Fatura atualizada",
+  "subscription_schedule.aborted": "Cronograma de assinatura abortado",
+  "subscription_schedule.canceled": "Cronograma de assinatura cancelado",
+  "subscription_schedule.completed": "Cronograma de assinatura concluído",
+  "subscription_schedule.created": "Cronograma de assinatura criado",
+  "subscription_schedule.expiring": "Cronograma de assinatura expirando",
+  "subscription_schedule.released": "Cronograma de assinatura liberado",
+  "subscription_schedule.updated": "Cronograma de assinatura atualizado",
+};
 
 const emit = defineEmits<{
   (e: "update:drawerState", value: boolean): void;
@@ -151,7 +186,7 @@ async function fetchSignatureHistory() {
       throw new Error("Failed to fetch signature history");
     }
     historyList.value = response.data?.data?.historico || [];
-    console.log(historyList.value);
+    // console.log(historyList.value);
   } catch (error) {
     console.error("Erro ao carregar histórico de assinaturas:", error);
   }

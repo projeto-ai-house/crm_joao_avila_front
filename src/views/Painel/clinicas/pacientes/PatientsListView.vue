@@ -1,6 +1,6 @@
 <template>
   <!-- BEGIN: TopBar -->
-  <div class="flex justify-between items-center pl-1 py-4 bg-white">
+  <div class="flex justify-between items-start pl-1 py-4 bg-white">
     <div>
       <h2 class="font-semibold text-gray-500">Lista de Pacientes</h2>
       <p class="text-sm text-gray-400">
@@ -14,6 +14,12 @@
         icon="pi pi-file"
         severity="secondary"
         size="small"
+        class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2"
+        v-tooltip.top="
+          permissionsUserPage.editar
+            ? 'Gerenciar procedimentos'
+            : 'Você não tem permissão para gerenciar procedimentos'
+        "
         @click="procedureModal.open()"
         :disabled="!permissionsUserPage.editar"
         v-if="userStore.user.Role?.toUpperCase() === 'MEDICO'"
@@ -23,6 +29,12 @@
         icon="pi pi-plus"
         severity="primary"
         size="small"
+        class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2"
+        v-tooltip.top="
+          permissionsUserPage.criar
+            ? 'Adicionar novo paciente'
+            : 'Você não tem permissão para criar pacientes'
+        "
         @click="
           globalLoading = true;
           router.push({ name: 'Detalhes do Paciente', params: { id: 'novo' } });
@@ -36,7 +48,7 @@
   <!-- BEGIN: Insights -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4 gap-4">
     <Card
-      class="col-span-1 !gap-0 !p-0"
+      class="col-span-1 !gap-0 !p-0 h-min [&_.p-card-body]:!flex-row [&_.p-card-body]:!justify-between sm:[&_.p-card-body]:!flex-col"
       title="Total de Pacientes"
       :value="totalRecords"
       icon="pi pi-users"
@@ -55,7 +67,7 @@
       </template>
     </Card>
     <Card
-      class="col-span-1 !gap-0 !p-0"
+      class="col-span-1 !gap-0 !p-0 h-min [&_.p-card-body]:!flex-row [&_.p-card-body]:!justify-between sm:[&_.p-card-body]:!flex-col"
       title="Pacientes Femininos"
       :value="insightsData.womenUsers"
     >
@@ -72,7 +84,7 @@
       </template>
     </Card>
     <Card
-      class="col-span-1 !gap-0 !p-0"
+      class="col-span-1 !gap-0 !p-0 h-min [&_.p-card-body]:!flex-row [&_.p-card-body]:!justify-between sm:[&_.p-card-body]:!flex-col"
       title="Pacientes Masculinos"
       :value="insightsData.menUsers"
     >
@@ -89,7 +101,7 @@
       </template>
     </Card>
     <Card
-      class="col-span-1 !gap-0 !p-0"
+      class="col-span-1 !gap-0 !p-0 h-min [&_.p-card-body]:!flex-row [&_.p-card-body]:!justify-between sm:[&_.p-card-body]:!flex-col"
       title="Pacientes Masculinos"
       :value="insightsData.menUsers"
     >

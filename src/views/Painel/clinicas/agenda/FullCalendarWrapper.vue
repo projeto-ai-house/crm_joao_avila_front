@@ -7,7 +7,7 @@
           :key="selectedView"
           v-model="selectedDate"
           size="small"
-          class="w-2/5"
+          class="w-fit sm:w-2/5"
           :view="datePickerViewOptionsLiterals[selectedView]"
           @value-change="fetchAppointments"
         />
@@ -21,6 +21,7 @@
           optionLabel="label"
           optionValue="value"
           size="small"
+          class="!hidden sm:!inline-flex"
         />
         <Button
           label="Novo Agendamento"
@@ -28,6 +29,7 @@
           severity="success"
           size="small"
           @click="createNew"
+          class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2"
         />
         <Button
           type="button"
@@ -267,7 +269,10 @@ const calendarOptions = ref<CalendarOptions>({
     wrapper.className = "fc-event-custom";
 
     const main = document.createElement("div");
-    main.className = "fc-event-main";
+    main.className =
+      selectedView.value === "timeGridDay"
+        ? "fc-event-main-row"
+        : "fc-event-main-col";
     const titleEl = document.createElement("div");
     titleEl.className = "fc-event-title";
     titleEl.textContent = title;
@@ -296,7 +301,14 @@ const calendarOptions = ref<CalendarOptions>({
   navLinks: true,
   height: "auto",
   events: events.value,
-  aspectRatio: 1.2,
+  aspectRatio: window.innerWidth < 640 ? 0.7 : 1.2,
+  windowResize: () => {
+    // Ajusta o aspectRatio dinamicamente ao redimensionar
+    const ratio = window.innerWidth < 640 ? 0.7 : 1.2;
+    if (calendarRef.value?.getApi) {
+      calendarRef.value.getApi().setOption("aspectRatio", ratio);
+    }
+  },
   //   events: [
   //     {
   //       id: "1",
@@ -697,11 +709,42 @@ watch(selectedDate, (d) => {
   min-height: 100px !important;
 }
 
-/* Aumenta slots na semana/dia */
+/* Aumenta slots na semana/dia, mas reduz no mobile */
 ::v-deep(.fc .fc-timegrid-slot) {
-  height: 50px !important;
+  height: 38px !important;
+}
+@media (max-width: 640px) {
+  ::v-deep(.fc) {
+    font-size: 12px !important;
+  }
+  ::v-deep(.fc .fc-toolbar),
+  ::v-deep(.fc .fc-header-toolbar) {
+    padding: 0.25rem 0.5rem !important;
+  }
+  ::v-deep(.fc .fc-daygrid-day-frame),
+  ::v-deep(.fc .fc-timegrid-slot) {
+    padding: 0.1rem !important;
+  }
+  ::v-deep(.fc .fc-timegrid-slot) {
+    height: 28px !important;
+  }
+  ::v-deep(.fc .fc-event-title) {
+    font-size: 0.75rem !important;
+  }
 }
 
+::v-deep(.fc .fc-event-main-row) {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+}
+::v-deep(.fc .fc-event-main-col) {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: start;
+}
 /* Custom event content added by eventContent */
 ::v-deep(.fc .fc-event-custom) {
   display: flex;
@@ -711,14 +754,17 @@ watch(selectedDate, (d) => {
   position: relative;
 }
 ::v-deep(.fc .fc-event-custom .fc-event-main) {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  gap: 0px;
   position: relative;
+  flex-direction: row;
+  align-items: center;
 }
 ::v-deep(.fc .fc-event-custom .fc-event-title) {
   font-weight: 600;
   font-size: 0.85rem;
+  line-height: 0.8rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

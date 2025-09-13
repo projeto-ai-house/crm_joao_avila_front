@@ -168,13 +168,7 @@ import DataTable from "primevue/datatable";
 import Menu from "primevue/menu";
 import type { MenuItem } from "primevue/menuitem";
 import Tag from "primevue/tag";
-import {
-  onBeforeMount,
-  onBeforeUnmount,
-  onMounted,
-  onUnmounted,
-  ref,
-} from "vue";
+import { onBeforeUnmount, onMounted, onUnmounted, ref } from "vue";
 import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
 import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
@@ -331,13 +325,14 @@ async function fetchAppointments() {
     const payload: any = {
       page: 1,
       dataInicio,
-      dataFim: dayjs(dataFim).add(7, "day").format("YYYY-MM-DD") + "T00:00:00Z",
+      // dataFim: dayjs(dataFim).add(7, "day").format("YYYY-MM-DD") + "T00:00:00Z",
+      dataFim,
     };
     const resp = await AppointmentsServices.getAppointments(payload);
     const raw = resp?.data?.data?.agendamentos || [];
     // filtrar os que ja passaram em relaçao a hora atual e ordenar pela hora
     const now = new Date(Date.now());
-    console.log("Now ORIGINAL: ", now.toISOString());
+    // console.log("Now ORIGINAL: ", now.toISOString());
 
     // const filtered = raw
 

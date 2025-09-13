@@ -1,6 +1,6 @@
 <template>
   <!-- BEGIN: TopBar -->
-  <div class="flex justify-between items-center p-1 py-4 bg-white pb-4">
+  <div class="flex justify-between items-start sm:p-1 py-4 bg-white pb-4">
     <div>
       <h2 class="font-semibold text-gray-500">Anamneses do Paciente</h2>
       <p class="text-sm text-gray-400">
@@ -11,12 +11,14 @@
         <span class="font-semibold">{{ patientData?.nome_completo }}</span>
       </p>
     </div>
-    <div class="flex gap-2">
+    <div class="flex sm:gap-2 flex-row-reverse sm:flex-row">
       <Button
         icon="pi pi-plus"
         label="Nova Anamnese"
         severity="primary"
         size="small"
+        class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2"
+        v-tooltip="'Adicionar nova anamnese'"
         @click="openAnamneseDrawer()"
         :disabled="!permissionsUserPage.criar"
       />
@@ -24,10 +26,15 @@
         label="Voltar"
         severity="secondary"
         size="small"
+        class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2 sm:ml-2"
+        v-tooltip="'Voltar'"
         variant="text"
-        class="ml-2"
         @click="router.go(-1)"
-      />
+      >
+        <template #icon>
+          <Undo2 class="w-4 h-4" />
+        </template>
+      </Button>
     </div>
   </div>
   <!-- END: TopBar -->
@@ -137,6 +144,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Undo2 } from "lucide-vue-next";
 import { Button, Column, DataTable, Paginator, useConfirm } from "primevue";
 import { inject, onMounted, ref, type Ref } from "vue";
 import { useRouter } from "vue-router";
