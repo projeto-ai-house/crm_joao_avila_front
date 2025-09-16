@@ -191,7 +191,7 @@
             <InputMask
               id="telefone_contato"
               name="telefone_contato"
-              mask="(99) 99999-9999"
+              :mask="dynamicMask"
               type="text"
               fluid
               size="small"
@@ -288,10 +288,19 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, ref, watch, type Ref } from "vue";
+import {
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+  type Ref,
+} from "vue";
 //@ts-ignore
 import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
+import dayjs from "dayjs";
 import { Calendar, User } from "lucide-vue-next";
 import {
   DatePicker,
@@ -311,7 +320,6 @@ import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
 import { useUserStore } from "../../../../stores/user";
 import { DateUtils } from "../../../../utils/DateUtils";
-import dayjs from "dayjs";
 
 const userStore = useUserStore();
 const toast = useToast();
@@ -335,8 +343,10 @@ const globalLoading = inject<Ref<boolean>>("globalLoading");
 const isEditing = ref(false);
 const appointmentId = ref<string | null>(null);
 const formAgendamento = ref(null);
+const telefoneInterval = ref<number | null>(null);
 const listMedicos = ref<Medico[]>([]);
 const oldDate = ref<Date | null>(null);
+const dynamicMask = ref("(99) 99999-9999");
 
 const horariosDisponiveis = ref([
   { label: "08:00", value: "08:00" },
@@ -378,6 +388,13 @@ const initialValues = ref({
   status: "",
 });
 
+const maskLiterals: { [key: number]: string } = {
+  10: "(99) 9999-9999", // Telefone fixo
+  11: "(99) 99999-9999", // Celular
+  12: "99 (99) 9999-9999", // Telefone fixo com código do país
+  13: "99 (99) 99999-9999", // Celular com código do país
+};
+
 const getValidationSchema = () => {
   const baseSchema = {
     titulo: z.string().min(1, { message: "Título é obrigatório." }),
@@ -392,8 +409,8 @@ const getValidationSchema = () => {
       .string()
       .min(1, { message: "Telefone de contato é obrigatório." })
       .transform((val) => val.replace(/\D/g, ""))
-      .refine((val) => /^\d{10,11}$/.test(val), {
-        message: "Telefone inválido. Deve conter 10 ou 11 dígitos.",
+      .refine((val) => [10, 11, 12, 13].includes(val.length), {
+        message: "Telefone inválido. Deve conter 10, 11, 12 ou 13 dígitos.",
       }),
     // Validação de data dinâmica baseada no modo de edição
     data: isEditing.value
@@ -455,18 +472,6 @@ const confirmSaveAgendamento = () => {
     });
   }
 };
-
-function handlePhoneNumber(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-
-  if (digits.length <= 11) {
-    return phone;
-  } else if (digits.length > 11) {
-    // remover prefixos de país, se houver 45(88)8312-3121
-    phone = phone.replace(/^\+55|^55/, "");
-  }
-}
-
 async function saveAppointment({ valid, values, states }) {
   if (!valid) {
     toast.add({
@@ -614,9 +619,16 @@ onMounted(async () => {
   await fetchMedicos();
 });
 
+onUnmounted(() => {
+  if (telefoneInterval.value) {
+    clearInterval(telefoneInterval.value);
+    telefoneInterval.value = null;
+  }
+});
+
 watch(
   () => props.drawerState,
-  (newValue) => {
+  async (newValue) => {
     if (newValue) {
       isEditing.value = !!props.inEdition;
       if (isEditing.value) {
@@ -631,7 +643,6 @@ watch(
               dataHora.getDate()
             )
           : null;
-        console.log("Data e hora do agendamento:", dataHora);
 
         const hora = dataHora
           ? `${dataHora.getHours().toString().padStart(2, "0")}:${dataHora
@@ -649,12 +660,18 @@ watch(
           ? new Date(props.inEdition.data_nascimento)
           : null;
 
+        dynamicMask.value =
+          maskLiterals[
+            (props.inEdition.telefone_contato?.replace(/\D/g, "") || "").length
+          ] || "(99) 99999-9999";
+        await nextTick();
+
         initialValues.value = {
           titulo: props.inEdition.titulo || "AGENDAMENTO",
           convenio: props.inEdition.convenio || "",
           Nome_paciente: props.inEdition.nome_cliente || "",
           telefone_contato:
-            handlePhoneNumber(props.inEdition.telefone_contato) || "",
+            props.inEdition.telefone_contato?.replace(/\D/g, "") || "",
           data: data,
           hora: hora,
           data_nascimento: dataNascimento

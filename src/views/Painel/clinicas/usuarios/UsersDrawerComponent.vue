@@ -398,8 +398,8 @@ const getValidationSchema = () => {
       .string()
       .min(1, { message: "Telefone é obrigatório." })
       .transform((val) => val.replace(/\D/g, ""))
-      .refine((val) => /^\d{10,11}$/.test(val), {
-        message: "Telefone inválido. Deve conter 10 ou 11 dígitos.",
+      .refine((val) => [10, 11, 12, 13].includes(val.length), {
+        message: "Telefone inválido. Deve conter 10, 11, 12 ou 13 dígitos.",
       }),
     // Convenio: z.string(),
     // .min(1, { message: "Convênio é obrigatório." }),
