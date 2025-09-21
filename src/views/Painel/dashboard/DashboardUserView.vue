@@ -38,7 +38,7 @@
     <!-- Panel -->
     <div class="w-full h-full grid grid-cols-12 gap-4">
       <!-- Taxa de Agendamento -->
-      <div class="col-span-12 sm:col-span-3">
+      <!-- <div class="col-span-12 sm:col-span-3">
         <CardComponent
           :loading="Loading"
           title="Taxa de Agendamento"
@@ -55,10 +55,10 @@
             <cite class="text-sm text-gray-400"> Todos os leads </cite>
           </div>
         </CardComponent>
-      </div>
+      </div> -->
 
       <!-- Agendamentos por IA -->
-      <div class="col-span-12 sm:col-span-3">
+      <div class="col-span-12 row-span-1 sm:col-span-3">
         <CardComponent
           :loading="Loading"
           title="Agendamentos por IA"
@@ -80,7 +80,7 @@
       </div>
 
       <!-- Tempo Economizado -->
-      <div class="col-span-12 sm:col-span-3">
+      <div class="col-span-12 row-span-1 sm:col-span-3">
         <CardComponent
           :loading="Loading"
           title="Tempo Economizado"
@@ -106,7 +106,7 @@
       </div>
 
       <!-- GRAFICO Pacientes Hoje -->
-      <div class="col-span-12 sm:col-span-3">
+      <div class="col-span-12 row-span-1 sm:col-span-3">
         <CardComponent
           :loading="Loading"
           :title="`Pacientes ${
@@ -154,6 +154,22 @@
                 }"
               />
             </div>
+          </div>
+        </CardComponent>
+      </div>
+
+      <!-- Lista de Espera -->
+      <div class="col-span-12 row-span-2 sm:col-span-3">
+        <CardComponent
+          :loading="Loading"
+          title="Lista de Espera"
+          :icon="Clock"
+          h="100%"
+        >
+          <div
+            class="flex flex-col justify-start items-start gap-2 h-full overflow-auto max-h-[40vw] w-full"
+          >
+            <WaitListWrapper :minified="true" />
           </div>
         </CardComponent>
       </div>
@@ -217,17 +233,6 @@
                 </div>
               </div>
             </div>
-          </div>
-        </CardComponent>
-      </div>
-
-      <!-- Lista de Espera -->
-      <div class="col-span-12 sm:col-span-3">
-        <CardComponent :loading="Loading" title="Lista de Espera" :icon="Clock">
-          <div
-            class="flex flex-col justify-start items-start gap-2 h-full overflow-auto max-h-[40vw] w-full"
-          >
-            <WaitListWrapper :minified="true" />
           </div>
         </CardComponent>
       </div>
@@ -297,8 +302,8 @@
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import { Bot, Calendar, Clock, TrendingUp, Users } from "lucide-vue-next";
-import { Button, ButtonGroup, ProgressBar } from "primevue";
+import { Bot, Calendar, Clock, Users } from "lucide-vue-next";
+import { Button, ButtonGroup } from "primevue";
 import Chart from "primevue/chart";
 import { nextTick, onMounted, ref } from "vue";
 import CardComponent from "../../../components/Card/CardComponent.vue";

@@ -1,5 +1,5 @@
 <template>
-  <Skeleton v-if="props.loading" width="100%" height="16rem" />
+  <Skeleton v-if="props.loading" width="100%" :height="props.h || '16rem'" />
   <div
     v-else
     class="bg-white border border-gray-200 rounded-xl p-4 h-full flex flex-col"
@@ -34,5 +34,6 @@ const props = defineProps<{
   title: string;
   icon: LucideIcon;
   loading: boolean;
+  h?: string;
 }>();
 </script>
