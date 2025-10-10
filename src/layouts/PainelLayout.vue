@@ -23,6 +23,9 @@
         <!-- <footer class="p-4 text-center font-primary">Rodapé do Painel</footer> -->
       </div>
     </div>
+
+    <!-- Floating Chat Component -->
+    <FloatingChat />
   </div>
   <!-- </ImageComponent> -->
   <Drawer
@@ -53,6 +56,7 @@
 // @ts-ignore
 import HeaderLayout from "@/layouts/HeaderLayout.vue";
 import SideMenuLayout from "@/layouts/SideMenuLayout.vue";
+import FloatingChat from "@/components/FloatingChat.vue";
 import { Drawer } from "primevue";
 import { ref } from "vue";
 const sideMenuState = ref(false);

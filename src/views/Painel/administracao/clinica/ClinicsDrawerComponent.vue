@@ -241,6 +241,98 @@
         </div>
       </div>
 
+      <!-- SEÇÃO: WEBHOOKS (apenas em edição) -->
+      <div
+        class="col-span-12 grid grid-cols-12 gap-4"
+        v-show="isEditing && !!initialValues?.ClinicaID"
+      >
+        <div
+          class="col-span-12 flex items-center gap-2 text-gray-700 text-base font-semibold mt-4 mb-1 border-b border-gray-200 pb-2"
+        >
+          <Webhook class="w-5 h-5" /> Webhooks da Clínica
+        </div>
+
+        <!-- Lista de Webhooks -->
+        <div class="col-span-12 flex flex-col gap-3">
+          <div
+            v-if="loadingWebhooks"
+            class="flex items-center justify-center py-6"
+          >
+            <Loader2 class="w-6 h-6 animate-spin text-blue-500" />
+          </div>
+
+          <div v-else-if="webhooks.length === 0" class="col-span-12">
+            <div
+              class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-gray-500 text-sm"
+            >
+              Nenhum webhook configurado para esta clínica.
+            </div>
+          </div>
+
+          <div
+            v-else
+            v-for="webhook in webhooks"
+            :key="webhook.id"
+            class="bg-white border border-gray-200 rounded-lg p-3 hover:border-gray-300 transition-colors"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <div
+                    :class="[
+                      'w-2 h-2 rounded-full',
+                      webhook.is_active ? 'bg-green-500' : 'bg-gray-400',
+                    ]"
+                  ></div>
+                  <p class="text-sm text-gray-700 truncate font-mono">
+                    {{ webhook.webhook_url }}
+                  </p>
+                </div>
+                <p class="text-xs text-gray-400 ml-3">
+                  {{
+                    new Date(webhook.created_at).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  }}
+                </p>
+              </div>
+
+              <ToggleSwitch
+                :modelValue="webhook.is_active"
+                @update:modelValue="handleWebhookToggle(webhook.id, $event)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Adicionar Novo Webhook -->
+        <div class="col-span-12 flex flex-col gap-2 mt-2">
+          <FloatLabel variant="on">
+            <InputText
+              id="new_webhook_url"
+              v-model="newWebhookUrl"
+              type="text"
+              fluid
+              size="small"
+            />
+            <label for="new_webhook_url">URL do Webhook (n8n)</label>
+          </FloatLabel>
+          <Button
+            label="Adicionar Webhook"
+            icon="pi pi-plus"
+            severity="info"
+            size="small"
+            @click="addWebhook"
+            :disabled="!newWebhookUrl.trim()"
+            class="w-full"
+          />
+        </div>
+      </div>
+
       <div class="col-span-12 grid grid-cols-12 gap-4" v-show="!isEditing">
         <div
           class="col-span-12 flex items-center gap-2 text-gray-700 text-base font-semibold mt-4 mb-1 border-b border-gray-200 pb-2"
@@ -521,7 +613,7 @@ import { computed, inject, onMounted, ref, watch, type Ref } from "vue";
 //@ts-ignore
 import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
-import { Hospital, SquareUserRound } from "lucide-vue-next";
+import { Hospital, Loader2, SquareUserRound, Webhook } from "lucide-vue-next";
 import {
   Checkbox,
   DatePicker,
@@ -543,6 +635,10 @@ import {
 } from "../../../../services/plans/PlansServices";
 import { RolesServices } from "../../../../services/roles/RolesServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
+import {
+  WebhooksService,
+  type IWebhook,
+} from "../../../../services/webhooks/WebhooksService";
 import { useUserStore } from "../../../../stores/user";
 import { DateUtils } from "../../../../utils/DateUtils";
 
@@ -571,6 +667,11 @@ const formClinic = ref(null);
 const old_assinatura_id = ref("");
 const listRoles = ref<Role[]>([]);
 const listPlans = ref<IPlan[]>([]);
+
+// Webhooks
+const webhooks = ref<IWebhook[]>([]);
+const loadingWebhooks = ref(false);
+const newWebhookUrl = ref("");
 const initialValues = ref({
   nome_clinica: "",
   Ativa: false,
@@ -915,6 +1016,236 @@ async function fetchRoles() {
   }
 }
 
+// Funções de gerenciamento de webhooks
+async function fetchWebhooks() {
+  if (!initialValues.value.ClinicaID) return;
+
+  try {
+    loadingWebhooks.value = true;
+    const response = await WebhooksService.listWebhooks(
+      initialValues.value.ClinicaID,
+      1,
+      3
+    );
+
+    if (response.status === 200) {
+      // A API pode retornar tanto um array direto quanto um objeto com a propriedade webhooks
+      const data = response.data?.data;
+      webhooks.value = Array.isArray(data) ? data : data?.webhooks || [];
+
+      console.log("Webhooks carregados:", webhooks.value);
+    } else {
+      console.error("Erro ao carregar webhooks");
+    }
+  } catch (error) {
+    console.error("Erro ao carregar webhooks:", error);
+    toast.add({
+      severity: "error",
+      summary: "Erro",
+      detail: "Não foi possível carregar os webhooks.",
+      life: 3000,
+    });
+  } finally {
+    loadingWebhooks.value = false;
+  }
+}
+
+async function addWebhook() {
+  if (!newWebhookUrl.value.trim() || !initialValues.value.ClinicaID) return;
+
+  // Validação básica de URL
+  try {
+    new URL(newWebhookUrl.value);
+  } catch {
+    toast.add({
+      severity: "error",
+      summary: "URL Inválida",
+      detail: "Por favor, insira uma URL válida.",
+      life: 3000,
+    });
+    return;
+  }
+
+  confirm.require({
+    message: `Tem certeza que deseja adicionar este webhook? ${
+      webhooks.value.some((w) => w.is_active)
+        ? "O novo webhook será ativado e o webhook ativo atual será desativado automaticamente."
+        : "O novo webhook será ativado automaticamente."
+    }`,
+    header: "Adicionar Webhook",
+    icon: "pi pi-question-circle",
+    rejectProps: {
+      label: "Cancelar",
+      severity: "secondary",
+      outlined: true,
+    },
+    acceptProps: {
+      label: "Adicionar",
+      severity: "success",
+    },
+    accept: async () => {
+      try {
+        globalLoading.value = true;
+
+        // Primeiro, desativar todos os webhooks ativos existentes
+        const activeWebhooks = webhooks.value.filter((w) => w.is_active);
+        for (const webhook of activeWebhooks) {
+          await WebhooksService.deactivateWebhook(webhook.id);
+        }
+
+        // Criar o novo webhook
+        const response = await WebhooksService.createWebhook({
+          clinica_id: initialValues.value.ClinicaID,
+          webhook_url: newWebhookUrl.value.trim(),
+        });
+
+        if (response.status >= 200 && response.status < 300) {
+          const newWebhookId = response.data?.data?.id;
+
+          // Ativar o novo webhook
+          if (newWebhookId) {
+            await WebhooksService.activateWebhook(newWebhookId);
+          }
+
+          toast.add({
+            severity: "success",
+            summary: "Sucesso",
+            detail: "Webhook adicionado e ativado com sucesso!",
+            life: 3000,
+          });
+          newWebhookUrl.value = "";
+          await fetchWebhooks();
+        }
+      } catch (error) {
+        console.error("Erro ao adicionar webhook:", error);
+        toast.add({
+          severity: "error",
+          summary: "Erro",
+          detail: "Não foi possível adicionar o webhook.",
+          life: 3000,
+        });
+      } finally {
+        globalLoading.value = false;
+      }
+    },
+  });
+}
+
+function handleWebhookToggle(webhookId: string, newValue: boolean) {
+  if (newValue) {
+    activateWebhook(webhookId);
+  } else {
+    deactivateWebhook(webhookId);
+  }
+}
+
+async function activateWebhook(webhookId: string) {
+  confirm.require({
+    message:
+      "Ao ativar este webhook, todos os outros webhooks desta clínica serão desativados automaticamente. Deseja continuar?",
+    header: "Ativar Webhook",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: {
+      label: "Cancelar",
+      severity: "secondary",
+      outlined: true,
+    },
+    acceptProps: {
+      label: "Ativar",
+      severity: "success",
+    },
+    accept: async () => {
+      try {
+        globalLoading.value = true;
+
+        // Primeiro, desativar todos os webhooks ativos
+        const activeWebhooks = webhooks.value.filter((w) => w.is_active);
+        for (const webhook of activeWebhooks) {
+          if (webhook.id !== webhookId) {
+            await WebhooksService.deactivateWebhook(webhook.id);
+          }
+        }
+
+        // Depois ativar o webhook selecionado
+        const response = await WebhooksService.activateWebhook(webhookId);
+
+        if (response.status >= 200 && response.status < 300) {
+          toast.add({
+            severity: "success",
+            summary: "Sucesso",
+            detail: "Webhook ativado com sucesso!",
+            life: 3000,
+          });
+          await fetchWebhooks();
+        }
+      } catch (error) {
+        console.error("Erro ao ativar webhook:", error);
+        toast.add({
+          severity: "error",
+          summary: "Erro",
+          detail: "Não foi possível ativar o webhook.",
+          life: 3000,
+        });
+        await fetchWebhooks(); // Recarregar mesmo em caso de erro
+      } finally {
+        globalLoading.value = false;
+      }
+    },
+    reject: () => {
+      // Recarregar para reverter o toggle
+      fetchWebhooks();
+    },
+  });
+}
+
+async function deactivateWebhook(webhookId: string) {
+  confirm.require({
+    message:
+      "Tem certeza que deseja desativar este webhook? O chat interno da clínica ficará sem resposta do agente.",
+    header: "Desativar Webhook",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: {
+      label: "Cancelar",
+      severity: "secondary",
+      outlined: true,
+    },
+    acceptProps: {
+      label: "Desativar",
+      severity: "danger",
+    },
+    accept: async () => {
+      try {
+        globalLoading.value = true;
+        const response = await WebhooksService.deactivateWebhook(webhookId);
+
+        if (response.status >= 200 && response.status < 300) {
+          toast.add({
+            severity: "success",
+            summary: "Sucesso",
+            detail: "Webhook desativado com sucesso!",
+            life: 3000,
+          });
+          await fetchWebhooks();
+        }
+      } catch (error) {
+        console.error("Erro ao desativar webhook:", error);
+        toast.add({
+          severity: "error",
+          summary: "Erro",
+          detail: "Não foi possível desativar o webhook.",
+          life: 3000,
+        });
+      } finally {
+        globalLoading.value = false;
+      }
+    },
+    reject: () => {
+      // Recarregar para reverter o toggle
+      fetchWebhooks();
+    },
+  });
+}
+
 onMounted(async () => {
   await fetchRoles();
   await fetchPlans();
@@ -973,10 +1304,14 @@ watch(
               value: initialValues.value.plano_id,
             });
           }
+          // Carregar webhooks da clínica em edição
+          fetchWebhooks();
           break;
       }
     } else {
       isEditing.value = false;
+      webhooks.value = [];
+      newWebhookUrl.value = "";
       initialValues.value = {
         nome_clinica: "",
         Ativa: false,

@@ -148,9 +148,15 @@ function handleLogout(): void {
 }
 
 function updatePageName(): void {
+  const pageNames: Record<string, string> = {
+    Conexoes: "Conexões",
+    Indicacoes: "Indicações",
+    Configuracoes: "Configurações",
+  };
+
   let page = router.currentRoute.value?.name as string | undefined;
   if (page === "PainelNotFound") page = "Página Não Encontrada!";
-  if (page) PAGENAME.value = page;
+  if (page) PAGENAME.value = pageNames[page] || page;
   else PAGENAME.value = "Home";
 }
 

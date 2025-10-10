@@ -59,6 +59,15 @@ export class MenuUtils {
         import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
       ],
     },
+    {
+      label: "Conexões",
+      pageName: "CONEXOES",
+      icon: "pi pi-bolt",
+      to: "/painel/conexoes",
+      permissions: [
+        import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+      ],
+    },
     // {
     //   label: "Médicos",
     //   pageName: "MEDICOS",

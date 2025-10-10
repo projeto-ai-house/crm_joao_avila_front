@@ -154,7 +154,10 @@ async function onFormSubmit({ valid }) {
     try {
       loginLoading.value = true;
       const { email, senha } = form;
-      const response = await Authentication.login(email, senha);
+      const response = await Authentication.login(
+        email?.toLocaleLowerCase().trim(),
+        senha.trim()
+      );
       if (response.status === 200) {
         const { data } = response;
         await userStore.login(data.data);

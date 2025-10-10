@@ -4,6 +4,18 @@ FROM node:20-alpine AS build-stage
 
 WORKDIR /app
 
+# Define os ARGs que serão passados do docker-compose
+ARG VITE_API_URL
+ARG VITE_API_PUSH_URL
+ARG VITE_TOKEN_KEY
+ARG VITE_ADMIN_ROLENAMES
+
+# Define as variáveis de ambiente para o build
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_API_PUSH_URL=$VITE_API_PUSH_URL
+ENV VITE_TOKEN_KEY=$VITE_TOKEN_KEY
+ENV VITE_ADMIN_ROLENAMES=$VITE_ADMIN_ROLENAMES
+
 # Copia o package.json e o lock file
 COPY package*.json ./
 

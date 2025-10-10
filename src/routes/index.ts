@@ -9,6 +9,7 @@ import { useUserStore } from "../stores/user";
 import { AuthenticationUtils } from "../utils/AuthenticationUtils";
 import LoginView from "../views/LoginView.vue";
 import ClinicsListView from "../views/Painel/administracao/clinica/ClinicsListView.vue";
+import ConexoesView from "../views/Painel/administracao/Conexoes.vue";
 import ReferralListView from "../views/Painel/administracao/indicacoes/ReferralListView.vue";
 import AgendaView from "../views/Painel/clinicas/agenda/AgendaView.vue";
 import PatientsListView from "../views/Painel/clinicas/pacientes/PatientsListView.vue";
@@ -144,6 +145,11 @@ const routes: RouteRecordRaw[] = [
         path: "cargos",
         name: "Cargos",
         component: RoleListView,
+      },
+      {
+        path: "conexoes",
+        name: "Conexoes",
+        component: ConexoesView,
       },
       ////////////////////////////////
       {

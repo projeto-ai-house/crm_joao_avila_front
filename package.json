@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node deploy/deploy.js",
+    "deploy:setup": "copy deploy\\.env.deploy.example deploy\\.env.deploy && echo Agora edite o arquivo deploy\\.env.deploy com suas credenciais"
   },
   "dependencies": {
     "@daypilot/daypilot-lite-vue": "^4.1.0",
@@ -40,6 +42,9 @@
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
+    "archiver": "^7.0.1",
+    "dotenv": "^17.2.3",
+    "node-ssh": "^13.2.1",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
     "vue-tsc": "^2.2.8"
