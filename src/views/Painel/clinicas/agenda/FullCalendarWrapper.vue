@@ -239,21 +239,21 @@ const calendarOptions = ref<CalendarOptions>({
       },
       // limitar visualização de horas na week view
       slotMinTime: "06:00:00",
-      slotMaxTime: "19:00:00",
+      slotMaxTime: "21:00:00",
       slotDuration: "00:30:00",
       slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
     },
     // adição para day view
     timeGridDay: {
       slotMinTime: "06:00:00",
-      slotMaxTime: "19:00:00",
+      slotMaxTime: "21:00:00",
       slotDuration: "00:30:00",
       slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
     },
   },
   // aplica também globalmente caso a view não esteja no override
   slotMinTime: "06:00:00",
-  slotMaxTime: "19:00:00",
+  slotMaxTime: "21:00:00",
   slotDuration: "00:30:00",
   slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
   scrollTime: "06:00:00",
@@ -571,8 +571,21 @@ async function fetchAppointments() {
           : null;
 
         // Prefer duracao_sec if provided, otherwise default to 30 minutes
-        const durationMinutes =
-          (appointment.duracao_sec ? appointment.duracao_sec / 60 : null) || 30;
+        // duracao_sec vem em SEGUNDOS do backend, então dividimos por 60 para minutos
+        const durationMinutes = appointment.duracao_sec
+          ? appointment.duracao_sec / 60
+          : 30;
+
+        // Log para debug (remover depois)
+        if (idx === 0) {
+          console.log("Exemplo de appointment:", {
+            id: appointment.ID,
+            duracao_sec: appointment.duracao_sec,
+            durationMinutes,
+            titulo: appointment.titulo,
+          });
+        }
+
         const end = start
           ? dayjs(start).add(durationMinutes, "minute").toISOString()
           : null;

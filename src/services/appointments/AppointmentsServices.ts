@@ -25,6 +25,7 @@ interface ICreateAppointment {
   Nome_paciente: string;
   telefone_contato: string;
   data_hora: string; // ISO 8601 datetime
+  duracao_sec: number;
   data_nascimento: string; // ISO 8601 datetime
   MedicoID: string;
   status?: string;

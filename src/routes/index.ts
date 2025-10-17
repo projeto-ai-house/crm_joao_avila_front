@@ -151,6 +151,11 @@ const routes: RouteRecordRaw[] = [
         name: "Conexoes",
         component: ConexoesView,
       },
+      {
+        path: "tutoriais",
+        name: "Tutoriais",
+        component: () => import("../views/Painel/ajuda/TutorialsView.vue"),
+      },
       ////////////////////////////////
       {
         path: "configuracoes",

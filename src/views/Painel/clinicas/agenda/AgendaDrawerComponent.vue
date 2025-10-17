@@ -54,7 +54,7 @@
         </div>
 
         <!-- Data e Hora na mesma linha -->
-        <div class="col-span-12 md:col-span-6 flex flex-col gap-1">
+        <div class="col-span-12 md:col-span-12 flex flex-col gap-1">
           <FloatLabel variant="on">
             <DatePicker
               id="data"
@@ -99,6 +99,33 @@
             size="small"
             variant="simple"
             >{{ $form.hora.error.message }}</Message
+          >
+        </div>
+
+        <!-- Duração -->
+        <div class="col-span-12 md:col-span-6 flex flex-col gap-1">
+          <FloatLabel variant="on">
+            <InputNumber
+              id="duracao_sec"
+              name="duracao_sec"
+              :min="1"
+              :max="1440"
+              :step="1"
+              fluid
+              size="small"
+              showButtons
+            />
+            <label for="duracao_sec">
+              Duração (minutos)
+              <span class="text-red-500">*</span>
+            </label>
+          </FloatLabel>
+          <Message
+            v-if="$form.duracao_sec?.invalid"
+            severity="error"
+            size="small"
+            variant="simple"
+            >{{ $form.duracao_sec.error.message }}</Message
           >
         </div>
 
@@ -306,6 +333,7 @@ import {
   DatePicker,
   FloatLabel,
   InputMask,
+  InputNumber,
   InputText,
   Message,
   Select,
@@ -383,6 +411,7 @@ const initialValues = ref({
   telefone_contato: "",
   data: null as Date | null,
   hora: "" as string,
+  duracao_sec: 30 as number | null,
   data_nascimento: null as Date | null,
   MedicoID: "",
   status: "",
@@ -419,6 +448,10 @@ const getValidationSchema = () => {
           message: "Data não pode ser anterior ao dia atual.",
         }),
     hora: z.string().min(1, { message: "Hora é obrigatória." }),
+    duracao_sec: z
+      .number({ invalid_type_error: "Duração é obrigatória." })
+      .min(1, { message: "Duração deve ser pelo menos 1 minuto." })
+      .max(1440, { message: "Duração não pode exceder 1440 minutos." }),
     data_nascimento: z
       .date()
       .min(new Date("1900-01-01"), {
@@ -482,6 +515,7 @@ async function saveAppointment({ valid, values, states }) {
     });
     return;
   }
+  console.log(`duracao_sec antes: ${values.duracao_sec}`);
 
   try {
     globalLoading.value = true;
@@ -497,6 +531,7 @@ async function saveAppointment({ valid, values, states }) {
       data_nascimento: values.data_nascimento
         ? DateUtils.formatDatetoISOGlobalTimezone(values.data_nascimento)
         : null,
+      duracao_sec: values.duracao_sec ? values.duracao_sec * 60 : null,
     };
     delete appointment.hora;
     delete appointment.data;
@@ -674,6 +709,7 @@ watch(
             props.inEdition.telefone_contato?.replace(/\D/g, "") || "",
           data: data,
           hora: hora,
+          duracao_sec: props.inEdition.duracao_sec || 30,
           data_nascimento: dataNascimento
             ? dayjs(dataNascimento)
                 .add(dayjs(dataNascimento).utcOffset() * -1, "minutes")
@@ -695,6 +731,7 @@ watch(
         telefone_contato: "",
         data: null,
         hora: "",
+        duracao_sec: 30,
         data_nascimento: null,
         MedicoID: "",
         status: "",

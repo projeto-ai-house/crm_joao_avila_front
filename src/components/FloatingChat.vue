@@ -1,14 +1,10 @@
 <template>
-  <div
-    class="fixed bottom-6 right-6 z-50"
-    v-if="userStore.user?.Role?.includes('CEO')"
-  >
+  <div v-if="userStore.user?.Role?.includes('CEO')">
     <!-- Chat Expandido -->
     <Transition name="chat-expand">
       <div
         v-if="isOpen"
-        class="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col chat-container"
-        :style="{}"
+        class="fixed bottom-6 right-6 z-50 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col chat-container"
       >
         <!-- Header do Chat -->
         <div class="relative overflow-hidden chat-header">
@@ -123,6 +119,26 @@
           </div>
         </div>
 
+        <!-- Mensagens Rápidas (Carousel) -->
+        <div
+          v-if="quickMessages.length > 0"
+          class="px-4 pb-3 bg-white border-b border-gray-200"
+        >
+          <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+            <button
+              v-for="quickMsg in quickMessages"
+              :key="quickMsg.id"
+              @click="sendQuickMessage(quickMsg.text)"
+              :disabled="connectionState !== 'connected'"
+              class="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed quick-message-btn"
+              :class="getQuickMessageColor(quickMsg.color)"
+            >
+              <i :class="`pi ${quickMsg.icon} text-xs`"></i>
+              <span class="whitespace-nowrap">{{ quickMsg.text }}</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Input de Mensagem -->
         <div class="p-4 bg-white border-t border-gray-200">
           <div class="flex gap-2">
@@ -149,22 +165,13 @@
     </Transition>
 
     <!-- Botão Flutuante -->
-    <Transition name="button-fade">
+    <Transition name="button-fade" mode="out-in">
       <button
         v-if="!isOpen"
         @click="toggleChat"
-        class="w-12 h-12 rounded-full flex items-center justify-center relative overflow-hidden group hover:scale-105 transition-transform duration-300 cursor-pointer hover:-translate-y-1 floating-button"
+        class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl cursor-pointer floating-button"
       >
-        <!-- Gradiente de fundo -->
-        <div
-          class="bg-gradient-to-tr from-blue-500 via-purple-400 to-pink-500 absolute top-0 left-0 w-full h-full z-0 group-hover:scale-110 transition-transform duration-300"
-        ></div>
-        <!-- Ícone -->
-        <Sparkles
-          :size="24"
-          style="stroke-width: 2.6px"
-          class="text-white z-10 animate-pulse"
-        />
+        <Sparkles :size="24" class="text-white relative z-10" />
       </button>
     </Transition>
   </div>
@@ -173,12 +180,20 @@
 <script setup lang="ts">
 import { Loader2, Send, Sparkles, X } from "lucide-vue-next";
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import appConfig from "../../app-config.json";
 import { WebSocketService } from "../services/websocket/WebSocketService";
 import type {
   ChatMessage,
   ConnectionState,
 } from "../services/websocket/WebSocketTypes";
 import { useUserStore } from "../stores/user";
+
+interface QuickMessage {
+  id: number;
+  text: string;
+  icon: string;
+  color: string;
+}
 
 const userStore = useUserStore();
 const isOpen = ref(false);
@@ -187,8 +202,38 @@ const messageInput = ref("");
 const messagesContainer = ref<HTMLElement | null>(null);
 const connectionState = ref<ConnectionState>("disconnected");
 const errorMessage = ref<string | null>(null);
+const quickMessages = ref<QuickMessage[]>([]);
 
 let wsService: WebSocketService | null = null;
+
+// Carregar mensagens rápidas do config
+onMounted(() => {
+  quickMessages.value = (appConfig.chat?.quickMessages || []) as QuickMessage[];
+});
+
+// Função para obter cor da mensagem rápida
+function getQuickMessageColor(color: string): string {
+  const colorMap: Record<string, string> = {
+    blue: "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100",
+    red: "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100",
+    green:
+      "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100",
+    purple:
+      "bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100",
+    orange:
+      "bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100",
+  };
+  return (
+    colorMap[color] ||
+    "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+  );
+}
+
+// Enviar mensagem rápida
+function sendQuickMessage(text: string) {
+  messageInput.value = text;
+  sendMessage();
+}
 
 // Configurar WebSocket
 const setupWebSocket = () => {
@@ -320,57 +365,86 @@ onBeforeUnmount(() => {
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
-/* Sombra do botão flutuante */
+/* Sombra e estilo do botão flutuante */
 .floating-button {
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.15))
-    drop-shadow(0 6px 6px rgba(0, 0, 0, 0.1));
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
 }
 
 .floating-button:hover {
-  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.2))
-    drop-shadow(0 10px 10px rgba(0, 0, 0, 0.15));
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.4),
+    0 10px 20px rgba(59, 130, 246, 0.3);
+}
+
+.floating-button:active {
+  transform: scale(1.05) translateY(0);
 }
 
 /* Transição do Chat */
 .chat-expand-enter-active {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  transition-delay: 0.15s;
-  transform-origin: bottom right;
+  animation: chatSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chat-expand-leave-active {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-origin: bottom right;
+  animation: chatSlideOut 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.chat-expand-enter-from {
-  opacity: 0;
-  transform: scale(0.85) translateY(20px);
+@keyframes chatSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-.chat-expand-leave-to {
-  opacity: 0;
-  transform: scale(0.85) translateY(20px);
+@keyframes chatSlideOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.92) translateY(20px);
+  }
 }
 
-/* Transição do Botão */
+/* Transição do Botão - Usando animation ao invés de transition */
 .button-fade-enter-active {
-  transition: all 0.25s ease;
-  transition-delay: 0.15s;
+  animation: buttonFadeIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
 }
 
 .button-fade-leave-active {
-  transition: all 0.15s ease;
+  animation: buttonFadeOut 0.2s cubic-bezier(0.4, 0, 1, 1) both;
 }
 
-.button-fade-enter-from {
-  opacity: 0;
-  transform: scale(0.6) rotate(90deg);
+@keyframes buttonFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  60% {
+    transform: scale(1.1) rotate(20deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
 }
 
-.button-fade-leave-to {
-  opacity: 0;
-  transform: scale(0.6) rotate(-90deg);
+@keyframes buttonFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(180deg);
+  }
 }
 
 /* Scroll suave */
@@ -390,6 +464,48 @@ onBeforeUnmount(() => {
 .overflow-y-auto::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.3);
   border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.5);
+}
+
+/* Scroll horizontal para mensagens rápidas */
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 2px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.5);
+}
+
+/* Botões de mensagem rápida */
+.quick-message-btn {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.quick-message-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.quick-message-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {

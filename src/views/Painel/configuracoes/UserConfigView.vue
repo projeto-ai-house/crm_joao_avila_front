@@ -151,14 +151,17 @@ import Password from "primevue/password";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { z } from "zod";
+import { RolesServices } from "../../../services/roles/RolesServices";
 import { UsersServices } from "../../../services/user/UsersServices";
 import { useUserStore } from "../../../stores/user";
+import { PermissionsUtils } from "../../../utils/PermissionsUtils";
 
 const router = useRouter();
 const toast = useToast();
 const isLoading = ref(false);
 const userStore = useUserStore();
 const formUser = ref(null);
+const role = ref(null);
 
 // Valores iniciais do formulário
 const initialValues = ref({
@@ -292,16 +295,12 @@ const handleSubmit = async ({ valid, values }) => {
 
     const response = await UsersServices.putUser({
       Usuario: updateData,
+      Role: {
+        role_id: role.value,
+      },
     });
 
     if (response.status >= 200 && response.status < 300) {
-      toast.add({
-        severity: "success",
-        summary: "Sucesso",
-        detail: "Perfil atualizado com sucesso!",
-        life: 5000,
-      });
-
       // Limpar senhas após sucesso
       initialValues.value.newPassword = "";
       initialValues.value.confirmPassword = "";
@@ -324,7 +323,19 @@ const resetForm = () => {
   loadUserData();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  const rolesList = await RolesServices.getRoles({});
+  const [current_role_name] = PermissionsUtils.handleUser();
+
+  const current_role = rolesList?.data?.data.find((r) =>
+    r.Nome.toLowerCase()?.includes(current_role_name.toLowerCase())
+  );
+  if (current_role) {
+    role.value = current_role?.ID;
+  }
+
+  console.log(role.value);
+
   const state = router.options.history?.state;
   const inRecovery = state?.inRecovery
     ? JSON.parse(state?.inRecovery as string)
@@ -338,6 +349,8 @@ onMounted(() => {
       life: 8000,
     });
   }
+
+  console.log(userStore.user);
 
   // Carregar dados do usuário
   loadUserData();

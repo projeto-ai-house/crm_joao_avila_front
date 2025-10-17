@@ -192,6 +192,20 @@ export class MenuUtils {
       hidden: true,
       permissions: ["free"],
     },
+    {
+      placeholder: "Ajuda",
+      permissions: [
+        // import.meta.env.VITE_ADMIN_ROLENAMES?.split(",")[1] || "master_admin",
+        "free",
+      ],
+    },
+    {
+      label: "Tutoriais",
+      pageName: "TUTORIAIS",
+      icon: "pi pi-video",
+      to: "/painel/tutoriais",
+      permissions: ["free"],
+    },
   ];
 
   public static getAllMenus(): any[] {

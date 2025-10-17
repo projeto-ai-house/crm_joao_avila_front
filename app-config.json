@@ -1,0 +1,65 @@
+{
+  "tutorials": [
+    {
+      "id": 1,
+      "title": "Introdução ao Sistema",
+      "description": "Aprenda os conceitos básicos e como navegar pelo sistema Mednova",
+      "duration": "5:30",
+      "category": "Iniciante",
+      "videoUrl": "",
+      "thumbnail": "",
+      "tags": ["básico", "navegação", "introdução"],
+      "textContent": "<h4>Passo a Passo:</h4><ol><li><strong>Login:</strong> Acesse o sistema com suas credenciais</li><li><strong>Dashboard:</strong> Visualize os principais indicadores</li><li><strong>Menu:</strong> Explore as funcionalidades disponíveis</li><li><strong>Configurações:</strong> Personalize sua experiência</li></ol><h4>Dicas Importantes:</h4><ul><li>Mantenha seus dados sempre atualizados</li><li>Use os filtros para encontrar informações rapidamente</li><li>Configure notificações para não perder compromissos</li></ul>"
+    },
+    {
+      "id": 2,
+      "title": "Gerenciamento de Agenda",
+      "description": "Como gerenciar agendamentos, criar consultas e organizar sua agenda de forma eficiente",
+      "duration": "8:45",
+      "category": "Intermediário",
+      "videoUrl": "https://www.youtube.com/watch?v=iVEwTB4WDmo",
+      "thumbnail": "https://img.youtube.com/vi/iVEwTB4WDmo/maxresdefault.jpg",
+      "tags": ["agenda", "consultas", "agendamento"]
+    }
+  ],
+  "categories": [
+    {
+      "name": "Todos",
+      "value": "all"
+    },
+    {
+      "name": "Iniciante",
+      "value": "Iniciante"
+    },
+    {
+      "name": "Intermediário",
+      "value": "Intermediário"
+    },
+    {
+      "name": "Avançado",
+      "value": "Avançado"
+    }
+  ],
+  "chat": {
+    "quickMessages": [
+      {
+        "id": 1,
+        "text": "Quero fazer um disparo de oferta",
+        "icon": "pi-megaphone",
+        "color": "blue"
+      },
+      {
+        "id": 2,
+        "text": "Quero cancelar meus agendamentos de amanhã",
+        "icon": "pi-calendar-times",
+        "color": "red"
+      },
+      {
+        "id": 3,
+        "text": "Quero que agende um paciente",
+        "icon": "pi-user-plus",
+        "color": "green"
+      }
+    ]
+  }
+}
