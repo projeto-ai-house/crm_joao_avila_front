@@ -16,6 +16,7 @@
     <Form
       ref="formAgendamento"
       v-slot="$form"
+      :key="formKey"
       :initialValues="initialValues"
       :resolver="resolver"
       @submit="saveAppointment"
@@ -375,6 +376,7 @@ const telefoneInterval = ref<number | null>(null);
 const listMedicos = ref<Medico[]>([]);
 const oldDate = ref<Date | null>(null);
 const dynamicMask = ref("(99) 99999-9999");
+const formKey = ref(0); // Key para forçar remontagem do formulário
 
 const horariosDisponiveis = ref([
   { label: "08:00", value: "08:00" },
@@ -709,7 +711,7 @@ watch(
             props.inEdition.telefone_contato?.replace(/\D/g, "") || "",
           data: data,
           hora: hora,
-          duracao_sec: props.inEdition.duracao_sec || 30,
+          duracao_sec: props.inEdition.duracao_sec ? props.inEdition.duracao_sec / 60 : 30, // Converter segundos para minutos
           data_nascimento: dataNascimento
             ? dayjs(dataNascimento)
                 .add(dayjs(dataNascimento).utcOffset() * -1, "minutes")
@@ -719,6 +721,9 @@ watch(
           status: props.inEdition.status || "ATIVO",
         };
         appointmentId.value = props.inEdition.id || null;
+
+        // Forçar remontagem do formulário
+        formKey.value++;
       }
 
       resolver.value = zodResolver(getValidationSchema());
@@ -736,6 +741,9 @@ watch(
         MedicoID: "",
         status: "",
       };
+
+      // Resetar formulário quando fechar o drawer
+      formKey.value++;
     }
   }
 );
