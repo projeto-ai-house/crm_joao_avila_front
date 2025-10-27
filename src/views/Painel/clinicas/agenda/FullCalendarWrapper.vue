@@ -433,7 +433,7 @@ function changeView(viewName: string) {
 
 const calculateDateRange = () => {
   const currentDate = new Date(selectedDate.value || new Date());
-  console.log(selectedView.value, currentDate);
+  // console.log(selectedView.value, currentDate);
 
   if (selectedView.value === "timeGridDay") {
     return {
@@ -457,7 +457,7 @@ const calculateDateRange = () => {
   if (selectedView.value === "dayGridMonth") {
     const firstDay = dayjs(currentDate).startOf("month");
     const lastDay = dayjs(currentDate).endOf("month");
-    console.log(firstDay, lastDay);
+    // console.log(firstDay, lastDay);
 
     return {
       dataInicio: firstDay.format("YYYY-MM-DD") + "T00:00:00Z",
@@ -556,7 +556,7 @@ async function fetchAppointments() {
     const response = await AppointmentsServices.getAppointments(data);
 
     if (response.data?.data?.agendamentos) {
-      console.log("Raw appointments response:", response);
+      // console.log("Raw appointments response:", response);
       const raw = response.data.data.agendamentos;
 
       events.value = raw.map((appointment: any, idx: number) => {
@@ -578,12 +578,12 @@ async function fetchAppointments() {
 
         // Log para debug (remover depois)
         if (idx === 0) {
-          console.log("Exemplo de appointment:", {
-            id: appointment.ID,
-            duracao_sec: appointment.duracao_sec,
-            durationMinutes,
-            titulo: appointment.titulo,
-          });
+          // console.log("Exemplo de appointment:", {
+          //   id: appointment.ID,
+          //   duracao_sec: appointment.duracao_sec,
+          //   durationMinutes,
+          //   titulo: appointment.titulo,
+          // });
         }
 
         const end = start
@@ -625,7 +625,7 @@ async function fetchAppointments() {
         };
       });
 
-      console.table(events.value);
+      // console.table(events.value);
 
       // Filtrar eventos inválidos (sem start) e logar para depuração
       const invalidEvents = events.value.filter((e: any) => !e.start);
@@ -656,10 +656,10 @@ async function fetchAppointments() {
           // Logar o estado da API após adicionar para ver quantos eventos foram registrados
           try {
             const current = api.getEvents();
-            console.log(
-              `FullCalendar API agora tem ${current.length} eventos.`,
-              current.map((ev: any) => ev.id)
-            );
+            // console.log(
+            //   `FullCalendar API agora tem ${current.length} eventos.`,
+            //   current.map((ev: any) => ev.id)
+            // );
           } catch (innerErr) {
             console.warn(
               "Não foi possível ler eventos via api.getEvents():",

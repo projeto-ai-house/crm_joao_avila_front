@@ -115,7 +115,7 @@ const handleReferralShare = (link: string) => {
 
 function handleSelectedPage() {
   let page = router.currentRoute.value?.name as string | undefined;
-  console.log(page);
+  // console.log(page);
 
   if (page === "PainelNotFound")
     page = router.currentRoute.value?.path.split("/").pop() as

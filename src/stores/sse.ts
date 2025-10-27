@@ -15,7 +15,7 @@ export const useSSEStore = defineStore("sse", {
 
   actions: {
     connectSSE(token: string) {
-      console.log("🔗 Conectando ao SSE com token:", token);
+      // console.log("🔗 Conectando ao SSE com token:", token);
 
       if (this.connected) return;
 
@@ -30,11 +30,11 @@ export const useSSEStore = defineStore("sse", {
 
       eventSource.onopen = () => {
         this.connected = true;
-        console.log("✅ Conexão SSE aberta");
+        // console.log("✅ Conexão SSE aberta");
       };
 
       eventSource.onmessage = (event) => {
-        console.log("📩 Mensagem recebida:", event.data);
+        // console.log("📩 Mensagem recebida:", event.data);
         this.messages.push(event.data);
       };
 

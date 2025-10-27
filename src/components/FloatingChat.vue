@@ -85,21 +85,89 @@
             >
               <div
                 :class="[
-                  'max-w-[75%] rounded-2xl px-4 py-2 shadow-sm',
+                  'max-w-[75%] rounded-2xl shadow-sm overflow-hidden',
                   message.sender === 'user'
                     ? 'bg-blue-500 text-white rounded-br-sm'
                     : 'bg-white text-gray-800 rounded-bl-sm border border-gray-200',
                 ]"
               >
-                <p class="text-sm break-words whitespace-pre-wrap">
-                  {{ message.text }}
-                </p>
+                <!-- Anexos de imagem -->
+                <div
+                  v-if="message.hasAttachments && message.attachments?.length"
+                  class="p-3"
+                >
+                  <div
+                    v-for="attachment in message.attachments"
+                    :key="attachment.id"
+                    class="mb-3 last:mb-0"
+                  >
+                    <!-- Imagem disponível -->
+                    <div
+                      v-if="
+                        attachment.file_url &&
+                        !attachment.file_url.startsWith('blob:')
+                      "
+                      class="rounded-lg overflow-hidden"
+                    >
+                      <AuthenticatedImage
+                        :src="attachment.file_url"
+                        :alt="attachment.file_name"
+                        :preview="true"
+                        img-class="max-w-full w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                      />
+                    </div>
+
+                    <!-- Placeholder de imagem sendo processada (blob URL) -->
+                    <div
+                      v-else
+                      class="flex items-center gap-3 p-3 bg-gray-100 rounded-lg border border-gray-300"
+                    >
+                      <div
+                        class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0"
+                      >
+                        <ImagePlus :size="20" class="text-blue-600" />
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800 truncate">
+                          {{ attachment.file_name }}
+                        </p>
+                        <p class="text-xs text-gray-500">
+                          {{ (attachment.file_size / 1024 / 1024).toFixed(2) }}
+                          MB • Enviada com sucesso
+                        </p>
+                      </div>
+                    </div>
+
+                    <p
+                      v-if="attachment.caption"
+                      class="text-xs mt-2 opacity-80 italic"
+                    >
+                      {{ attachment.caption }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Texto da mensagem -->
+                <div
+                  v-if="message.text && message.text !== '📷 Imagem'"
+                  :class="[
+                    'px-4',
+                    message.hasAttachments ? 'pt-0 pb-2' : 'py-2',
+                  ]"
+                >
+                  <p class="text-sm break-words whitespace-pre-wrap">
+                    {{ message.text }}
+                  </p>
+                </div>
+
+                <!-- Timestamp e status -->
                 <div
                   :class="[
-                    'flex items-center gap-1 mt-1 text-xs',
+                    'flex items-center gap-1 px-4 pb-2 text-xs',
                     message.sender === 'user'
                       ? 'text-blue-100 justify-end'
                       : 'text-gray-400',
+                    message.hasAttachments || message.text ? '' : 'pt-2',
                   ]"
                 >
                   <span>{{
@@ -139,25 +207,121 @@
           </div>
         </div>
 
+        <!-- Preview de Imagem Selecionada -->
+        <div
+          v-if="imagePreviewUrl"
+          class="px-4 py-4 bg-gradient-to-b from-gray-50 to-white border-t border-gray-200"
+        >
+          <div class="flex items-start gap-3">
+            <!-- Preview da Imagem -->
+            <div class="relative flex-shrink-0">
+              <img
+                :src="imagePreviewUrl"
+                alt="Preview"
+                class="max-h-40 max-w-[200px] rounded-xl border-2 border-gray-300 shadow-sm object-cover"
+              />
+              <button
+                @click="cancelImageSelection"
+                class="absolute -top-2 -right-2 w-7 h-7 bg-red-500 rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 hover:scale-110 transition-all cursor-pointer"
+                :disabled="isUploading"
+              >
+                <X :size="16" class="text-white" />
+              </button>
+              <!-- Indicador de progresso -->
+              <div
+                v-if="isUploading"
+                class="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200 rounded-b-xl overflow-hidden"
+              >
+                <div
+                  class="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
+                  :style="{ width: uploadProgress + '%' }"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Informações do Arquivo -->
+            <div class="flex-1 min-w-0 pt-1">
+              <p class="text-sm font-medium text-gray-800 truncate mb-1">
+                {{ selectedImage?.name }}
+              </p>
+              <div class="flex items-center gap-2">
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
+                >
+                  <ImagePlus :size="12" />
+                  {{ (selectedImage!.size / 1024 / 1024).toFixed(2) }} MB
+                </span>
+                <span
+                  v-if="isUploading"
+                  class="text-xs text-gray-500 font-medium"
+                >
+                  {{ uploadProgress }}%
+                </span>
+              </div>
+              <p
+                v-if="isUploading"
+                class="text-xs text-gray-400 mt-1 flex items-center gap-1"
+              >
+                <Loader2 :size="10" class="animate-spin" />
+                Enviando imagem...
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Input de Mensagem -->
         <div class="p-4 bg-white border-t border-gray-200">
+          <!-- Input file oculto -->
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/bmp"
+            class="hidden"
+            @change="handleFileSelect"
+          />
+
           <div class="flex gap-2">
+            <!-- Botão de anexar imagem -->
+            <button
+              @click="openFileSelector"
+              :disabled="
+                connectionState !== 'connected' ||
+                isUploading ||
+                !!selectedImage
+              "
+              class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ImagePlus :size="18" class="text-gray-600" />
+            </button>
+
             <input
               v-model="messageInput"
               type="text"
-              placeholder="Digite sua mensagem..."
+              :placeholder="
+                selectedImage
+                  ? 'Adicione uma legenda (opcional)...'
+                  : 'Digite sua mensagem...'
+              "
               class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              :disabled="connectionState !== 'connected'"
+              :disabled="connectionState !== 'connected' || isUploading"
               @keypress="handleKeyPress"
             />
             <button
-              @click="sendMessage"
+              @click="selectedImage ? sendImageMessage() : sendMessage()"
               :disabled="
-                !messageInput.trim() || connectionState !== 'connected'
+                (selectedImage
+                  ? isUploading
+                  : !messageInput.trim() || connectionState !== 'connected') ||
+                isUploading
               "
               class="w-10 h-10 rounded-full send-button flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send :size="18" class="text-white" />
+              <Loader2
+                v-if="isUploading"
+                :size="18"
+                class="text-white animate-spin"
+              />
+              <Send v-else :size="18" class="text-white" />
             </button>
           </div>
         </div>
@@ -178,15 +342,17 @@
 </template>
 
 <script setup lang="ts">
-import { Loader2, Send, Sparkles, X } from "lucide-vue-next";
+import { ImagePlus, Loader2, Send, Sparkles, X } from "lucide-vue-next";
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import appConfig from "../../app-config.json";
+import { ImageUploadService } from "../services/websocket/ImageUploadService";
 import { WebSocketService } from "../services/websocket/WebSocketService";
 import type {
   ChatMessage,
   ConnectionState,
 } from "../services/websocket/WebSocketTypes";
 import { useUserStore } from "../stores/user";
+import AuthenticatedImage from "./AuthenticatedImage.vue";
 
 interface QuickMessage {
   id: number;
@@ -204,7 +370,15 @@ const connectionState = ref<ConnectionState>("disconnected");
 const errorMessage = ref<string | null>(null);
 const quickMessages = ref<QuickMessage[]>([]);
 
+// Upload de imagens
+const fileInput = ref<HTMLInputElement | null>(null);
+const selectedImage = ref<File | null>(null);
+const imagePreviewUrl = ref<string | null>(null);
+const uploadProgress = ref<number>(0);
+const isUploading = ref(false);
+
 let wsService: WebSocketService | null = null;
+let imageUploadService: ImageUploadService | null = null;
 
 // Carregar mensagens rápidas do config
 onMounted(() => {
@@ -232,7 +406,6 @@ function getQuickMessageColor(color: string): string {
 // Enviar mensagem rápida
 function sendQuickMessage(text: string) {
   messageInput.value = text;
-  sendMessage();
 }
 
 // Configurar WebSocket
@@ -254,10 +427,13 @@ const setupWebSocket = () => {
     token,
   });
 
+  // Instanciar serviço de upload de imagens
+  imageUploadService = new ImageUploadService(baseUrl, token);
+
   // Callbacks
   wsService.onStateChange((state) => {
     connectionState.value = state;
-    console.log("Estado da conexão:", state);
+    // console.log("Estado da conexão:", state);
   });
 
   wsService.onMessage((message) => {
@@ -336,6 +512,149 @@ const handleKeyPress = (event: KeyboardEvent) => {
   }
 };
 
+// Funções de gerenciamento de imagens
+const openFileSelector = () => {
+  fileInput.value?.click();
+};
+
+const handleFileSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (!file) return;
+
+  // Validar tipo
+  if (!imageUploadService?.validateImageType(file)) {
+    errorMessage.value =
+      "Tipo de arquivo não suportado. Use: JPG, PNG, GIF, WEBP ou BMP";
+    setTimeout(() => {
+      errorMessage.value = null;
+    }, 5000);
+    return;
+  }
+
+  // Validar tamanho (10MB)
+  if (!imageUploadService?.validateImageSize(file, 10)) {
+    errorMessage.value = "Arquivo muito grande. Tamanho máximo: 10MB";
+    setTimeout(() => {
+      errorMessage.value = null;
+    }, 5000);
+    return;
+  }
+
+  // Armazenar imagem e criar preview
+  selectedImage.value = file;
+  if (imageUploadService) {
+    imagePreviewUrl.value = imageUploadService.createPreviewUrl(file);
+  }
+};
+
+const cancelImageSelection = () => {
+  if (imagePreviewUrl.value && imageUploadService) {
+    imageUploadService.revokePreviewUrl(imagePreviewUrl.value);
+  }
+  selectedImage.value = null;
+  imagePreviewUrl.value = null;
+  uploadProgress.value = 0;
+
+  // Limpar input
+  if (fileInput.value) {
+    fileInput.value.value = "";
+  }
+};
+
+const sendImageMessage = async () => {
+  if (!selectedImage.value || !imageUploadService || !wsService) return;
+
+  const userData = userStore.getData();
+  if (!userData?.ID || !userData?.Clinica?.[0]?.ID) {
+    errorMessage.value = "Dados do usuário incompletos";
+    return;
+  }
+
+  const connectionId = wsService.getConnectionId();
+  if (!connectionId) {
+    errorMessage.value = "Conexão não estabelecida";
+    return;
+  }
+
+  // Salvar referências antes de limpar
+  const imageName = selectedImage.value.name;
+  const imageType = selectedImage.value.type;
+  const imageSize = selectedImage.value.size;
+  const caption = messageInput.value;
+  const localPreviewUrl = imagePreviewUrl.value;
+
+  isUploading.value = true;
+  uploadProgress.value = 0;
+
+  // Adicionar mensagem local de "enviando" - SEM imagem ainda (só placeholder)
+  const userMessage: ChatMessage = {
+    id: `user-${Date.now()}`,
+    text: caption || `📷 ${imageName}`,
+    sender: "user",
+    timestamp: new Date(),
+    status: "sending",
+    hasAttachments: false, // Não mostrar anexo ainda
+  };
+
+  messages.value.push(userMessage);
+  scrollToBottom();
+
+  try {
+    // Upload da imagem
+    const response = await imageUploadService.uploadImage(
+      {
+        image: selectedImage.value,
+        connectionId: connectionId,
+        clinicaId: userData.Clinica[0].ID,
+        caption: caption,
+      },
+      (progress) => {
+        uploadProgress.value = progress;
+      }
+    );
+
+    // Atualizar mensagem para mostrar que foi enviada
+    userMessage.status = "sent";
+    userMessage.text = caption
+      ? `${caption} 📎`
+      : `📷 ${imageName} (enviada com sucesso)`;
+
+    // Limpar campos APÓS o upload bem-sucedido
+    messageInput.value = "";
+
+    // Limpar preview de forma mais segura
+    if (localPreviewUrl && imageUploadService) {
+      imageUploadService.revokePreviewUrl(localPreviewUrl);
+    }
+
+    selectedImage.value = null;
+    imagePreviewUrl.value = null;
+    uploadProgress.value = 0;
+
+    // Limpar input file
+    if (fileInput.value) {
+      fileInput.value.value = "";
+    }
+
+    scrollToBottom();
+  } catch (error: any) {
+    console.error("❌ Erro ao enviar imagem:", error);
+    errorMessage.value = error.message || "Erro ao enviar imagem";
+
+    // Atualizar mensagem com erro
+    userMessage.status = "error";
+    userMessage.text = `❌ Erro ao enviar: ${imageName}`;
+
+    setTimeout(() => {
+      errorMessage.value = null;
+    }, 5000);
+  } finally {
+    isUploading.value = false;
+  }
+};
+
 // Lifecycle
 onMounted(() => {
   // Não conectar automaticamente - só quando abrir o chat
@@ -344,6 +663,11 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (wsService) {
     wsService.disconnect();
+  }
+
+  // Limpar preview de imagem se existir
+  if (imagePreviewUrl.value && imageUploadService) {
+    imageUploadService.revokePreviewUrl(imagePreviewUrl.value);
   }
 });
 </script>

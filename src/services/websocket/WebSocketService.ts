@@ -34,6 +34,18 @@ export class WebSocketService {
     };
   }
 
+  /**
+   * Converte URL relativa em URL completa
+   */
+  private getFullUrl(url: string): string {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+    const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+    return `${this.config.baseUrl}${cleanUrl}`;
+  }
+
   // Setters para callbacks
   public onStateChange(callback: (state: ConnectionState) => void): void {
     this.onStateChangeCallback = callback;
@@ -94,7 +106,7 @@ export class WebSocketService {
       const baseUrl = this.config.baseUrl.replace(/^https?:\/\//, "");
       const wsUrl = `${protocol}://${baseUrl}/api/v1/websocket/ws?clinica_id=${this.config.clinicaId}&user_id=${this.config.userId}&connection_id=${this.connectionId}&token=${this.config.token}`;
 
-      console.log("Conectando ao WebSocket:", wsUrl.replace(this.config.token, "***"));
+      // console.log("Conectando ao WebSocket:", wsUrl.replace(this.config.token, "***"));
 
       this.ws = new WebSocket(wsUrl);
       this.setupEventHandlers();
@@ -111,7 +123,7 @@ export class WebSocketService {
     if (!this.ws) return;
 
     this.ws.onopen = () => {
-      console.log("WebSocket conectado");
+      // console.log("WebSocket conectado");
       this.isConnecting = false;
       this.reconnectAttempts = 0;
       this.setState("connected");
@@ -120,7 +132,7 @@ export class WebSocketService {
     };
 
     this.ws.onclose = (event) => {
-      console.log("WebSocket fechado:", event.code, event.reason);
+      // console.log("WebSocket fechado:", event.code, event.reason);
       this.isConnecting = false;
       this.stopPingInterval();
 
@@ -148,7 +160,7 @@ export class WebSocketService {
   private handleMessage(event: MessageEvent): void {
     try {
       const message: WebSocketMessage = JSON.parse(event.data);
-      console.log("Mensagem recebida:", message);
+      // console.log("Mensagem recebida:", message);
 
       switch (message.type) {
         case "connection":
@@ -164,7 +176,7 @@ export class WebSocketService {
           break;
 
         case "pong":
-          console.log("Pong recebido - conexão ativa");
+          // console.log("Pong recebido - conexão ativa");
           break;
 
         case "error":
@@ -172,7 +184,7 @@ export class WebSocketService {
           break;
 
         default:
-          console.log("Mensagem desconhecida:", message);
+        // console.log("Mensagem desconhecida:", message);
       }
     } catch (error) {
       console.error("Erro ao processar mensagem:", error);
@@ -181,22 +193,31 @@ export class WebSocketService {
 
   // Handlers específicos
   private handleConnectionMessage(message: ConnectionMessage): void {
-    console.log("Conectado - Connection ID:", message.data.connection_id);
+    // console.log("Conectado - Connection ID:", message.data.connection_id);
     this.connectionId = message.data.connection_id;
   }
 
   private handleMessageReceived(message: MessageReceivedMessage): void {
-    console.log("Mensagem enviada para webhook:", message.data.status);
+    // console.log("Mensagem enviada para webhook:", message.data.status);
     // Atualizar status da mensagem para "sent"
   }
 
   private handleAgentResponse(message: AgentResponseMessage): void {
+    // Processar anexos se houver
+    const rawAttachments = (message.data as any).attachments || [];
+    const processedAttachments = rawAttachments.map((att: any) => ({
+      ...att,
+      file_url: this.getFullUrl(att.file_url), // Converter URL relativa em completa
+    }));
+
     const chatMessage: ChatMessage = {
       id: `agent-${Date.now()}`,
       text: message.data.message,
       sender: "agent",
       timestamp: new Date(message.timestamp || Date.now()),
       status: "delivered",
+      attachments: processedAttachments,
+      hasAttachments: (message.data as any).has_attachments || false,
     };
 
     if (this.onMessageCallback) {
@@ -264,7 +285,7 @@ export class WebSocketService {
   // Reconexão automática
   private scheduleReconnect(): void {
     if (this.reconnectAttempts >= (this.config.maxReconnectAttempts || 10)) {
-      console.log("Máximo de tentativas de reconexão atingido");
+      // console.log("Máximo de tentativas de reconexão atingido");
       this.setState("error");
       if (this.onErrorCallback) {
         this.onErrorCallback(
@@ -279,9 +300,9 @@ export class WebSocketService {
       (this.config.reconnectInterval || 5000) *
       Math.pow(2, Math.min(this.reconnectAttempts, 5));
 
-    console.log(
-      `Tentativa ${this.reconnectAttempts}/${this.config.maxReconnectAttempts} - Reconectando em ${delay}ms...`
-    );
+    // console.log(
+    //   `Tentativa ${this.reconnectAttempts}/${this.config.maxReconnectAttempts} - Reconectando em ${delay}ms...`
+    // );
 
     setTimeout(() => {
       this.connect();
@@ -292,7 +313,7 @@ export class WebSocketService {
   private setState(newState: ConnectionState): void {
     const oldState = this.state;
     this.state = newState;
-    console.log(`Estado alterado: ${oldState} -> ${newState}`);
+    // console.log(`Estado alterado: ${oldState} -> ${newState}`);
 
     if (this.onStateChangeCallback) {
       this.onStateChangeCallback(newState);

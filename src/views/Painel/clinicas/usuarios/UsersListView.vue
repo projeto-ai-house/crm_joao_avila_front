@@ -262,8 +262,8 @@ async function saveUserLinks(userId: string, links: any[], users: any[]) {
     return;
   }
   linksLoading.value = true;
-  console.log(users);
-  console.log("links", links);
+  // console.log(users);
+  // console.log("links", links);
 
   let added = 0;
   let removed = 0;
@@ -381,7 +381,7 @@ async function fetchUserLinks() {
       throw new Error("Failed to fetch user links");
     }
     const vinculos = response.data?.data || [];
-    console.log("Vínculos:", vinculos);
+    // console.log("Vínculos:", vinculos);
 
     users.value = users.value.map((user) => {
       const currentUserLinks = vinculos?.filter(

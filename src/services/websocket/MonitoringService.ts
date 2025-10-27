@@ -13,6 +13,18 @@ export interface IWebSocketConnection {
   user_email?: string;
 }
 
+export interface IAgentMessageAttachment {
+  id: string;
+  message_id: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  file_path: string;
+  file_url: string;
+  caption?: string;
+  created_at: string;
+}
+
 export interface IAgentMessage {
   id: string;
   connection_id: string;
@@ -21,6 +33,8 @@ export interface IAgentMessage {
   created_at: string;
   clinica_id: string;
   user_id: string;
+  has_attachments: boolean;
+  attachments?: IAgentMessageAttachment[];
 }
 
 export interface IConnectionsResponse {

@@ -57,12 +57,23 @@ export interface OutgoingMessage {
   };
 }
 
+export interface AttachmentInfo {
+  id: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  file_url: string;
+  caption?: string;
+}
+
 export interface ChatMessage {
   id: string;
   text: string;
   sender: "user" | "agent";
   timestamp: Date;
   status?: "sending" | "sent" | "delivered" | "error";
+  attachments?: AttachmentInfo[];
+  hasAttachments?: boolean;
 }
 
 export type ConnectionState =
