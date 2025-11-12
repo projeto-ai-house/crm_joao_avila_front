@@ -262,6 +262,7 @@
               type="text"
               fluid
               size="small"
+              :disabled="temPacienteVinculadoNoAgendamento"
             />
             <label for="Nome_paciente"
               >Nome do Paciente
@@ -311,6 +312,7 @@
               fluid
               dateFormat="dd/mm/yy"
               size="small"
+              :disabled="temPacienteVinculadoNoAgendamento"
             />
             <label for="data_nascimento">
               Data de Nascimento
@@ -381,6 +383,7 @@
 
 <script setup lang="ts">
 import {
+  computed,
   inject,
   nextTick,
   onMounted,
@@ -458,6 +461,16 @@ const preservedValues = ref({
   MedicoID: "",
   convenio: "",
   status: "",
+});
+
+// Computed para verificar se o agendamento em edição tem paciente vinculado
+const temPacienteVinculadoNoAgendamento = computed(() => {
+  if (!isEditing.value || !props.inEdition) return false;
+
+  // Verifica se existe paciente_id e se é um UUID válido (não vazio)
+  const pacienteId = props.inEdition.paciente_id;
+  // Força retorno booleano com !!
+  return !!(pacienteId && typeof pacienteId === 'string' && pacienteId.trim().length > 0);
 });
 
 const horariosDisponiveis = ref([
@@ -611,7 +624,6 @@ async function saveAppointment({ valid, values, states }) {
     });
     return;
   }
-  console.log(`duracao_sec antes: ${values.duracao_sec}`);
 
   try {
     globalLoading.value = true;
@@ -648,10 +660,19 @@ async function saveAppointment({ valid, values, states }) {
     }
 
     let response: any;
-    console.log(isEditing.value, appointmentId.value);
 
     if (isEditing.value && appointmentId.value) {
       appointment.ID = appointmentId.value;
+
+      // Mapear campos de formulário para campos da API (update usa snake_case)
+      if (appointment.Nome_paciente) {
+        appointment.nome_cliente = appointment.Nome_paciente;
+        delete appointment.Nome_paciente;
+      }
+      if (appointment.MedicoID) {
+        appointment.medico_id = appointment.MedicoID;
+        delete appointment.MedicoID;
+      }
 
       // Verificar se a data é anterior ao dia atual e remover o campo se necessário
       if (appointment.data_hora) {
