@@ -29,6 +29,8 @@ interface ICreateAppointment {
   data_nascimento: string; // ISO 8601 datetime
   MedicoID: string;
   status?: string;
+  paciente_id?: string; // ID do paciente vinculado (opcional)
+  paciente_cpf?: string; // CPF do paciente vinculado (opcional)
 }
 
 interface IDeleteAppointments {

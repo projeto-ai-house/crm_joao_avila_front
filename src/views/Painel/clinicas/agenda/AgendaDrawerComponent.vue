@@ -189,6 +189,64 @@
           <User class="w-5 h-5" /> Dados do Paciente
         </div>
 
+        <!-- Buscar Paciente Existente -->
+        <div class="col-span-12">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm text-gray-600">
+              Buscar paciente cadastrado (opcional)
+            </label>
+            <div class="flex gap-2">
+              <InputText
+                id="busca_paciente"
+                v-model="buscaPaciente"
+                type="text"
+                fluid
+                size="small"
+                placeholder="Digite CPF ou nome do paciente"
+                @keyup.enter="buscarPaciente"
+                :disabled="loadingPaciente"
+                class="flex-1"
+              />
+              <Button
+                icon="pi pi-search"
+                severity="secondary"
+                size="small"
+                @click="buscarPaciente"
+                :loading="loadingPaciente"
+                :disabled="!buscaPaciente || loadingPaciente"
+              />
+              <Button
+                v-if="pacienteSelecionado"
+                icon="pi pi-times"
+                severity="danger"
+                size="small"
+                outlined
+                @click="limparPaciente"
+                v-tooltip.top="'Desvincular paciente'"
+              />
+            </div>
+            <div
+              v-if="pacienteSelecionado"
+              class="bg-green-50 border border-green-200 rounded-md p-2 flex items-center gap-2"
+            >
+              <i class="pi pi-check-circle text-green-600"></i>
+              <span class="text-sm text-green-700">
+                <strong>Paciente vinculado:</strong>
+                {{ pacienteSelecionado.nome_completo }} -
+                CPF: {{ formatarCPF(pacienteSelecionado.cpf) }}
+              </span>
+            </div>
+            <Message
+              v-if="erroBuscaPaciente"
+              severity="error"
+              size="small"
+              variant="simple"
+            >
+              {{ erroBuscaPaciente }}
+            </Message>
+          </div>
+        </div>
+
         <!-- Nome do Paciente -->
         <div class="col-span-12 flex flex-col gap-1">
           <FloatLabel variant="on">
@@ -345,6 +403,7 @@ import Drawer from "primevue/drawer";
 import { useConfirm } from "primevue/useconfirm";
 import { z } from "zod";
 import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
+import { PatientsServices, type IPatient } from "../../../../services/patients/PatientsServices";
 import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
 import { useUserStore } from "../../../../stores/user";
@@ -377,6 +436,12 @@ const listMedicos = ref<Medico[]>([]);
 const oldDate = ref<Date | null>(null);
 const dynamicMask = ref("(99) 99999-9999");
 const formKey = ref(0); // Key para forçar remontagem do formulário
+
+// Refs para busca de paciente
+const buscaPaciente = ref("");
+const pacienteSelecionado = ref<IPatient | null>(null);
+const loadingPaciente = ref(false);
+const erroBuscaPaciente = ref("");
 
 const horariosDisponiveis = ref([
   { label: "08:00", value: "08:00" },
@@ -427,22 +492,31 @@ const maskLiterals: { [key: number]: string } = {
 };
 
 const getValidationSchema = () => {
+  // Se houver paciente vinculado, os campos do paciente são opcionais
+  const temPacienteVinculado = !!pacienteSelecionado.value;
+
   const baseSchema = {
     titulo: z.string().min(1, { message: "Título é obrigatório." }),
     convenio: z.string(),
-    Nome_paciente: z
-      .string()
-      .min(1, { message: "Nome do paciente é obrigatório." })
-      .refine((val) => val.trim().split(/\s+/).length > 1, {
-        message: "Informe o nome completo do paciente.",
-      }),
-    telefone_contato: z
-      .string()
-      .min(1, { message: "Telefone de contato é obrigatório." })
-      .transform((val) => val.replace(/\D/g, ""))
-      .refine((val) => [10, 11, 12, 13].includes(val.length), {
-        message: "Telefone inválido. Deve conter 10, 11, 12 ou 13 dígitos.",
-      }),
+    // Nome do paciente: obrigatório apenas se não houver paciente vinculado
+    Nome_paciente: temPacienteVinculado
+      ? z.string()
+      : z
+          .string()
+          .min(1, { message: "Nome do paciente é obrigatório." })
+          .refine((val) => val.trim().split(/\s+/).length > 1, {
+            message: "Informe o nome completo do paciente.",
+          }),
+    // Telefone: obrigatório apenas se não houver paciente vinculado
+    telefone_contato: temPacienteVinculado
+      ? z.string()
+      : z
+          .string()
+          .min(1, { message: "Telefone de contato é obrigatório." })
+          .transform((val) => val.replace(/\D/g, ""))
+          .refine((val) => [10, 11, 12, 13].includes(val.length), {
+            message: "Telefone inválido. Deve conter 10, 11, 12 ou 13 dígitos.",
+          }),
     // Validação de data dinâmica baseada no modo de edição
     data: isEditing.value
       ? z.date() // Permite qualquer data quando editando
@@ -454,14 +528,17 @@ const getValidationSchema = () => {
       .number({ invalid_type_error: "Duração é obrigatória." })
       .min(1, { message: "Duração deve ser pelo menos 1 minuto." })
       .max(1440, { message: "Duração não pode exceder 1440 minutos." }),
-    data_nascimento: z
-      .date()
-      .min(new Date("1900-01-01"), {
-        message: "Data de nascimento inválida.",
-      })
-      .max(new Date(), {
-        message: "Data de nascimento não pode ser futura.",
-      }),
+    // Data de nascimento: obrigatória apenas se não houver paciente vinculado
+    data_nascimento: temPacienteVinculado
+      ? z.date().nullable().optional()
+      : z
+          .date()
+          .min(new Date("1900-01-01"), {
+            message: "Data de nascimento inválida.",
+          })
+          .max(new Date(), {
+            message: "Data de nascimento não pode ser futura.",
+          }),
     MedicoID: z.string().min(1, { message: "Selecione um médico." }),
   };
 
@@ -538,6 +615,11 @@ async function saveAppointment({ valid, values, states }) {
     delete appointment.hora;
     delete appointment.data;
 
+    // Adicionar paciente_id se houver um paciente vinculado
+    if (pacienteSelecionado.value?.id) {
+      appointment.paciente_id = pacienteSelecionado.value.id;
+    }
+
     // Deletar data_hora se não houver alteração
     if (
       DateUtils.formatDatetoISOGlobalTimezone(oldDate.value) ===
@@ -581,6 +663,104 @@ async function saveAppointment({ valid, values, states }) {
   } finally {
     globalLoading.value = false;
   }
+}
+
+// Funções de busca de paciente
+async function buscarPaciente() {
+  if (!buscaPaciente.value.trim()) {
+    erroBuscaPaciente.value = "Digite um CPF ou nome para buscar.";
+    return;
+  }
+
+  loadingPaciente.value = true;
+  erroBuscaPaciente.value = "";
+
+  try {
+    // Remove formatação do CPF se houver (mantém apenas números)
+    const cpfSemFormatacao = buscaPaciente.value.replace(/\D/g, "");
+
+    // Formatar CPF para o formato esperado pela API: 123.123.321-21
+    const termo = cpfSemFormatacao.length === 11
+      ? formatarCPFParaAPI(cpfSemFormatacao)
+      : buscaPaciente.value.trim();
+
+    // Busca o paciente (API aceita ID ou CPF formatado)
+    const response = await PatientsServices.getPatient(termo);
+
+    if (response.status === 200 && response.data?.data) {
+      pacienteSelecionado.value = response.data.data;
+
+      // Preencher campos automaticamente
+      preencherDadosPaciente(response.data.data);
+
+      toast.add({
+        severity: "success",
+        summary: "Paciente Encontrado",
+        detail: `Paciente ${response.data.data.nome_completo} vinculado com sucesso.`,
+        life: 3000,
+      });
+    } else {
+      erroBuscaPaciente.value = "Paciente não encontrado.";
+    }
+  } catch (error: any) {
+    console.error("Erro ao buscar paciente:", error);
+    erroBuscaPaciente.value =
+      error.response?.data?.message ||
+      "Erro ao buscar paciente. Verifique o CPF e tente novamente.";
+  } finally {
+    loadingPaciente.value = false;
+  }
+}
+
+function preencherDadosPaciente(paciente: IPatient) {
+  // Preencher os campos do formulário com os dados do paciente
+  initialValues.value.Nome_paciente = paciente.nome_completo;
+  initialValues.value.data_nascimento = paciente.data_nascimento
+    ? new Date(paciente.data_nascimento)
+    : null;
+  initialValues.value.telefone_contato = paciente.celular || paciente.telefone || "";
+
+  // Preencher convênio se disponível
+  if (paciente.convenio_1_plano) {
+    initialValues.value.convenio = paciente.convenio_1_plano;
+  }
+
+  // Forçar remontagem do formulário para atualizar os campos
+  formKey.value++;
+}
+
+function limparPaciente() {
+  pacienteSelecionado.value = null;
+  buscaPaciente.value = "";
+  erroBuscaPaciente.value = "";
+
+  // Limpar campos do paciente
+  initialValues.value.Nome_paciente = "";
+  initialValues.value.data_nascimento = null;
+  initialValues.value.telefone_contato = "";
+
+  // Forçar remontagem do formulário
+  formKey.value++;
+
+  toast.add({
+    severity: "info",
+    summary: "Paciente Desvinculado",
+    detail: "Você pode preencher os dados manualmente.",
+    life: 3000,
+  });
+}
+
+function formatarCPF(cpf: string): string {
+  if (!cpf) return "";
+  const cleaned = cpf.replace(/\D/g, "");
+  if (cleaned.length !== 11) return cpf;
+  return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+}
+
+function formatarCPFParaAPI(cpf: string): string {
+  // Formata CPF para o padrão da API: 123.123.321-21
+  if (!cpf || cpf.length !== 11) return cpf;
+  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 }
 
 async function fetchMedicos() {
@@ -729,6 +909,12 @@ watch(
       resolver.value = zodResolver(getValidationSchema());
     } else {
       isEditing.value = false;
+
+      // Limpar estado de busca de paciente
+      pacienteSelecionado.value = null;
+      buscaPaciente.value = "";
+      erroBuscaPaciente.value = "";
+
       initialValues.value = {
         titulo: "AGENDAMENTO",
         convenio: "",
@@ -750,6 +936,14 @@ watch(
 
 watch(
   () => isEditing.value,
+  () => {
+    resolver.value = zodResolver(getValidationSchema());
+  }
+);
+
+// Watch para atualizar validação quando paciente for vinculado/desvinculado
+watch(
+  () => pacienteSelecionado.value,
   () => {
     resolver.value = zodResolver(getValidationSchema());
   }
