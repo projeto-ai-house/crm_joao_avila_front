@@ -38,7 +38,7 @@
         size="small"
         variant="text"
         class="[&_.p-button-label]:hidden sm:[&_.p-button-label]:inline-block !p-3 sm:!p-2 sm:ml-2"
-        v-tooltip="'Voltar'"
+        v-tooltip.bottom="'Voltar'"
         @click="router.go(-1)"
       >
         <template #icon>
@@ -51,13 +51,13 @@
     ref="formClinic"
     v-slot="$form"
     :initialValues="initialValues"
-    class="grid grid-cols-12 p-1 gap-x-2 gap-y-4"
+    class="grid grid-cols-12 p-1 gap-x-2 gap-y-2"
   >
-    <div class="col-span-12 border-t border-gray-200 mt-2 pt-2">
+    <div class="col-span-12 border-t border-gray-200 mt-1 pt-2">
       <h3 class="font-semibold text-gray-500">Informações do Paciente</h3>
     </div>
     <div
-      class="col-span-12 sm:col-span-3 row-span-3 flex flex-col gap-2 max-h-full relative"
+      class="col-span-12 sm:col-span-3 flex flex-col gap-2 max-h-full relative"
     >
       <div
         class="!shadow-md !rounded-xl overflow-hidden"
@@ -99,82 +99,86 @@
       />
     </div>
 
-    <div class="col-span-12 sm:col-span-6 row-span-1 flex flex-col gap-1">
-      <FloatLabel variant="on">
-        <InputText
-          id="nome_clinica"
-          name="nome_clinica"
-          type="text"
-          fluid
-          size="small"
-          v-model="initialValues.nome_completo"
-        />
-        <label for="nome_clinica">
-          Nome Completo
-          <span class="text-red-500">*</span>
-        </label>
-      </FloatLabel>
-      <Message
-        v-if="$form.nome_completo?.invalid"
-        severity="error"
-        size="small"
-        variant="simple"
-      >
-        {{ $form.nome_completo.error.message }}
-      </Message>
-    </div>
+    <div class="col-span-12 sm:col-span-9 flex flex-col gap-2">
+      <div class="grid grid-cols-12 gap-x-2 gap-y-2">
+        <div class="col-span-12 flex flex-col gap-1">
+          <FloatLabel variant="on">
+            <InputText
+              id="nome_clinica"
+              name="nome_clinica"
+              type="text"
+              fluid
+              size="small"
+              v-model="initialValues.nome_completo"
+            />
+            <label for="nome_clinica">
+              Nome Completo
+              <span class="text-red-500">*</span>
+            </label>
+          </FloatLabel>
+          <Message
+            v-if="$form.nome_completo?.invalid"
+            severity="error"
+            size="small"
+            variant="simple"
+          >
+            {{ $form.nome_completo.error.message }}
+          </Message>
+        </div>
 
-    <div class="col-span-12 sm:col-span-6 row-span-1 flex flex-col gap-1">
-      <FloatLabel variant="on">
-        <DatePicker
-          id="DataNascimento"
-          name="DataNascimento"
-          fluid
-          dateFormat="dd/mm/yy"
-          v-model="initialValues.data_nascimento_datepicker"
-          size="small"
-        />
-        <label for="DataNascimento"
-          >Data de Nascimento
-          <span class="text-red-500">*</span>
-        </label>
-      </FloatLabel>
-      <Message
-        v-if="$form.data_nascimento?.invalid"
-        severity="error"
-        size="small"
-        variant="simple"
-        >{{ $form.data_nascimento.error.message }}</Message
-      >
-    </div>
+        <div class="col-span-12 sm:col-span-6 flex flex-col gap-1">
+          <FloatLabel variant="on">
+            <DatePicker
+              id="DataNascimento"
+              name="DataNascimento"
+              fluid
+              dateFormat="dd/mm/yy"
+              v-model="initialValues.data_nascimento_datepicker"
+              size="small"
+            />
+            <label for="DataNascimento"
+              >Data de Nascimento
+              <span class="text-red-500">*</span>
+            </label>
+          </FloatLabel>
+          <Message
+            v-if="$form.data_nascimento?.invalid"
+            severity="error"
+            size="small"
+            variant="simple"
+            >{{ $form.data_nascimento.error.message }}</Message
+          >
+        </div>
 
-    <div class="col-span-12 sm:col-span-6 row-span-1 flex flex-col gap-1">
-      <FloatLabel variant="on">
-        <Select
-          v-model="initialValues.sexo"
-          :options="[
-            { label: 'Masculino', value: 'Masculino' },
-            { label: 'Feminino', value: 'Feminino' },
-            { label: 'Outro', value: 'Outro' },
-          ]"
-          optionValue="value"
-          optionLabel="label"
-          fluid
-          size="small"
-        />
-        <label for="sexo">
-          Sexo
-          <span class="text-red-500">*</span>
-        </label>
-      </FloatLabel>
-      <Message
-        v-if="$form.sexo?.invalid"
-        severity="error"
-        size="small"
-        variant="simple"
-      >
-        {{ $form.sexo.error.message }}
-      </Message>
+        <div class="col-span-12 sm:col-span-6 flex flex-col gap-1">
+          <FloatLabel variant="on">
+            <Select
+              v-model="initialValues.sexo"
+              :options="[
+                { label: 'Masculino', value: 'Masculino' },
+                { label: 'Feminino', value: 'Feminino' },
+                { label: 'Outro', value: 'Outro' },
+              ]"
+              optionValue="value"
+              optionLabel="label"
+              fluid
+              size="small"
+            />
+            <label for="sexo">
+              Sexo
+              <span class="text-red-500">*</span>
+            </label>
+          </FloatLabel>
+          <Message
+            v-if="$form.sexo?.invalid"
+            severity="error"
+            size="small"
+            variant="simple"
+          >
+            {{ $form.sexo.error.message }}
+          </Message>
+        </div>
+      </div>
     </div>
 
     <div class="col-span-12 sm:col-span-3 row-span-1 flex flex-col gap-1">
@@ -267,7 +271,7 @@
       </Message>
     </div>
 
-    <div class="col-span-12">
+    <div class="col-span-12 border-t border-gray-200 mt-1 pt-2">
       <h3 class="font-semibold text-gray-500">Dados Físicos</h3>
     </div>
 
@@ -347,7 +351,7 @@
       </Message>
     </div>
 
-    <div class="col-span-12 row-span-1 flex flex-col gap-1">
+    <div class="col-span-4 sm:col-span-3 row-span-1 flex flex-col gap-1">
       <FloatLabel variant="on">
         <Select
           v-model="initialValues.prioridade"
@@ -402,7 +406,7 @@
       </Message>
     </div>
 
-    <div class="col-span-12">
+    <div class="col-span-12 border-t border-gray-200 mt-1 pt-2">
       <h3 class="font-semibold text-gray-500">Informações Pessoais</h3>
     </div>
 
@@ -520,7 +524,7 @@
       </Message>
     </div>
 
-    <div class="col-span-12">
+    <div class="col-span-12 border-t border-gray-200 mt-1 pt-2">
       <h3 class="font-semibold text-gray-500">Contato</h3>
     </div>
 
@@ -592,7 +596,7 @@
       </Message>
     </div>
 
-    <div class="col-span-12">
+    <div class="col-span-12 border-t border-gray-200 mt-1 pt-2">
       <h3 class="font-semibold text-gray-500">Endereço</h3>
     </div>
 
@@ -788,12 +792,12 @@
       </Message>
     </div>
 
-    <div class="col-span-12 border-t border-gray-200 mt-2 pt-2">
+    <div class="col-span-12 border-t border-gray-200 mt-1 pt-2">
       <h3 class="font-semibold text-gray-500">Convênios</h3>
     </div>
 
     <div
-      class="col-span-12 row-span-1 grid grid-cols-12 gap-x-2 gap-y-4"
+      class="col-span-12 row-span-1 grid grid-cols-12 gap-x-2 gap-y-2"
       v-for="(convenio, index) in [1, 2, 3]"
       :key="index"
     >
@@ -869,7 +873,7 @@
 
     <!-- Form Programação de Agendamentos -->
     <div
-      class="col-span-12 sm:col-span-5 p-4 border border-gray-200 rounded-lg grid grid-cols-12 gap-x-2 gap-y-4 h-fit"
+      class="col-span-12 sm:col-span-5 p-4 border border-gray-200 rounded-lg grid grid-cols-12 gap-x-2 gap-y-2 h-fit"
       v-if="userStore.user.Role?.toUpperCase() === 'MEDICO'"
     >
       <div class="col-span-12">
@@ -928,7 +932,7 @@
 
     <!-- Relacionamentos e Familiares -->
     <div
-      class="p-4 border border-gray-200 rounded-lg grid grid-cols-13 gap-x-2 gap-y-4 h-fit"
+      class="p-4 border border-gray-200 rounded-lg grid grid-cols-13 gap-x-2 gap-y-2 h-fit"
       :class="{
         'col-span-12 sm:col-span-12':
           userStore.user.Role?.toUpperCase() !== 'MEDICO',
@@ -1281,6 +1285,35 @@ async function salvarPaciente() {
       ? initialValues.value.data_nascimento_datepicker.toISOString()
       : "";
 
+    // Remove formatting from CPF and RG (keep only numbers)
+    const originalCPF = initialValues.value.cpf;
+    const originalRG = initialValues.value.rg;
+    const originalTelefone = initialValues.value.telefone;
+    const originalCelular = initialValues.value.celular;
+    const originalCEP = initialValues.value.cep;
+
+    if (initialValues.value.cpf) {
+      initialValues.value.cpf = initialValues.value.cpf.replace(/\D/g, "");
+    }
+    if (initialValues.value.rg) {
+      initialValues.value.rg = initialValues.value.rg.replace(/\D/g, "");
+    }
+    if (initialValues.value.telefone) {
+      initialValues.value.telefone = initialValues.value.telefone.replace(
+        /\D/g,
+        ""
+      );
+    }
+    if (initialValues.value.celular) {
+      initialValues.value.celular = initialValues.value.celular.replace(
+        /\D/g,
+        ""
+      );
+    }
+    if (initialValues.value.cep) {
+      initialValues.value.cep = initialValues.value.cep.replace(/\D/g, "");
+    }
+
     // Convert convenio validade dates to ISO strings for API
     const convenioValidadeFields = [
       "convenio_1_validade",
@@ -1316,6 +1349,13 @@ async function salvarPaciente() {
       await PatientsServices.postPatient(configuredValues as IPatient);
     }
 
+    // Restore original formatted values
+    initialValues.value.cpf = originalCPF;
+    initialValues.value.rg = originalRG;
+    initialValues.value.telefone = originalTelefone;
+    initialValues.value.celular = originalCelular;
+    initialValues.value.cep = originalCEP;
+
     // Restore original Date objects
     convenioValidadeFields.forEach((field) => {
       if (originalValidadeDates[field]) {
@@ -1334,13 +1374,19 @@ async function salvarPaciente() {
     // Save parents
     if (parentsList.value.length) {
       for await (const parent of parentsList.value) {
-        await PatientsServices.postPatientParent(initialValues.value.id, {
+        const parentData = {
           ...parent,
+          cpf: parent.cpf ? parent.cpf.replace(/\D/g, "") : "",
+          telefone: parent.telefone ? parent.telefone.replace(/\D/g, "") : "",
           data_nascimento:
             new Date(
               DateUtils.formatDateBRtoISO(parent.data_nascimento)
             ).toISOString() || "",
-        });
+        };
+        await PatientsServices.postPatientParent(
+          initialValues.value.id,
+          parentData
+        );
       }
     }
 

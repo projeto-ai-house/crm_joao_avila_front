@@ -263,8 +263,14 @@ const calendarOptions = ref<CalendarOptions>({
   eventContent: (arg: any) => {
     const status = arg.event.extendedProps?.status;
     const showCheck = String(status || "").toUpperCase() === "CONFIRMADO";
-    const title = arg.event.title || "";
     const timeText = arg.timeText || "";
+
+    // Pegar dados do paciente se houver
+    const fullData = arg.event.extendedProps?.fullData;
+    const paciente = fullData?.paciente;
+    const pacienteId = fullData?.paciente_id || paciente?.id;
+    const nomePaciente = paciente?.nome_completo || fullData?.nome_cliente || arg.event.title || "";
+
     const wrapper = document.createElement("div");
     wrapper.className = "fc-event-custom";
 
@@ -273,10 +279,64 @@ const calendarOptions = ref<CalendarOptions>({
       selectedView.value === "timeGridDay"
         ? "fc-event-main-row"
         : "fc-event-main-col";
-    const titleEl = document.createElement("div");
-    titleEl.className = "fc-event-title";
-    titleEl.textContent = title;
-    main.appendChild(titleEl);
+
+    // Se houver paciente vinculado, criar link com ícone
+    if (pacienteId) {
+      const linkContainer = document.createElement("div");
+      linkContainer.className = "fc-event-patient-link-container";
+
+      const linkEl = document.createElement("a");
+      linkEl.className = "fc-event-patient-link";
+      linkEl.href = `/painel/pacientes/${pacienteId}`;
+      linkEl.textContent = nomePaciente;
+      linkEl.title = `Ver detalhes de ${nomePaciente}`;
+
+      // Criar ícone SVG (ExternalLink do lucide)
+      const iconEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      iconEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      iconEl.setAttribute("width", "14");
+      iconEl.setAttribute("height", "14");
+      iconEl.setAttribute("viewBox", "0 0 24 24");
+      iconEl.setAttribute("fill", "none");
+      iconEl.setAttribute("stroke", "currentColor");
+      iconEl.setAttribute("stroke-width", "2");
+      iconEl.setAttribute("stroke-linecap", "round");
+      iconEl.setAttribute("stroke-linejoin", "round");
+      iconEl.className.baseVal = "fc-event-patient-icon";
+
+      // Path do ícone ExternalLink
+      const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path1.setAttribute("d", "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6");
+      const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path2.setAttribute("d", "M15 3h6v6");
+      const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path3.setAttribute("d", "M10 14L21 3");
+
+      iconEl.appendChild(path1);
+      iconEl.appendChild(path2);
+      iconEl.appendChild(path3);
+
+      // Prevenir que o clique no link ou ícone abra o drawer
+      linkEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+      iconEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+        // Navegar para a página do paciente quando clicar no ícone também
+        window.location.href = `/painel/pacientes/${pacienteId}`;
+      });
+
+      linkContainer.appendChild(linkEl);
+      linkContainer.appendChild(iconEl);
+      main.appendChild(linkContainer);
+    } else {
+      // Sem paciente vinculado, mostrar apenas o texto
+      const titleEl = document.createElement("div");
+      titleEl.className = "fc-event-title";
+      titleEl.textContent = nomePaciente;
+      main.appendChild(titleEl);
+    }
+
     if (timeText) {
       const timeEl = document.createElement("div");
       timeEl.className = "fc-event-time";
@@ -347,11 +407,30 @@ const calendarOptions = ref<CalendarOptions>({
         break;
     }
     const titleEl = info.el.querySelector(".fc-event-title") as HTMLElement;
+    const patientLinkContainer = info.el.querySelector(
+      ".fc-event-patient-link-container"
+    ) as HTMLElement;
+    const patientLinkEl = info.el.querySelector(
+      ".fc-event-patient-link"
+    ) as HTMLElement;
+    const patientIconEl = info.el.querySelector(
+      ".fc-event-patient-icon"
+    ) as SVGElement;
     const timeEl = info.el.querySelector(".fc-event-time") as HTMLElement;
     const checkEl = info.el.querySelector(".fc-event-check") as HTMLElement;
+
     if (titleEl) {
       titleEl.style.color = info.el.style.color;
       titleEl.style.paddingLeft = "0.3rem";
+    }
+    if (patientLinkContainer) {
+      patientLinkContainer.style.paddingLeft = "0.3rem";
+    }
+    if (patientLinkEl) {
+      patientLinkEl.style.color = info.el.style.color;
+    }
+    if (patientIconEl) {
+      patientIconEl.style.color = info.el.style.color;
     }
     if (timeEl) {
       timeEl.style.color = info.el.style.color;
@@ -611,6 +690,7 @@ async function fetchAppointments() {
         return {
           id,
           title:
+            appointment.paciente?.nome_completo ||
             appointment.nome_cliente ||
             appointment.titulo ||
             "Paciente Desconhecido",
@@ -781,6 +861,38 @@ watch(selectedDate, (d) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+::v-deep(.fc .fc-event-custom .fc-event-patient-link-container) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+::v-deep(.fc .fc-event-custom .fc-event-patient-link) {
+  font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  flex: 1;
+  min-width: 0;
+}
+::v-deep(.fc .fc-event-custom .fc-event-patient-link:hover) {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+::v-deep(.fc .fc-event-custom .fc-event-patient-icon) {
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+::v-deep(.fc .fc-event-custom .fc-event-patient-link-container:hover .fc-event-patient-icon) {
+  opacity: 1;
 }
 ::v-deep(.fc .fc-event-check) {
   margin-left: 8px;

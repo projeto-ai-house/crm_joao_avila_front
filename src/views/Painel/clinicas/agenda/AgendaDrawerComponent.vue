@@ -39,6 +39,7 @@
               type="text"
               fluid
               size="small"
+              v-model="preservedValues.titulo"
             />
             <label for="titulo"
               >Título
@@ -63,6 +64,7 @@
               fluid
               dateFormat="dd/mm/yy"
               size="small"
+              v-model="preservedValues.data"
             />
             <label for="data"
               >Data
@@ -88,6 +90,7 @@
               optionLabel="label"
               fluid
               size="small"
+              v-model="preservedValues.hora"
             />
             <label for="hora"
               >Hora
@@ -115,6 +118,7 @@
               fluid
               size="small"
               showButtons
+              v-model="preservedValues.duracao_sec"
             />
             <label for="duracao_sec">
               Duração (minutos)
@@ -140,6 +144,7 @@
               optionLabel="Nome"
               fluid
               size="small"
+              v-model="preservedValues.MedicoID"
             />
             <label for="MedicoID"
               >Médico
@@ -165,6 +170,7 @@
               optionLabel="label"
               fluid
               size="small"
+              v-model="preservedValues.status"
             />
             <label for="status"
               >Status
@@ -189,8 +195,8 @@
           <User class="w-5 h-5" /> Dados do Paciente
         </div>
 
-        <!-- Buscar Paciente Existente -->
-        <div class="col-span-12">
+        <!-- Buscar Paciente Existente (apenas ao criar novo agendamento) -->
+        <div v-if="!isEditing" class="col-span-12">
           <div class="flex flex-col gap-2">
             <label class="text-sm text-gray-600">
               Buscar paciente cadastrado (opcional)
@@ -202,7 +208,7 @@
                 type="text"
                 fluid
                 size="small"
-                placeholder="Digite CPF ou nome do paciente"
+                placeholder="Digite o CPF do paciente"
                 @keyup.enter="buscarPaciente"
                 :disabled="loadingPaciente"
                 class="flex-1"
@@ -443,6 +449,17 @@ const pacienteSelecionado = ref<IPatient | null>(null);
 const loadingPaciente = ref(false);
 const erroBuscaPaciente = ref("");
 
+// Refs para preservar valores de agendamento durante vinculação de paciente
+const preservedValues = ref({
+  titulo: "",
+  data: null as Date | null,
+  hora: "",
+  duracao_sec: null as number | null,
+  MedicoID: "",
+  convenio: "",
+  status: "",
+});
+
 const horariosDisponiveis = ref([
   { label: "08:00", value: "08:00" },
   { label: "08:30", value: "08:30" },
@@ -668,7 +685,7 @@ async function saveAppointment({ valid, values, states }) {
 // Funções de busca de paciente
 async function buscarPaciente() {
   if (!buscaPaciente.value.trim()) {
-    erroBuscaPaciente.value = "Digite um CPF ou nome para buscar.";
+    erroBuscaPaciente.value = "Digite um CPF para buscar.";
     return;
   }
 
@@ -677,14 +694,9 @@ async function buscarPaciente() {
 
   try {
     // Remove formatação do CPF se houver (mantém apenas números)
-    const cpfSemFormatacao = buscaPaciente.value.replace(/\D/g, "");
+    const termo = buscaPaciente.value.replace(/\D/g, "");
 
-    // Formatar CPF para o formato esperado pela API: 123.123.321-21
-    const termo = cpfSemFormatacao.length === 11
-      ? formatarCPFParaAPI(cpfSemFormatacao)
-      : buscaPaciente.value.trim();
-
-    // Busca o paciente (API aceita ID ou CPF formatado)
+    // Busca o paciente (API aceita ID ou CPF normalizado)
     const response = await PatientsServices.getPatient(termo);
 
     if (response.status === 200 && response.data?.data) {
@@ -713,19 +725,28 @@ async function buscarPaciente() {
 }
 
 function preencherDadosPaciente(paciente: IPatient) {
-  // Preencher os campos do formulário com os dados do paciente
+  // Copiar valores preservados de volta para initialValues (dados do agendamento)
+  if (preservedValues.value.titulo) initialValues.value.titulo = preservedValues.value.titulo;
+  if (preservedValues.value.data) initialValues.value.data = preservedValues.value.data;
+  if (preservedValues.value.hora) initialValues.value.hora = preservedValues.value.hora;
+  if (preservedValues.value.duracao_sec !== null) initialValues.value.duracao_sec = preservedValues.value.duracao_sec;
+  if (preservedValues.value.MedicoID) initialValues.value.MedicoID = preservedValues.value.MedicoID;
+  if (preservedValues.value.convenio) initialValues.value.convenio = preservedValues.value.convenio;
+  if (isEditing.value && preservedValues.value.status) initialValues.value.status = preservedValues.value.status;
+
+  // Atualizar campos do paciente
   initialValues.value.Nome_paciente = paciente.nome_completo;
   initialValues.value.data_nascimento = paciente.data_nascimento
     ? new Date(paciente.data_nascimento)
     : null;
   initialValues.value.telefone_contato = paciente.celular || paciente.telefone || "";
 
-  // Preencher convênio se disponível
+  // Preencher convênio se disponível (sobrescrever apenas se paciente tiver)
   if (paciente.convenio_1_plano) {
     initialValues.value.convenio = paciente.convenio_1_plano;
   }
 
-  // Forçar remontagem do formulário para atualizar os campos
+  // Incrementar formKey para forçar remontagem do formulário com todos os valores
   formKey.value++;
 }
 
@@ -734,7 +755,16 @@ function limparPaciente() {
   buscaPaciente.value = "";
   erroBuscaPaciente.value = "";
 
-  // Limpar campos do paciente
+  // Copiar valores preservados de volta para initialValues (dados do agendamento)
+  if (preservedValues.value.titulo) initialValues.value.titulo = preservedValues.value.titulo;
+  if (preservedValues.value.data) initialValues.value.data = preservedValues.value.data;
+  if (preservedValues.value.hora) initialValues.value.hora = preservedValues.value.hora;
+  if (preservedValues.value.duracao_sec !== null) initialValues.value.duracao_sec = preservedValues.value.duracao_sec;
+  if (preservedValues.value.MedicoID) initialValues.value.MedicoID = preservedValues.value.MedicoID;
+  if (preservedValues.value.convenio) initialValues.value.convenio = preservedValues.value.convenio;
+  if (isEditing.value && preservedValues.value.status) initialValues.value.status = preservedValues.value.status;
+
+  // Limpar apenas campos do paciente
   initialValues.value.Nome_paciente = "";
   initialValues.value.data_nascimento = null;
   initialValues.value.telefone_contato = "";
@@ -755,12 +785,6 @@ function formatarCPF(cpf: string): string {
   const cleaned = cpf.replace(/\D/g, "");
   if (cleaned.length !== 11) return cpf;
   return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-}
-
-function formatarCPFParaAPI(cpf: string): string {
-  // Formata CPF para o padrão da API: 123.123.321-21
-  if (!cpf || cpf.length !== 11) return cpf;
-  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 }
 
 async function fetchMedicos() {
@@ -900,10 +924,47 @@ watch(
           MedicoID: props.inEdition.medico_id || "",
           status: props.inEdition.status || "ATIVO",
         };
+
+        // Sincronizar preservedValues com initialValues
+        preservedValues.value = {
+          titulo: initialValues.value.titulo,
+          data: initialValues.value.data,
+          hora: initialValues.value.hora,
+          duracao_sec: initialValues.value.duracao_sec,
+          MedicoID: initialValues.value.MedicoID,
+          convenio: initialValues.value.convenio,
+          status: initialValues.value.status,
+        };
+
         appointmentId.value = props.inEdition.id || null;
 
         // Forçar remontagem do formulário
         formKey.value++;
+      } else {
+        // Modo de criação de novo agendamento
+        initialValues.value = {
+          titulo: "AGENDAMENTO",
+          convenio: "",
+          Nome_paciente: "",
+          telefone_contato: "",
+          data: null,
+          hora: "",
+          duracao_sec: 30,
+          data_nascimento: null,
+          MedicoID: "",
+          status: "",
+        };
+
+        // Sincronizar preservedValues com initialValues
+        preservedValues.value = {
+          titulo: "AGENDAMENTO",
+          data: null,
+          hora: "",
+          duracao_sec: 30,
+          MedicoID: "",
+          convenio: "",
+          status: "",
+        };
       }
 
       resolver.value = zodResolver(getValidationSchema());
@@ -925,6 +986,17 @@ watch(
         duracao_sec: 30,
         data_nascimento: null,
         MedicoID: "",
+        status: "",
+      };
+
+      // Limpar preservedValues
+      preservedValues.value = {
+        titulo: "",
+        data: null,
+        hora: "",
+        duracao_sec: null,
+        MedicoID: "",
+        convenio: "",
         status: "",
       };
 
