@@ -506,8 +506,9 @@ const horariosDisponiveis = ref(gerarHorariosDisponiveis());
 
 const statusOptions = ref([
   { label: "Ativo", value: "ATIVO" },
-  { label: "Cancelado", value: "CANCELADO" },
   { label: "Confirmado", value: "CONFIRMADO" },
+  { label: "Concluido", value: "CONCLUIDO" },
+  { label: "Cancelado", value: "CANCELADO" },
 ]);
 
 const initialValues = ref({

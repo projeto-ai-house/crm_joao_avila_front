@@ -269,7 +269,11 @@ const calendarOptions = ref<CalendarOptions>({
     const fullData = arg.event.extendedProps?.fullData;
     const paciente = fullData?.paciente;
     const pacienteId = fullData?.paciente_id || paciente?.id;
-    const nomePaciente = paciente?.nome_completo || fullData?.nome_cliente || arg.event.title || "";
+    const nomePaciente =
+      paciente?.nome_completo ||
+      fullData?.nome_cliente ||
+      arg.event.title ||
+      "";
 
     const wrapper = document.createElement("div");
     wrapper.className = "fc-event-custom";
@@ -292,7 +296,10 @@ const calendarOptions = ref<CalendarOptions>({
       linkEl.title = `Ver detalhes de ${nomePaciente}`;
 
       // Criar ícone SVG (ExternalLink do lucide)
-      const iconEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      const iconEl = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "svg"
+      );
       iconEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
       iconEl.setAttribute("width", "14");
       iconEl.setAttribute("height", "14");
@@ -305,11 +312,23 @@ const calendarOptions = ref<CalendarOptions>({
       iconEl.className.baseVal = "fc-event-patient-icon";
 
       // Path do ícone ExternalLink
-      const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path1.setAttribute("d", "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6");
-      const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const path1 = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+      );
+      path1.setAttribute(
+        "d",
+        "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+      );
+      const path2 = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+      );
       path2.setAttribute("d", "M15 3h6v6");
-      const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const path3 = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+      );
       path3.setAttribute("d", "M10 14L21 3");
 
       iconEl.appendChild(path1);
@@ -356,7 +375,7 @@ const calendarOptions = ref<CalendarOptions>({
     return { domNodes: [wrapper] };
   },
   headerToolbar: false,
-  editable: true,
+  editable: false, // Desativa drag and drop de eventos
   selectable: true,
   navLinks: true,
   height: "auto",
@@ -891,7 +910,12 @@ watch(selectedDate, (d) => {
   opacity: 0.7;
   transition: opacity 0.2s;
 }
-::v-deep(.fc .fc-event-custom .fc-event-patient-link-container:hover .fc-event-patient-icon) {
+::v-deep(
+    .fc
+      .fc-event-custom
+      .fc-event-patient-link-container:hover
+      .fc-event-patient-icon
+  ) {
   opacity: 1;
 }
 ::v-deep(.fc .fc-event-check) {
