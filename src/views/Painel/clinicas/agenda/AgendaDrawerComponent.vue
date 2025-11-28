@@ -238,8 +238,8 @@
               <i class="pi pi-check-circle text-green-600"></i>
               <span class="text-sm text-green-700">
                 <strong>Paciente vinculado:</strong>
-                {{ pacienteSelecionado.nome_completo }} -
-                CPF: {{ formatarCPF(pacienteSelecionado.cpf) }}
+                {{ pacienteSelecionado.nome_completo }} - CPF:
+                {{ formatarCPF(pacienteSelecionado.cpf) }}
               </span>
             </div>
             <Message
@@ -411,8 +411,12 @@ import Button from "primevue/button";
 import Drawer from "primevue/drawer";
 import { useConfirm } from "primevue/useconfirm";
 import { z } from "zod";
+import appConfig from "../../../../../app-config.json";
 import { AppointmentsServices } from "../../../../services/appointments/AppointmentsServices";
-import { PatientsServices, type IPatient } from "../../../../services/patients/PatientsServices";
+import {
+  PatientsServices,
+  type IPatient,
+} from "../../../../services/patients/PatientsServices";
 import { UserLinksServices } from "../../../../services/user/UserLinksServices";
 import { UsersServices } from "../../../../services/user/UsersServices";
 import { useUserStore } from "../../../../stores/user";
@@ -470,30 +474,35 @@ const temPacienteVinculadoNoAgendamento = computed(() => {
   // Verifica se existe paciente_id e se é um UUID válido (não vazio)
   const pacienteId = props.inEdition.paciente_id;
   // Força retorno booleano com !!
-  return !!(pacienteId && typeof pacienteId === 'string' && pacienteId.trim().length > 0);
+  return !!(
+    pacienteId &&
+    typeof pacienteId === "string" &&
+    pacienteId.trim().length > 0
+  );
 });
 
-const horariosDisponiveis = ref([
-  { label: "08:00", value: "08:00" },
-  { label: "08:30", value: "08:30" },
-  { label: "09:00", value: "09:00" },
-  { label: "09:30", value: "09:30" },
-  { label: "10:00", value: "10:00" },
-  { label: "10:30", value: "10:30" },
-  { label: "11:00", value: "11:00" },
-  { label: "11:30", value: "11:30" },
-  { label: "12:00", value: "12:00" },
-  { label: "12:30", value: "12:30" },
-  { label: "13:00", value: "13:00" },
-  { label: "13:30", value: "13:30" },
-  { label: "14:00", value: "14:00" },
-  { label: "14:30", value: "14:30" },
-  { label: "15:00", value: "15:00" },
-  { label: "15:30", value: "15:30" },
-  { label: "16:00", value: "16:00" },
-  { label: "16:30", value: "16:30" },
-  { label: "17:00", value: "17:00" },
-]);
+// Função para gerar horários disponíveis dinamicamente
+function gerarHorariosDisponiveis() {
+  const horarios = [];
+  const hourInitial = appConfig.appSettings.appointments.hourInitial || 7;
+  const hourFinal = appConfig.appSettings.appointments.hourFinal || 20;
+
+  for (let hour = hourInitial; hour <= hourFinal; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      // Para na hora final sem adicionar :30
+      if (hour === hourFinal && minute > 0) break;
+
+      const timeString = `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")}`;
+      horarios.push({ label: timeString, value: timeString });
+    }
+  }
+
+  return horarios;
+}
+
+const horariosDisponiveis = ref(gerarHorariosDisponiveis());
 
 const statusOptions = ref([
   { label: "Ativo", value: "ATIVO" },
@@ -747,20 +756,28 @@ async function buscarPaciente() {
 
 function preencherDadosPaciente(paciente: IPatient) {
   // Copiar valores preservados de volta para initialValues (dados do agendamento)
-  if (preservedValues.value.titulo) initialValues.value.titulo = preservedValues.value.titulo;
-  if (preservedValues.value.data) initialValues.value.data = preservedValues.value.data;
-  if (preservedValues.value.hora) initialValues.value.hora = preservedValues.value.hora;
-  if (preservedValues.value.duracao_sec !== null) initialValues.value.duracao_sec = preservedValues.value.duracao_sec;
-  if (preservedValues.value.MedicoID) initialValues.value.MedicoID = preservedValues.value.MedicoID;
-  if (preservedValues.value.convenio) initialValues.value.convenio = preservedValues.value.convenio;
-  if (isEditing.value && preservedValues.value.status) initialValues.value.status = preservedValues.value.status;
+  if (preservedValues.value.titulo)
+    initialValues.value.titulo = preservedValues.value.titulo;
+  if (preservedValues.value.data)
+    initialValues.value.data = preservedValues.value.data;
+  if (preservedValues.value.hora)
+    initialValues.value.hora = preservedValues.value.hora;
+  if (preservedValues.value.duracao_sec !== null)
+    initialValues.value.duracao_sec = preservedValues.value.duracao_sec;
+  if (preservedValues.value.MedicoID)
+    initialValues.value.MedicoID = preservedValues.value.MedicoID;
+  if (preservedValues.value.convenio)
+    initialValues.value.convenio = preservedValues.value.convenio;
+  if (isEditing.value && preservedValues.value.status)
+    initialValues.value.status = preservedValues.value.status;
 
   // Atualizar campos do paciente
   initialValues.value.Nome_paciente = paciente.nome_completo;
   initialValues.value.data_nascimento = paciente.data_nascimento
     ? new Date(paciente.data_nascimento)
     : null;
-  initialValues.value.telefone_contato = paciente.celular || paciente.telefone || "";
+  initialValues.value.telefone_contato =
+    paciente.celular || paciente.telefone || "";
 
   // Preencher convênio se disponível (sobrescrever apenas se paciente tiver)
   if (paciente.convenio_1_plano) {
@@ -777,13 +794,20 @@ function limparPaciente() {
   erroBuscaPaciente.value = "";
 
   // Copiar valores preservados de volta para initialValues (dados do agendamento)
-  if (preservedValues.value.titulo) initialValues.value.titulo = preservedValues.value.titulo;
-  if (preservedValues.value.data) initialValues.value.data = preservedValues.value.data;
-  if (preservedValues.value.hora) initialValues.value.hora = preservedValues.value.hora;
-  if (preservedValues.value.duracao_sec !== null) initialValues.value.duracao_sec = preservedValues.value.duracao_sec;
-  if (preservedValues.value.MedicoID) initialValues.value.MedicoID = preservedValues.value.MedicoID;
-  if (preservedValues.value.convenio) initialValues.value.convenio = preservedValues.value.convenio;
-  if (isEditing.value && preservedValues.value.status) initialValues.value.status = preservedValues.value.status;
+  if (preservedValues.value.titulo)
+    initialValues.value.titulo = preservedValues.value.titulo;
+  if (preservedValues.value.data)
+    initialValues.value.data = preservedValues.value.data;
+  if (preservedValues.value.hora)
+    initialValues.value.hora = preservedValues.value.hora;
+  if (preservedValues.value.duracao_sec !== null)
+    initialValues.value.duracao_sec = preservedValues.value.duracao_sec;
+  if (preservedValues.value.MedicoID)
+    initialValues.value.MedicoID = preservedValues.value.MedicoID;
+  if (preservedValues.value.convenio)
+    initialValues.value.convenio = preservedValues.value.convenio;
+  if (isEditing.value && preservedValues.value.status)
+    initialValues.value.status = preservedValues.value.status;
 
   // Limpar apenas campos do paciente
   initialValues.value.Nome_paciente = "";
@@ -936,7 +960,9 @@ watch(
             props.inEdition.telefone_contato?.replace(/\D/g, "") || "",
           data: data,
           hora: hora,
-          duracao_sec: props.inEdition.duracao_sec ? props.inEdition.duracao_sec / 60 : 30, // Converter segundos para minutos
+          duracao_sec: props.inEdition.duracao_sec
+            ? props.inEdition.duracao_sec / 60
+            : 30, // Converter segundos para minutos
           data_nascimento: dataNascimento
             ? dayjs(dataNascimento)
                 .add(dayjs(dataNascimento).utcOffset() * -1, "minutes")

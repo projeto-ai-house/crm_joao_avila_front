@@ -22,6 +22,7 @@ const ROUTE: string = "/clinica";
 export class ClinicsServices {
   public static async getClinics(params: {
     page: number;
+    ativo?: boolean;
   }): Promise<AxiosResponse> {
     return callApi(ROUTE, "get", params, undefined, undefined, true);
   }

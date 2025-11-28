@@ -8,7 +8,42 @@
         responsáveis.
       </p>
     </div>
-    <div>
+    <div class="flex items-center gap-3">
+      <!-- Filtro Desktop -->
+      <SelectButton
+        v-model="activeFilter"
+        :options="filterOptions"
+        optionLabel="label"
+        optionValue="value"
+        @change="onFilterChange"
+        class="text-sm !hidden sm:!inline-flex"
+      />
+
+      <!-- Filtro Mobile -->
+      <Button
+        icon="pi pi-filter"
+        severity="secondary"
+        size="small"
+        class="!flex sm:!hidden !p-3"
+        @click="toggleFilterPanel"
+        v-tooltip.bottom="'Filtrar clínicas'"
+      />
+      <OverlayPanel ref="filterPanel">
+        <div class="flex flex-col gap-3 p-2">
+          <span class="font-semibold text-gray-700 text-sm"
+            >Filtrar por estado</span
+          >
+          <SelectButton
+            v-model="activeFilter"
+            :options="filterOptions"
+            optionLabel="label"
+            optionValue="value"
+            @change="onFilterChange"
+            class="text-sm"
+          />
+        </div>
+      </OverlayPanel>
+
       <Button
         label="Adicionar"
         icon="pi pi-plus"
@@ -350,6 +385,8 @@ import { Check, Power, PowerOff, TriangleAlert } from "lucide-vue-next";
 import { Button, Paginator, useToast } from "primevue";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
+import OverlayPanel from "primevue/overlaypanel";
+import SelectButton from "primevue/selectbutton";
 import { onMounted, ref } from "vue";
 import { ClinicsServices } from "../../../../services/clinics/ClinicsServices";
 import { usePermissionsStore } from "../../../../stores/permissions";
@@ -368,10 +405,21 @@ const selectedClinics = ref([]);
 const expandedRows = ref({});
 const clinics = ref([]);
 const toast = useToast();
+const filterPanel = ref();
+
+function toggleFilterPanel(event: any) {
+  filterPanel.value.toggle(event);
+}
 
 const rows = 20; // número fixo de itens por página
 const totalRecords = ref(0);
 const currentPage = ref(1);
+
+const activeFilter = ref(true);
+const filterOptions = [
+  { label: "Ativas", value: true },
+  { label: "Inativas", value: false },
+];
 
 function maskCnpj(cnpj: string) {
   if (!cnpj) return "";
@@ -386,10 +434,19 @@ function changePage(event: any) {
   fetchClinics();
 }
 
+function onFilterChange() {
+  currentPage.value = 1;
+  fetchClinics();
+  if (filterPanel.value) {
+    filterPanel.value.hide();
+  }
+}
+
 function translateStatus(status: string) {
   if (!status) return "Indefinido";
   if (status === "paid") return "Pago";
   if (status === "active") return "Ativo";
+  if (status === "open") return "Em Aberto";
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
@@ -491,6 +548,7 @@ async function fetchClinics() {
     loading.value = true;
     const response = await ClinicsServices.getClinics({
       page: currentPage.value,
+      ativo: activeFilter.value,
     });
     if (response.status === 200) {
       clinics.value =

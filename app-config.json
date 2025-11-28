@@ -61,5 +61,11 @@
         "color": "green"
       }
     ]
+  },
+  "appSettings": {
+    "appointments": {
+      "hourInitial": 8,
+      "hourFinal": 20
+    }
   }
 }
