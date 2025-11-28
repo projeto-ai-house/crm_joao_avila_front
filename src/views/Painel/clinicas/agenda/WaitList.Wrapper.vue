@@ -1,5 +1,11 @@
 <template>
-  <div :class="['waitlist-wrapper p-4', { minified: props.minified }]">
+  <div
+    :class="[
+      'waitlist-wrapper',
+      props.minified ? 'p-0' : 'p-4',
+      { minified: props.minified },
+    ]"
+  >
     <!-- Popup menu for status actions -->
     <Menu ref="statusMenu" :model="statusMenuItems" popup appendTo="body" />
 
@@ -18,7 +24,7 @@
       <ProgressSpinner />
     </div> -->
 
-    <div>
+    <div :class="props.minified ? 'w-full h-full' : ''">
       <div v-if="appointments.length < 1" class="text-sm text-gray-500">
         Nenhum agendamento encontrado.
       </div>
@@ -26,7 +32,7 @@
       <DataTable
         :value="appointments"
         class="bg-white rounded-lg"
-        responsiveLayout="scroll"
+        responsiveLayout="stack"
         size="small"
         :showHeaders="!props.minified"
         v-else
@@ -482,7 +488,10 @@ onUnmounted(() => {
 
 <style scoped>
 .waitlist-wrapper {
-  min-width: 320px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Minified mode: keep cells on one line and ellipsis overflow */
@@ -496,5 +505,16 @@ onUnmounted(() => {
 
 .waitlist-wrapper.minified :deep(.p-tag) {
   line-height: 1;
+}
+
+/* Enable horizontal scroll when needed */
+.waitlist-wrapper.minified :deep(.p-datatable-wrapper) {
+  overflow-x: auto !important;
+}
+
+/* Ensure table uses natural width */
+.waitlist-wrapper.minified :deep(.p-datatable-table) {
+  min-width: 100%;
+  table-layout: auto;
 }
 </style>

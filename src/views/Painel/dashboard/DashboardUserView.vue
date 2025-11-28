@@ -167,7 +167,7 @@
           h="100%"
         >
           <div
-            class="flex flex-col justify-start items-start gap-2 h-full overflow-auto max-h-[40vw] w-full"
+            class="flex flex-col justify-start items-start gap-2 h-full max-h-[40vw] w-full overflow-y-auto"
           >
             <WaitListWrapper :minified="true" />
           </div>
@@ -373,7 +373,8 @@ function calculateTime(aiMidTime = 0, messagesCount = 0) {
   console.log(Math.round(totalAI - totalHuman));
   const diff = Math.round(totalAI - totalHuman) * -1;
 
-  return `${diff / 60}h`;
+  const hours = diff / 60;
+  return `${Number(hours.toFixed(2))}h`;
 }
 
 function extractStatusCounts(obj: any) {
