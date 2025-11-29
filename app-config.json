@@ -2,24 +2,58 @@
   "tutorials": [
     {
       "id": 1,
-      "title": "Introdução ao Sistema",
-      "description": "Aprenda os conceitos básicos e como navegar pelo sistema Mednova",
-      "duration": "5:30",
+      "title": "Aula 1 - Dashboard",
+      "description": "Aprenda nessa aula como utilizar uma das ferramentas mais importantes para a sua clínica! O Dashboard contém informações importantes que sua clínica precisa entender se quiser aumentar seu faturamento!",
+      "duration": "",
       "category": "Iniciante",
-      "videoUrl": "",
-      "thumbnail": "",
-      "tags": ["básico", "navegação", "introdução"],
-      "textContent": "<h4>Passo a Passo:</h4><ol><li><strong>Login:</strong> Acesse o sistema com suas credenciais</li><li><strong>Dashboard:</strong> Visualize os principais indicadores</li><li><strong>Menu:</strong> Explore as funcionalidades disponíveis</li><li><strong>Configurações:</strong> Personalize sua experiência</li></ol><h4>Dicas Importantes:</h4><ul><li>Mantenha seus dados sempre atualizados</li><li>Use os filtros para encontrar informações rapidamente</li><li>Configure notificações para não perder compromissos</li></ul>"
+      "videoUrl": "https://youtu.be/3OdQ_QUIVB0?si=8uz17q8j8W6N18Wl",
+      "thumbnail": "https://img.youtube.com/vi/3OdQ_QUIVB0/maxresdefault.jpg",
+      "tags": ["dashboard", "faturamento", "iniciante"],
+      "textContent": ""
     },
     {
       "id": 2,
-      "title": "Gerenciamento de Agenda",
-      "description": "Como gerenciar agendamentos, criar consultas e organizar sua agenda de forma eficiente",
-      "duration": "8:45",
+      "title": "Aula 2 - Usuário",
+      "description": "Nessa aula você vai aprender a como criar Usuários para o seu sistema. Adicionar sua secretária, mais médicos. Etc…",
+      "duration": "",
+      "category": "Iniciante",
+      "videoUrl": "https://youtu.be/XKvjyuv5aks?si=VnsI9V1Hx0v7gDQV",
+      "thumbnail": "https://img.youtube.com/vi/XKvjyuv5aks/maxresdefault.jpg",
+      "tags": ["usuários", "cadastro", "configurações"],
+      "textContent": ""
+    },
+    {
+      "id": 3,
+      "title": "Aula 3 - Agenda",
+      "description": "Nessa aula você aprenderá como funciona a Agenda da Mednova e como você como médico pode tirar o maior proveito dela.",
+      "duration": "",
       "category": "Intermediário",
-      "videoUrl": "https://www.youtube.com/watch?v=iVEwTB4WDmo",
-      "thumbnail": "https://img.youtube.com/vi/iVEwTB4WDmo/maxresdefault.jpg",
-      "tags": ["agenda", "consultas", "agendamento"]
+      "videoUrl": "https://youtu.be/bZUCyZmSQfQ?si=cWTxXSQJaQbIbZJP",
+      "thumbnail": "https://img.youtube.com/vi/bZUCyZmSQfQ/maxresdefault.jpg",
+      "tags": ["agenda", "consultas", "organização"],
+      "textContent": ""
+    },
+    {
+      "id": 4,
+      "title": "Aula 4 - Pacientes",
+      "description": "Nessa aula você vai aprender tudo sobre a funcionalidade de Pacientes da Mednova",
+      "duration": "",
+      "category": "Intermediário",
+      "videoUrl": "https://youtu.be/Jmy0ipBvK_c?si=dVoAd9yl-dWh54LA",
+      "thumbnail": "https://img.youtube.com/vi/Jmy0ipBvK_c/maxresdefault.jpg",
+      "tags": ["pacientes", "cadastro", "prontuário"],
+      "textContent": ""
+    },
+    {
+      "id": 5,
+      "title": "Aula 5 - Indique um Amigo",
+      "description": "Nessa aula você vai aprender como pode conseguir uma condição incrível ajudando você e seu amigo!",
+      "duration": "",
+      "category": "Iniciante",
+      "videoUrl": "https://youtu.be/jceNyZvZzxw?si=WEIO-dwE7BT-5xg6",
+      "thumbnail": "https://img.youtube.com/vi/jceNyZvZzxw/maxresdefault.jpg",
+      "tags": ["indique", "benefícios", "parcerias"],
+      "textContent": ""
     }
   ],
   "categories": [
