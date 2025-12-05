@@ -222,6 +222,7 @@
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 import { Button, Card, Paginator, useConfirm, useToast } from "primevue";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
@@ -319,7 +320,15 @@ async function fetchPatients() {
       limite: rows,
     });
     if (response.status === 200) {
-      patients.value = response.data?.data?.pacientes || [];
+      console.log(response.data?.data?.pacientes);
+
+      patients.value =
+        response.data?.data?.pacientes?.map((patient: any) => ({
+          ...patient,
+          data_nascimento: dayjs(patient.data_nascimento)
+            .add(dayjs(patient.data_nascimento).utcOffset() * -1, "minutes")
+            .toDate(),
+        })) || [];
       totalRecords.value = response.data?.data?.Itens || 0;
       const insights = response.data?.data?.estatisticas || {};
 
