@@ -294,18 +294,20 @@
               <ImagePlus :size="18" class="text-gray-600" />
             </button>
 
-            <input
+            <textarea
+              ref="messageTextarea"
               v-model="messageInput"
-              type="text"
               :placeholder="
                 selectedImage
                   ? 'Adicione uma legenda (opcional)...'
                   : 'Digite sua mensagem...'
               "
-              class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="flex-1 px-4 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none overflow-y-auto"
               :disabled="connectionState !== 'connected' || isUploading"
-              @keypress="handleKeyPress"
-            />
+              @keydown="handleKeyPress"
+              @input="adjustTextareaHeight"
+              rows="1"
+            ></textarea>
             <button
               @click="selectedImage ? sendImageMessage() : sendMessage()"
               :disabled="
@@ -366,6 +368,7 @@ const isOpen = ref(false);
 const messages = ref<ChatMessage[]>([]);
 const messageInput = ref("");
 const messagesContainer = ref<HTMLElement | null>(null);
+const messageTextarea = ref<HTMLTextAreaElement | null>(null);
 const connectionState = ref<ConnectionState>("disconnected");
 const errorMessage = ref<string | null>(null);
 const quickMessages = ref<QuickMessage[]>([]);
@@ -408,7 +411,19 @@ function sendQuickMessage(text: string) {
   messageInput.value = text;
 }
 
-// Configurar WebSocket
+/**
+ * Configurar e conectar WebSocket
+ *
+ * Esta função é chamada automaticamente no onMounted do componente,
+ * ANTES do usuário abrir o chat. Isso garante que:
+ *
+ * 1. O histórico de mensagens seja carregado imediatamente
+ * 2. Novas mensagens sejam recebidas mesmo com chat fechado
+ * 3. O array `messages` esteja populado quando o usuário abrir o chat
+ *
+ * O chat pode estar visualmente fechado, mas o WebSocket permanece ativo
+ * recebendo mensagens em background.
+ */
 const setupWebSocket = () => {
   const userData = userStore.getData();
   if (!userData?.ID || !userData?.Clinica?.[0]?.ID) {
@@ -436,9 +451,44 @@ const setupWebSocket = () => {
     // console.log("Estado da conexão:", state);
   });
 
+  /**
+   * Callback de novas mensagens do agente
+   * Executado quando o servidor envia uma resposta via WebSocket
+   *
+   * IMPORTANTE: Mensagens podem chegar mesmo com o chat fechado,
+   * pois o WebSocket está sempre conectado em background.
+   */
   wsService.onMessage((message) => {
     messages.value.push(message);
-    scrollToBottom();
+
+    // Só fazer scroll se o chat estiver aberto
+    if (isOpen.value) {
+      scrollToBottom();
+    }
+  });
+
+  /**
+   * Callback de histórico de mensagens
+   * Recebe mensagens antigas do servidor via WebSocket (tipo "history")
+   * - Formato: { type: "history", data: { messages: [...] } }
+   * - Messages são convertidas automaticamente pelo WebSocketService
+   * - direction: "incoming" → sender: "user" (usuário)
+   * - direction: "outgoing" → sender: "agent" (agente)
+   * - Anexos têm URLs convertidas para URLs completas
+   *
+   * IMPORTANTE: Este callback é executado mesmo com o chat fechado,
+   * pois o WebSocket conecta automaticamente no onMounted.
+   * As mensagens são armazenadas em memória e estarão disponíveis
+   * quando o usuário abrir o chat.
+   */
+  wsService.onHistory((historyMessages) => {
+    // Adicionar mensagens do histórico no início (já vêm ordenadas)
+    messages.value = [...historyMessages, ...messages.value];
+
+    // Só fazer scroll se o chat estiver aberto
+    if (isOpen.value) {
+      scrollToBottom();
+    }
   });
 
   wsService.onError((error) => {
@@ -452,17 +502,25 @@ const setupWebSocket = () => {
   wsService.connect();
 };
 
-// Toggle chat
+/**
+ * Toggle chat aberto/fechado
+ * WebSocket já está conectado desde o onMounted, então apenas:
+ * - Abre/fecha a interface visual
+ * - Faz scroll para o final quando abrir (para mostrar mensagens mais recentes)
+ */
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
 
   if (isOpen.value) {
-    // Conectar ao WebSocket quando abrir
+    // WebSocket já deve estar conectado desde o onMounted
+    // Se por algum motivo não estiver, reconectar
     if (!wsService) {
       setupWebSocket();
     } else if (wsService.getState() === "disconnected") {
       wsService.connect();
     }
+
+    // Scroll para o final ao abrir (mostra mensagens mais recentes)
     nextTick(() => scrollToBottom());
   }
 };
@@ -483,6 +541,12 @@ const sendMessage = () => {
 
   messages.value.push(userMessage);
   messageInput.value = "";
+
+  // Reset textarea height
+  if (messageTextarea.value) {
+    messageTextarea.value.style.height = 'auto';
+  }
+
   scrollToBottom();
 
   // Enviar via WebSocket
@@ -504,11 +568,37 @@ const scrollToBottom = () => {
   });
 };
 
-// Handle Enter key
+/**
+ * Auto-resize textarea
+ * Ajusta automaticamente a altura do textarea conforme o conteúdo
+ * - Altura mínima: 40px (1 linha)
+ * - Altura máxima: 150px (~6 linhas)
+ * - Scrollbar aparece quando ultrapassa o máximo
+ */
+const adjustTextareaHeight = () => {
+  if (!messageTextarea.value) return;
+
+  // Reset height to calculate scrollHeight correctly
+  messageTextarea.value.style.height = 'auto';
+
+  // Set new height based on content (max 150px = ~6 lines)
+  const newHeight = Math.min(messageTextarea.value.scrollHeight, 150);
+  messageTextarea.value.style.height = `${newHeight}px`;
+};
+
+/**
+ * Handle Enter key
+ * - Enter (sozinho): Envia a mensagem
+ * - Shift + Enter: Adiciona quebra de linha
+ */
 const handleKeyPress = (event: KeyboardEvent) => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
-    sendMessage();
+    if (selectedImage.value) {
+      sendImageMessage();
+    } else {
+      sendMessage();
+    }
   }
 };
 
@@ -657,7 +747,12 @@ const sendImageMessage = async () => {
 
 // Lifecycle
 onMounted(() => {
-  // Não conectar automaticamente - só quando abrir o chat
+  /**
+   * Conectar WebSocket automaticamente ao montar o componente
+   * Isso garante que o histórico seja carregado mesmo se o usuário não abrir o chat
+   * O chat pode ficar fechado, mas as mensagens ficam armazenadas em memória
+   */
+  setupWebSocket();
 });
 
 onBeforeUnmount(() => {
@@ -876,5 +971,32 @@ onBeforeUnmount(() => {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
   }
+}
+
+/* Estilo do textarea */
+textarea {
+  min-height: 40px;
+  max-height: 150px;
+  line-height: 1.5;
+  font-family: inherit;
+  transition: height 0.1s ease;
+}
+
+/* Scrollbar do textarea */
+textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 2px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.5);
 }
 </style>

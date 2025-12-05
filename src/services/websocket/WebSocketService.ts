@@ -5,6 +5,7 @@ import type {
   ConnectionMessage,
   ConnectionState,
   ErrorMessage,
+  HistoryMessage,
   MessageReceivedMessage,
   OutgoingMessage,
   WebSocketConfig,
@@ -25,6 +26,7 @@ export class WebSocketService {
   private onStateChangeCallback?: (state: ConnectionState) => void;
   private onMessageCallback?: (message: ChatMessage) => void;
   private onErrorCallback?: (error: string) => void;
+  private onHistoryCallback?: (messages: ChatMessage[]) => void;
 
   constructor(config: WebSocketConfig) {
     this.config = {
@@ -57,6 +59,17 @@ export class WebSocketService {
 
   public onError(callback: (error: string) => void): void {
     this.onErrorCallback = callback;
+  }
+
+  /**
+   * Callback para receber histórico de mensagens
+   * @param callback Função chamada quando o servidor envia mensagens antigas
+   * - Mensagens já vêm convertidas para ChatMessage[]
+   * - Ordenadas por timestamp (mais antigas primeiro)
+   * - Anexos com URLs completas
+   */
+  public onHistory(callback: (messages: ChatMessage[]) => void): void {
+    this.onHistoryCallback = callback;
   }
 
   // Gerar Connection ID
@@ -156,38 +169,151 @@ export class WebSocketService {
     };
   }
 
-  // Processar mensagens recebidas
+  /**
+   * Processar mensagens recebidas via WebSocket
+   *
+   * O servidor pode enviar mensagens em diferentes formatos:
+   * 1. Uma única mensagem JSON válida (caso comum)
+   * 2. Múltiplas mensagens JSON separadas por newline (\n)
+   * 3. Mensagens com caracteres extras (whitespace, newlines)
+   *
+   * Estratégia de parsing em camadas:
+   * - Camada 1: Tenta parsear como JSON único (rápido)
+   * - Camada 2: Se falhar, divide por \n e tenta cada linha
+   * - Camada 3: Filtra linhas vazias/whitespace
+   * - Camada 4: Logs detalhados se tudo falhar
+   *
+   * Esta abordagem garante:
+   * - Performance (caso comum é otimizado)
+   * - Resiliência (não quebra com formatos inesperados)
+   * - Observabilidade (logs detalhados para debug)
+   * - Tolerância a falhas (uma mensagem ruim não para tudo)
+   *
+   * @param event - MessageEvent do WebSocket contendo os dados brutos
+   *
+   * @example
+   * // Caso 1: JSON único
+   * {"type":"connection","data":{...}}
+   *
+   * @example
+   * // Caso 2: Múltiplas mensagens
+   * {"type":"connection","data":{...}}
+   * {"type":"history","data":{...}}
+   *
+   * @example
+   * // Caso 3: Com whitespace
+   * {"type":"connection","data":{...}}
+   *
+   * {"type":"history","data":{...}}
+   */
   private handleMessage(event: MessageEvent): void {
     try {
-      const message: WebSocketMessage = JSON.parse(event.data);
-      // console.log("Mensagem recebida:", message);
+      const rawData = event.data as string;
 
-      switch (message.type) {
-        case "connection":
-          this.handleConnectionMessage(message as ConnectionMessage);
-          break;
+      // === VALIDAÇÃO INICIAL ===
+      // Se for vazio ou só whitespace, ignorar silenciosamente
+      // Isso previne erros desnecessários com mensagens vazias
+      if (!rawData || !rawData.trim()) {
+        return;
+      }
 
-        case "message_received":
-          this.handleMessageReceived(message as MessageReceivedMessage);
-          break;
+      // === CAMADA 1: Parsing Direto (Caso Comum - Otimizado) ===
+      // Tenta parsear como JSON único primeiro
+      // Este é o caso mais comum e mais rápido
+      try {
+        const message: WebSocketMessage = JSON.parse(rawData);
+        this.processMessage(message);
+        return; // Sucesso! Retorna imediatamente
+      } catch (firstError) {
+        // === CAMADA 2: Múltiplas Mensagens ===
+        // Se parsing direto falhou, pode ser múltiplas mensagens concatenadas
+        // Exemplo: {"type":"a"}\n{"type":"b"}
 
-        case "agent_response":
-          this.handleAgentResponse(message as AgentResponseMessage);
-          break;
+        // Dividir por newline e filtrar linhas vazias/whitespace
+        const lines = rawData.split('\n').filter(line => line.trim());
 
-        case "pong":
-          // console.log("Pong recebido - conexão ativa");
-          break;
-
-        case "error":
-          this.handleError(message as ErrorMessage);
-          break;
-
-        default:
-        // console.log("Mensagem desconhecida:", message);
+        if (lines.length > 1) {
+          // === CAMADA 3: Processar Cada Linha Individualmente ===
+          // Encontramos múltiplas linhas não-vazias
+          // Tentar parsear cada uma como JSON separado
+          lines.forEach(line => {
+            try {
+              const message: WebSocketMessage = JSON.parse(line.trim());
+              this.processMessage(message);
+            } catch (lineError) {
+              // Log detalhado para debug
+              console.error("❌ Erro ao processar linha JSON:", lineError);
+              console.error("📄 Linha problemática:", line);
+            }
+          });
+        } else {
+          // === CAMADA 4: Erro Real - Logging Detalhado ===
+          // Não é múltiplas mensagens e não é JSON válido
+          // Logar informações para debug
+          console.error("❌ Erro ao processar mensagem WebSocket:", firstError);
+          console.error("📄 Dados recebidos (primeiros 200 chars):", rawData.substring(0, 200));
+        }
       }
     } catch (error) {
-      console.error("Erro ao processar mensagem:", error);
+      // === CAMADA 5: Catch Final - Erro Crítico ===
+      // Algo deu muito errado - não deveria chegar aqui
+      console.error("🔥 Erro crítico ao processar mensagem:", error);
+    }
+  }
+
+  /**
+   * Processa uma mensagem WebSocket individual já parseada
+   *
+   * Este método é chamado por handleMessage() após o parsing bem-sucedido.
+   * Separa a lógica de parsing da lógica de processamento, permitindo:
+   * - Reutilização de código (múltiplas mensagens usam o mesmo processador)
+   * - Melhor testabilidade
+   * - Código mais limpo e organizado
+   *
+   * @param message - Mensagem WebSocket já parseada e validada
+   *
+   * Tipos de mensagem suportados:
+   * - "connection": Confirmação de conexão estabelecida
+   * - "message_received": Confirmação de mensagem enviada para webhook
+   * - "agent_response": Resposta do agente (n8n)
+   * - "history": Histórico de mensagens antigas
+   * - "pong": Resposta ao ping (keep-alive)
+   * - "error": Erro do servidor
+   */
+  private processMessage(message: WebSocketMessage): void {
+    // Para debug, descomentar a linha abaixo:
+    // console.log("📨 Mensagem recebida:", message);
+
+    switch (message.type) {
+      case "connection":
+        this.handleConnectionMessage(message as ConnectionMessage);
+        break;
+
+      case "message_received":
+        this.handleMessageReceived(message as MessageReceivedMessage);
+        break;
+
+      case "agent_response":
+        this.handleAgentResponse(message as AgentResponseMessage);
+        break;
+
+      case "history":
+        this.handleHistory(message as HistoryMessage);
+        break;
+
+      case "pong":
+        // Pong recebido - conexão está ativa
+        // Para debug, descomentar: console.log("💓 Pong recebido");
+        break;
+
+      case "error":
+        this.handleError(message as ErrorMessage);
+        break;
+
+      default:
+        // Tipo de mensagem desconhecido - pode ser uma nova funcionalidade
+        // Para debug, descomentar: console.log("❓ Tipo desconhecido:", message);
+        break;
     }
   }
 
@@ -229,6 +355,64 @@ export class WebSocketService {
     console.error("Erro do servidor:", message.data.error);
     if (this.onErrorCallback) {
       this.onErrorCallback(message.data.error);
+    }
+  }
+
+  /**
+   * Handler para mensagens de histórico
+   * Recebe mensagens antigas do servidor e as converte para ChatMessage[]
+   *
+   * Formato esperado do servidor:
+   * {
+   *   type: "history",
+   *   data: {
+   *     messages: [
+   *       {
+   *         id: "uuid",
+   *         message: "texto",
+   *         direction: "incoming" | "outgoing",
+   *         has_attachments: boolean,
+   *         created_at: "ISO8601",
+   *         attachments: [...]
+   *       }
+   *     ]
+   *   }
+   * }
+   *
+   * Conversões realizadas:
+   * - direction: "incoming" → sender: "user" (mensagem do usuário)
+   * - direction: "outgoing" → sender: "agent" (resposta do agente)
+   * - URLs relativas de anexos → URLs completas
+   * - created_at (string) → timestamp (Date)
+   * - Ordenação por timestamp (antigas → recentes)
+   */
+  private handleHistory(message: HistoryMessage): void {
+    const historyItems = message.data.messages || [];
+
+    // Converter mensagens do histórico para ChatMessage
+    const chatMessages: ChatMessage[] = historyItems.map((item) => {
+      // Processar anexos se houver
+      const processedAttachments = (item.attachments || []).map((att) => ({
+        ...att,
+        file_url: this.getFullUrl(att.file_url),
+      }));
+
+      return {
+        id: item.id,
+        text: item.message,
+        sender: item.direction === "incoming" ? "user" : "agent",
+        timestamp: new Date(item.created_at),
+        status: "delivered",
+        attachments: processedAttachments,
+        hasAttachments: item.has_attachments,
+      };
+    });
+
+    // Ordenar por timestamp (mais antigas primeiro)
+    chatMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+    if (this.onHistoryCallback) {
+      this.onHistoryCallback(chatMessages);
     }
   }
 
